@@ -1,0 +1,64 @@
+{% load static %}
+<style>
+  nav {
+    width: 100%;
+    background: rgba(0, 0, 0);
+    padding: 20px 50px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-container img {
+    height: 40px;
+    width: auto;
+  }
+
+  .logo-container span {
+    font-size: 22px;
+    font-weight: bold;
+    color: orange;
+  }
+
+  ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    gap: 20px;
+  }
+
+  li { margin: 0; }
+
+  a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  a:hover { text-decoration: underline; }
+</style>
+
+<nav>
+  <div class="logo-container">
+    <img src="{% static 'autologo/logo.png' %}" alt="Autolink Logo" class="logo-img">
+  </div>
+
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="">Upload Vehicle</a></li>
+    <li><a href="/report/">Report</a></li>
+    <li><a href="/review/">Reviews</a></li>
+    <li><a href="/aboutus/">About Us</a></li>
+    <li><a href="/contact/">Our Services</a></li>
+    <li><a href="/login/">Log in</a></li>
+    <li><a href="/userprofile/">&#128100; Profile</a></li>
+  </ul>
+</nav>
