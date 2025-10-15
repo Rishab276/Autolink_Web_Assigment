@@ -1,0 +1,259 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'standardsearch.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Standard Search{% endblock %}</title>
+</head>
+
+<body>
+    {% include "nav.html" %} 
+
+    
+    <!-- Header with search bar and filter button -->
+    <div class="header">
+        <div class="search-container">
+            <div class="search-bar">
+                <input type="text" placeholder="Search for vehicles...">
+                <button type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Hidden checkbox for filter toggle -->
+            <input type="checkbox" id="filter-toggle" class="filter-toggle">
+            
+            <!-- Filter button that toggles the checkbox -->
+            <label for="filter-toggle" class="filter-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                Filters
+            </label>
+            
+            <!-- Filter Dropdown (hidden by default) -->
+            <div class="filter-dropdown">
+                <div class="filter-options">
+                    <div class="filter-group">
+                        <label for="price-range">Price Range</label>
+                        <select id="price-range" name="price-range">
+                            <option value="any">Any Price</option>
+                            <option value="0-1000000">Under Rs 1M</option>
+                            <option value="1000000-5000000">Rs 1M - 5M</option>
+                            <option value="5000000-10000000">Rs 5M - 10M</option>
+                            <option value="10000000+">Over Rs 10M</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="fuel-type">Fuel Type</label>
+                        <select id="fuel-type" name="fuel-type">
+                            <option value="any">Any</option>
+                            <option value="petrol">Petrol</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="electric">Electric</option>
+                            <option value="hybrid">Hybrid</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="transmission">Transmission</label>
+                        <select id="transmission" name="transmission">
+                            <option value="any">Any</option>
+                            <option value="manual">Manual</option>
+                            <option value="automatic">Automatic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="year">Year</label>
+                        <select id="year" name="year">
+                            <option value="any">Any Year</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="older">Older</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="condition">Condition</label>
+                        <select id="condition" name="condition">
+                            <option value="any">Any</option>
+                            <option value="new">New</option>
+                            <option value="used">Used</option>
+                            <option value="certified">Certified</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="apply-btn">Apply Filters</button>
+                        <button class="reset-btn">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Listings Column -->
+        <div class="listings">
+            <div class="listings-grid">
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-1" class="fav-toggle">
+                    <label for="fav-1" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-2" class="fav-toggle">
+                    <label for="fav-2" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-3" class="fav-toggle">
+                    <label for="fav-3" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-4" class="fav-toggle">
+                    <label for="fav-4" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-5" class="fav-toggle">
+                    <label for="fav-5" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-6" class="fav-toggle">
+                    <label for="fav-6" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-7" class="fav-toggle">
+                    <label for="fav-7" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+                
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-8" class="fav-toggle">
+                    <label for="fav-8" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+
+                <div class="listing-card">
+                    <input type="checkbox" id="fav-9" class="fav-toggle">
+                    <label for="fav-9" class="fav-btn"></label>
+                    <img src="https://hips.hearstapps.com/pop.h-cdn.co/assets/cm/15/05/54cae423e713b_-_american-muscle-facts-06-0312-xln.jpg?crop=1xw:0.991304347826087xh;center,top" alt="Ford Mustang">
+                    <div class="listing-info">
+                        <div class="listing-title">Ford Mustang</div>
+                        <div class="listing-details">• 15 Miles • petrol <br>•Manuel • Year - 2000</div>
+                        <div class="listing-price">Rs 5M</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+                <a href="#" class="page-link">&lt;</a>
+                <a href="#" class="page-link active">1</a>
+                <a href="#" class="page-link">2</a>
+                <a href="#" class="page-link">3</a>
+                <a href="#" class="page-link">4</a>
+                <a href="#" class="page-link">5</a>
+                <a href="#" class="page-link">6</a>
+                <span class="page-ellipsis">...</span>
+                <a href="#" class="page-link">&gt;</a>
+            </div>
+        </div>
+
+        <!-- Map Column -->
+        <div class="map">
+            <div class="map-container">
+                <img class="map-image" src="https://via.placeholder.com/600x800?text=Regional+Pricing+Map" alt="Regional Pricing Map">
+                
+                <!-- Price Tags -->
+                <div class="price-tag" style="top: 20%; left: 30%;">Rs 110k</div>
+                <div class="price-tag" style="top: 40%; left: 60%;">Rs 95k</div>
+                <div class="price-tag" style="top: 70%; left: 45%;">Rs 120k</div>
+                <div class="price-tag" style="top: 50%; left: 20%;">Rs 85k</div>
+                
+                <!-- Map Legend -->
+                <div class="map-legend">
+                    <h3>Price Legend</h3>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="color-box" style="background-color: #4CAF50;"></div>
+                            <span>Low: Rs 70k - 90k</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="color-box" style="background-color: #FFC107;"></div>
+                            <span>Medium: Rs 90k - 110k</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="color-box" style="background-color: #F44336;"></div>
+                            <span>High: Rs 110k+</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  {% include "footer.html" %}
+
+</body>
+</html>
