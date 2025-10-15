@@ -1,0 +1,157 @@
+<!-- Add Font Awesome in your <head> -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<footer class="footer-main">
+  <style>
+    .footer-main {
+      background: #1e1e1e;
+      color: #b9b9b9;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      padding: 50px 24px 30px;
+    }
+
+    .footer-columns {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 400px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .footer-col {
+      min-width: 160px;
+    }
+
+    .footer-col h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #fff;
+      border-bottom: 2px solid #3a3a3a;
+      padding-bottom: 6px;
+      display: inline-block;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      /* Force vertical stacking even if global CSS sets flex/inline on ULs */
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px;
+    }
+
+    .footer-col ul li {
+      /* Undo any global inline/float styles */
+      display: list-item !important;
+      margin: 0;
+    }
+
+    .footer-col ul li a {
+      text-decoration: none;
+      color: #b9b9b9;
+      font-size: 0.95rem;
+      transition: color 0.2s ease;
+      display: block; /* make the whole line clickable */
+    }
+
+    .footer-col ul li a:hover {
+      color: #fff;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .footer-bottom .copy {
+      font-size: 0.9rem;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 12px;
+    }
+
+    .footer-social a {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      text-decoration: none;
+      transition: background 0.2s ease, transform 0.2s ease;
+      font-size: 18px;
+    }
+
+    .footer-social a:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+  </style>
+
+  <div class="footer-columns">
+    <!-- Explore -->
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">All Vehicles</a></li>
+        <li><a href="#">Filter</a></li>
+        <li><a href="#">Saved Vehicles</a></li>
+        <li><a href="#">Recommendations</a></li>
+      </ul>
+    </div>
+
+    <!-- Info -->
+    <div class="footer-col">
+      <h4>Info</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Reviews</a></li>
+        <li><a href="#">Report</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">FAQ</a></li>
+      </ul>
+    </div>
+
+    <!-- Account -->
+    <div class="footer-col">
+      <h4>Account</h4>
+      <ul>
+        <li><a href="#">Login</a></li>
+        <li><a href="#">Register</a></li>
+        <li><a href="#">Profile</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="copy">© 2025 AutoLink. All rights reserved.</div>
+
+    <div class="footer-social">
+      <!-- WhatsApp -->
+      <a href="https://wa.me/23059378817" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+      </a>
+
+      <!-- Email -->
+      <a href="info@autolink.com" target="_blank" rel="noopener" aria-label="Email">
+        <i class="fas fa-envelope"></i>
+      </a>
+
+      <!-- Facebook -->
+      <a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+    </div>
+  </div>
+</footer>
