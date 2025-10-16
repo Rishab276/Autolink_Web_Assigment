@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Autolink</title>
+    
+    <!-- Bootstrap CSS for navbar -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        line-height: 1.6;
+        background-color: #f9f9f9;
+    }
+
+    .serif-content {
+        font-family: 'Georgia', 'Times New Roman', serif;
+    }
+
+    /* Container */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('{% static "aboutus/images/carbg.png" %}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        position: relative;
+        z-index: 5;
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+    }
+
+    /* About Section */
+    .about-section {
+        padding: 80px 0;
+    }
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+        align-items: center;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        color: #2c3e50;
+        position: relative;
+    }
+
+    .section-title:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -10px;
+        width: 60px;
+        height: 4px;
+        background-color: #3498db;
+    }
+
+    .about-content p {
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+    }
+
+    /* Features Section */
+    .features-section {
+        background-color: #f8f9fa;
+        padding: 80px 0;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #3498db;
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        color: #2c3e50;
+    }
+
+    /* Contact Bar */
+    .contact-bar {
+        background-color: #f1f1f1;
+        padding: 30px 0;
+        text-align: center;
+    }
+
+    .contact-container {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        flex-wrap: wrap;
+    }
+
+    .contact-item {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .contact-item i {
+        color: #3498db;
+        font-size: 1.3rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .about-grid,
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        .hero-content h1 { font-size: 2.5rem; }
+    }
+
+    @media (max-width: 768px) {
+        .footer-bottom { flex-direction: column; align-items: flex-start; }
+        .language-currency { margin-top: 20px; }
+    }
+    </style>
+</head>
+<body>
+    {% include 'nav.html' %}
+
+    <div class="serif-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Helping you find your perfect car with ease</h1>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section">
+            <div class="container">
+                <h2 class="section-title">About Our Mission</h2>
+                <div class="about-grid">
+                    <div class="about-content">
+                        <p>Autolink is an innovative online platform where our mission is to revolutionize the way people in Mauritius buy, sell, and rent vehicles. We bring together a wide range of options—from cars and motorcycles to trucks and buses—into one secure, user-friendly, and centralized marketplace.</p>
+                        <h2 class="section-title">Our Vision</h2>
+                        <p>We envision a future where finding the perfect vehicle is no longer a hassle. Whether you're looking to purchase your first car, rent a van for a day, or sell a used motorcycle, Autolink provides the tools and community you need to do it with confidence.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="container">
+                <h2 class="section-title">What makes us different?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fab fa-whatsapp"></i></div>
+                        <h3 class="feature-title">Direct Communication</h3>
+                        <p>Contact sellers seamlessly via WhatsApp to ask questions, negotiate, or arrange a test drive.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+                        <h3 class="feature-title">Interactive Map</h3>
+                        <p>See vehicle locations visually on a map for easier planning and logistics.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3 class="feature-title">Secure Platform</h3>
+                        <p>Our verification system ensures that all users and listings are genuine and trustworthy.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-tools"></i></div>
+                        <h3 class="feature-title">Comprehensive Tools</h3>
+                        <p>Access a full suite of tools for buying, selling, and renting vehicles all in one place.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Bar -->
+        <section class="contact-bar">
+            <div class="container contact-container">
+                <div class="contact-item"><i class="fas fa-phone"></i> +230 5937 8817</div>
+                <div class="contact-item"><i class="fas fa-envelope"></i> info@autolink.mu</div>
+                <div class="contact-item"><i class="fab fa-facebook-f"></i> Autolink.mu</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        {% include "footer.html" %}
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const featureCards = document.querySelectorAll('.feature-card');
+        featureCards.forEach(card => {
+            card.addEventListener('mouseenter', () => card.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)');
+            card.addEventListener('mouseleave', () => card.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.05)');
+        });
+    });
+    </script>
+</body>
+</html>
