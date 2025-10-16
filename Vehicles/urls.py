@@ -8,5 +8,3 @@ urlpatterns = [
     path('detail/<int:pk>/', views.detail, name='detail'),
 ]
 
-
-

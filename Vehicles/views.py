@@ -16,4 +16,3 @@ def detail(request,pk):
     vehicle_detail = get_object_or_404(Vehicle, pk=pk)
     return render(request, 'detail.html',{'vehicle': vehicle_detail})
 
-
