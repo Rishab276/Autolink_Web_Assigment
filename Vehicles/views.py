@@ -4,4 +4,3 @@ def standardsearch(request):
     return render(request, 'standardsearch.html')
 
 
-
