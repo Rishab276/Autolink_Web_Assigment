@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
+from Reviews import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -41,4 +42,5 @@ urlpatterns += [
 urlpatterns += [
     path('Vehicles/', include('Vehicles.urls')),
 ]
+
 
