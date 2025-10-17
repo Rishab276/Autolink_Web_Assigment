@@ -6,7 +6,6 @@
     <title>User Registration - Choose Role</title>
     <style>
         body {
-
             background: url("https://img.freepik.com/premium-photo/car-is-waiting-sale-used-car-shop-background_85347-2663.jpg") no-repeat center center fixed;
             background-size: cover;
             font-family: Arial, sans-serif;
@@ -17,17 +16,19 @@
             padding: 0;
             min-height: 100vh;
         }
-        main{
-            flex: 1; 
+
+        main {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding-bottom: 80px;
         }
-         footer {
+
+        footer {
             width: 100%;
-            margin-top: auto; 
+            margin-top: auto;
         }
 
         .register-container {
@@ -44,7 +45,9 @@
             text-align: center;
         }
 
-        .welcome { margin-bottom: 30px; }
+        .welcome {
+            margin-bottom: 30px;
+        }
         .welcome h1 {
             margin-bottom: 15px;
             font-size: 47px;
@@ -80,34 +83,27 @@
             transition: all 0.3s;
             padding: 20px;
         }
-        .user-option:hover {
-            border-color: #ff8c00;
-            background-color: rgba(255, 140, 0, 0.1);
-            transform: translateY(-5px);
+
+        .user-option input {
+            display: none;
         }
-        .user-option.selected {
-            border-color: #ff8c00;
-            background-color: rgba(255, 140, 0, 0.2);
-            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
-        }
-        .user-option i {
-            font-size: 40px;
-            margin-bottom: 15px;
-            color: #ff8c00;
-        }
+
         .user-option label {
+            color: white;
             font-size: 20px;
             font-weight: bold;
             cursor: pointer;
-        }
-        .user-option p {
-            font-size: 14px;
-            margin-top: 10px;
+            display: block;
             text-align: center;
-            color: #ccc;
         }
 
-        input[type="radio"] { display: none; }
+        input[type="radio"]:checked + label {
+            border: 3px solid #ff8c00;
+            background-color: rgba(255, 140, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
+            border-radius: 11px;
+            padding: 30px;
+        }
 
         button {
             background: #ff8c00;
@@ -121,14 +117,10 @@
             transition: all 0.3s;
             margin-top: 20px;
         }
+
         button:hover {
             background: #e67e00;
             transform: scale(1.05);
-        }
-        button:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
         }
 
         .links {
@@ -136,12 +128,16 @@
             margin-top: 30px;
             font-size: 16px;
         }
+
         .links a {
             color: #ff8c00;
             text-decoration: none;
             font-weight: bold;
         }
-        .links a:hover { text-decoration: underline; }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
 
         .next-steps {
             margin-top: 30px;
@@ -149,32 +145,31 @@
             background: rgba(255, 140, 0, 0.1);
             border-radius: 8px;
             border-left: 4px solid #ff8c00;
-
         }
 
-         nav {
-        padding: 8px 40px !important; 
+        nav {
+            padding: 8px 40px !important;
         }
 
         nav .logo-container img {
-        height: 30px !important; 
+            height: 30px !important;
         }
 
         nav .logo-container span {
-        font-size: 30px !important;
+            font-size: 30px !important;
         }
 
         nav ul li a {
-         font-size: 15px !important; 
-        padding: 5px 0 !important;
+            font-size: 15px !important;
+            padding: 5px 0 !important;
         }
     </style>
 </head>
 <body>
 
-    {% include 'nav.html' %}
- 
-    <main>
+{% include 'nav.html' %}
+
+<main>
     <div class="register-container">
         <div class="welcome">
             <h1>Join Autolink</h1>
@@ -183,26 +178,31 @@
 
         <div class="register-box">
             <h2>Select Your Role</h2>
-            <form method="post" id="registerForm">
+            <form method="post">
                 {% csrf_token %}
                 <div class="user-type">
-                    <div class="user-option" onclick="selectUserType('buyer')">
-                        <input type="radio" name="user-type" id="buyer" value="buyer">
-                        <i class="fas fa-shopping-cart"></i>
-                        <label for="buyer">Buyer</label>
-                        <p>Looking to purchase vehicles</p>
+                    <div class="user-option">
+                        <input type="radio" name="user_type" id="buyer" value="buyer" required>
+                        <label for="buyer">
+                            🛒<br>Buyer<br>
+                            <span style="font-size:14px;color:#ccc;">Looking to purchase vehicles</span>
+                        </label>
                     </div>
-                    <div class="user-option" onclick="selectUserType('seller')">
-                        <input type="radio" name="user-type" id="seller" value="seller">
-                        <i class="fas fa-car"></i>
-                        <label for="seller">Seller</label>
-                        <p>Want to sell your vehicles</p>
+
+                    <div class="user-option">
+                        <input type="radio" name="user_type" id="seller" value="seller">
+                        <label for="seller">
+                            🚗<br>Seller<br>
+                            <span style="font-size:14px;color:#ccc;">Want to sell your vehicles</span>
+                        </label>
                     </div>
-                    <div class="user-option" onclick="selectUserType('renter')">
-                        <input type="radio" name="user-type" id="renter" value="renter">
-                        <i class="fas fa-key"></i>
-                        <label for="renter">Renter</label>
-                        <p>Interested in renting vehicles</p>
+
+                    <div class="user-option">
+                        <input type="radio" name="user_type" id="renter" value="renter">
+                        <label for="renter">
+                            🔑<br>Renter<br>
+                            <span style="font-size:14px;color:#ccc;">Interested in renting vehicles</span>
+                        </label>
                     </div>
                 </div>
 
@@ -210,19 +210,19 @@
                     <p>After selecting your role, you'll be asked to provide additional information on the next page.</p>
                 </div>
 
-                <button type="submit" id="continueBtn" disabled>Continue</button>
+                <button type="submit">Continue</button>
             </form>
 
             <div class="links">
-                <p>Already have an account? <a href="#">Log in</a></p>
+                <p>Already have an account? <a href="{% url 'users:login' %}">Log in</a></p>
             </div>
         </div>
     </div>
 </main>
-    <footer>
-        {% include "footer.html" %}
-    </footer>
 
-    
+<footer>
+    {% include "footer.html" %}
+</footer>
+
 </body>
 </html>

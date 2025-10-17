@@ -8,7 +8,6 @@
         body {
             background: url("https://img.freepik.com/premium-photo/car-is-waiting-sale-used-car-shop-background_85347-2663.jpg") no-repeat center center fixed;
             background-size: cover;
-            
             font-family: Arial, sans-serif;
             color: white;
             display: flex;
@@ -24,11 +23,10 @@
             align-items:center;
             padding-bottom: 80px;
         }
-         footer {
+        footer {
             width: 100%;
             margin-top: auto; 
         }
-
         .login-container {
             display: flex;
             gap: 40px;
@@ -91,23 +89,19 @@
             cursor: pointer;
             border-radius: 5px;
         }
-         nav {
-        padding: 8px 40px !important; 
+        nav {
+            padding: 8px 40px !important; 
         }
-
         nav .logo-container img {
-        height: 30px !important; 
+            height: 30px !important; 
         }
-
         nav .logo-container span {
-        font-size: 18px !important;
+            font-size: 18px !important;
         }
-
         nav ul li a {
-         font-size: 15px !important; 
-        padding: 5px 0 !important;
+            font-size: 15px !important; 
+            padding: 5px 0 !important;
         }
-        
         a {
             color: white;  
             text-decoration: none;
@@ -125,31 +119,40 @@
 
     {% include 'nav.html' %}
    
-    
     <main>
-    <div class="login-container">
-        <div class="welcome">
-            <h1>Welcome Back</h1>
-            <p>“Back on Autolink? – perfect timing, new rides are waiting for you!”</p>
-        </div>
-        <div class="login-box">
-            <h2>User Login</h2>
-            <form method="post">
-                {% csrf_token %}
-                <input type="email" name="email" placeholder="Enter Email" required>
-                <input type="password" name="password" placeholder="Enter Password" required>
-                <div class="remember-me">
-                    <label for="remember">Remember Me</label>
-                    <input type="checkbox" id="remember">
+        
+
+        <div class="login-container">
+            <div class="welcome">
+                <h1>Welcome Back</h1>
+                <p>“Back on Autolink? – perfect timing, new rides are waiting for you!”</p>
+            </div>
+            <div class="login-box">
+                <h2>User Login</h2>
+                <!-- Fixed form action to post to the correct login view -->
+                <form method="post" action="{% url 'users:login' %}">
+                    {% csrf_token %}
+                    <input type="email" name="email" placeholder="Enter Email" required>
+                    <input type="password" name="password" placeholder="Enter Password" required>
+                    <div class="remember-me">
+                        <label for="remember">Remember Me</label>
+                        <input type="checkbox" id="remember">
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+                <div class="links">
+                    <p><a href="#">Forgot Password?</a> | <a href="{% url 'users:register' %}">Register</a></p>
                 </div>
-                <button type="submit">Login</button>
-            </form>
-            <div class="links">
-                <p><a href="#">Forgot Password?</a> | <a href="#">Register</a></p>
             </div>
         </div>
-    </div>
-</main>
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                     <li style="color: red;">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </main>
 
     <footer>
         {% include "footer.html" %}

@@ -1,6 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Vehicle
 from django.core.paginator import Paginator
+from django.shortcuts import render, get_object_or_404
+from .models import Vehicle
+from django.core.paginator import Paginator
 
 def standardsearch(request):
     vehicles = Vehicle.objects.all().order_by('id')
