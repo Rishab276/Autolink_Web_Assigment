@@ -4,15 +4,23 @@ from django.core.paginator import Paginator
 
 def standardsearch(request):
     vehicles = Vehicle.objects.all().order_by('id')
-    paginator = Paginator(vehicles, 9)
+    paginator = Paginator(vehicles, 9)  # 9 per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'standardsearch.html',{'page_obj' : page_obj})
+
+    saved_vehicle_ids = []
+    if request.user.is_authenticated:
+        saved_vehicle_ids = list(request.user.saved_vehicles.values_list('vehicle_id', flat=True))
+
+    context = {
+        'page_obj': page_obj,
+        'saved_vehicle_ids': saved_vehicle_ids
+    }
+    return render(request, 'standardsearch.html', context)
 
 def filter(request):
     return render(request, 'filter.html')
 
-def detail(request,pk):
+def detail(request, pk):
     vehicle_detail = get_object_or_404(Vehicle, pk=pk)
-    return render(request, 'detail.html',{'vehicle': vehicle_detail})
-
+    return render(request, 'detail.html', {'vehicle': vehicle_detail})
