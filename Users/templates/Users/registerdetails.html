@@ -95,11 +95,7 @@
         <h2>Welcome to Autolink</h2>
         <p class="text-center text-secondary mb-4">Buyer Registration</p>
         
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-info">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+        
         
         <form method="POST">
             {% csrf_token %}

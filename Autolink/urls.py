@@ -20,6 +20,7 @@ from django.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
@@ -37,12 +38,13 @@ urlpatterns += [
 ]
 
 urlpatterns += [
-    path('Users/', include('Users.urls')),
+    path('Users/', include(('Users.urls','users'),namespace='users')),
 ]
 
 urlpatterns += [
     path('Vehicles/', include('Vehicles.urls')),
 ]
+
 
 
 if settings.DEBUG:
