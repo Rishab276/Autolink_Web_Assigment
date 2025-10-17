@@ -37,3 +37,18 @@ def toggle_save_vehicle(request, vehicle_id):
         status = 'saved'
     
     return JsonResponse({'status': status})
+
+@login_required
+def profile_view(request):
+    uploaded_vehicles = Vehicle.objects.filter(uploader=request.user)  # Assuming you add 'uploader' FK in Vehicle
+    saved_vehicles = request.user.saved_vehicles.all()
+    return render(request, 'profile.html', {
+        'uploaded_vehicles': uploaded_vehicles,
+        'saved_vehicles': saved_vehicles,
+    })
+
+@login_required
+def remove_uploaded_vehicle(request, vehicle_id):
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
+    vehicle.delete()
+    return redirect('profile')
