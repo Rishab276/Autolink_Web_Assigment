@@ -12,7 +12,6 @@
 <body>
     {% include "nav.html" %} 
 
-    
     <!-- Header with search bar and filter button -->
     <div class="header">
         <div class="search-container">
@@ -26,60 +25,61 @@
                 </button>
             </div>
             
-            <!-- Hidden checkbox for filter toggle -->
-            <input type="checkbox" id="filter-toggle" class="filter-toggle">
-            
-            <!-- Filter button that toggles the checkbox -->
             <a href="{% url 'filter' %}" class="filter-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                 </svg>
                 Filters
             </a>
-        
         </div>
     </div>
 
     <div class="container">
-        <!-- Listings Column -->
         <div class="listings">
             <div class="listings-grid">
-               {% for vehicle in page_obj %}
+                {% for vehicle in page_obj %}
+                <div class="listing-card">
+
+                    <!-- Save button -->
+                    <button class="fav-btn" data-vehicle-id="{{ vehicle.id }}">
+                        {% if vehicle.id in saved_vehicle_ids %}
+                            🔖
+                        {% else %}
+                            📑
+                        {% endif %}
+                    </button>
+
+                    <!-- Image / Slider linking to detail page -->
                     <a href="{% url 'detail' vehicle.pk %}">
-                        <div class="listing-card">
-                            <input type="checkbox" id="fav-{{ forloop.counter }}" class="fav-toggle">
-                            <label for="fav-{{ forloop.counter }}" class="fav-btn"></label>
-
-                            <div class="slider-container" id="slider-{{ forloop.counter }}">
-                                {% if vehicle.images.all %}
-                                    {% for img in vehicle.images.all %}
-                                        {% if forloop.first %}
-                                          <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="{% if forloop.first %}active{% endif %}">
-                                        {% endif %}
-                                    {% endfor %}
-                                {% else %}
-                                    <img src="{% static 'placeholder.png' %}" alt="No image" class="active">
-                                {% endif %}
-                            </div>
-
-                            <div class="listing-info">
-                                <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
-                                <div class="listing-details">
-                                    • {{ vehicle.mileage }} km • {{ vehicle.fuel_type }} <br>
-                                    • {{ vehicle.transmission }} • Year - {{ vehicle.year }}
-                                </div>
-                                <div class="listing-price">Rs {{ vehicle.price }}</div>
-                            </div>
+                        <div class="slider-container" id="slider-{{ forloop.counter }}">
+                            {% if vehicle.images.all %}
+                                {% for img in vehicle.images.all %}
+                                    {% if forloop.first %}
+                                        <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="active">
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <img src="{% static 'placeholder.png' %}" alt="No image" class="active">
+                            {% endif %}
                         </div>
                     </a>
-                {% endfor %}
 
+                    <div class="listing-info">
+                        <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
+                        <div class="listing-details">
+                            • {{ vehicle.mileage }} km • {{ vehicle.fuel_type }} <br>
+                            • {{ vehicle.transmission }} • Year - {{ vehicle.year }}
+                        </div>
+                        <div class="listing-price">Rs {{ vehicle.price }}</div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
+
             <div class="pagination">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}" class="page-link">&lt;</a>
                 {% endif %}
-
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
                         <span class="page-link active">{{ num }}</span>
@@ -91,7 +91,6 @@
                         <span class="page-ellipsis">...</span>
                     {% endif %}
                 {% endfor %}
-
                 {% if page_obj.has_next %}
                     <a href="?page={{ page_obj.next_page_number }}" class="page-link">&gt;</a>
                 {% endif %}
@@ -134,7 +133,36 @@
         </div>
     </div>
 
-  {% include "footer.html" %}
+    <!-- AJAX for Save/Unsave -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.fav-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const vehicleId = button.dataset.vehicleId;
+
+                fetch(`/profile/toggle_save/${vehicleId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'saved') {
+                        button.textContent = '🔖';
+                    } else if (data.status === 'removed') {
+                        button.textContent = '📑';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+    </script>
+
+    {% include "footer.html" %}
 
 </body>
 </html>

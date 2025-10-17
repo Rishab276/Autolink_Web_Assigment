@@ -155,3 +155,5 @@ def uploadvehicles_view(request):
     return render(request, 'users/uploadvehicles.html')
 
 
+def uploadvehicles_view(request):
+    return render(request, 'Users/uploadvehicles.html')
