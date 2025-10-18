@@ -1,0 +1,111 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ vehicle.make }} {{ vehicle.model }} - Car Details</title>
+    <link rel="stylesheet" href="{% static 'car_details.css' %}">
+</head>
+<body>
+    {% include 'nav.html' %}
+
+    <div class="content-wrapper">
+        <div class="container">
+            <div class="left-column">
+                <div class="car-image">
+                    {% for img in vehicle.images.all %}
+                        <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="{% if forloop.first %}active{% endif %}">
+                    {% endfor %}
+
+                    <!-- Prev/Next buttons -->
+                    <button class="nav-button prev-button" onclick="changeImage(-1)">&#60;</button>
+                    <button class="nav-button next-button" onclick="changeImage(1)">&#62;</button>
+                </div>
+
+                <div class="user-info">
+                    <div class="user-avatar"></div>
+                    <div class="user-details">
+                        <h4>Seller Information</h4>
+                        <p>Contact: seller@example.com</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="car-info">
+                <h2>{{ vehicle.make }} {{ vehicle.model }}</h2>
+
+                <button class="contact-button" onclick="contactSeller()">Contact Seller</button>
+                <div class="info-item">
+                    <span class="info-label">Model:</span>
+                    <span>{{ vehicle.model }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Year:</span>
+                    <span>{{ vehicle.year }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Fuel:</span>
+                    <span>{{ vehicle.fuel_type }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Transmission:</span>
+                    <span>{{ vehicle.transmission }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Mileage:</span>
+                    <span>{{ vehicle.mileage }} km</span>
+                </div>
+                <div class="price">Rs {{ vehicle.price }}</div>
+                <div class="info-item">
+                    <span class="info-label">Description:</span>
+                    <span>{{ vehicle.desc }}</span>
+                </div>
+
+                <div class="map-section">
+                    <h3>Location</h3>
+                    <div class="map-container">
+                        Map View
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        {% include "footer.html" %}
+    </footer>
+
+    <script>
+        // JavaScript functions for image carousel
+        let slideIndex = 1;
+        
+        function changeImage(n) {
+            showImage(slideIndex += n);
+        }
+        
+        function currentImage(n) {
+            showImage(slideIndex = n);
+        }
+        
+        function showImage(n) {
+            let i;
+            let images = document.getElementsByClassName("car-image")[0].getElementsByTagName("img");
+            
+            if (n > images.length) {slideIndex = 1}
+            if (n < 1) {slideIndex = images.length}
+            
+            for (i = 0; i < images.length; i++) {
+                images[i].classList.remove("active");
+            }
+            
+            images[slideIndex-1].classList.add("active");
+        }
+        
+        function contactSeller() {
+            alert("Contact form would open here");
+        }
+    </script>
+</body>
+</html>

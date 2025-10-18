@@ -1,0 +1,497 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filters - Vehicle Marketplace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        
+        .filter-container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .filter-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            border: 1px solid #e9ecef;
+        }
+        
+        .filter-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .filter-title {
+            font-size: 2rem;
+            font-weight: 300;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .filter-subtitle {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        
+        .filter-group {
+            margin-bottom: 2rem;
+        }
+        
+        .filter-group-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-input {
+            width: 100%;
+        }
+        
+        .filter-input label {
+            display: block;
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .filter-input select,
+        .filter-input input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        
+        .filter-input select:focus,
+        .filter-input input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .slider-container {
+            margin: 2rem 0;
+        }
+        
+        .slider-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .slider-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #007bff;
+            margin-left: 0.5rem;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e9ecef;
+            outline: none;
+            margin: 1rem 0;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .slider-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .sort-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .sort-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .sort-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .sort-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sort-option:hover {
+            border-color: #007bff;
+        }
+        
+        .sort-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .apply-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .apply-btn:hover {
+            background: #0056b3;
+        }
+        
+        .clear-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .clear-btn:hover {
+            background: #545b62;
+        }
+        
+        @media (max-width: 576px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .sort-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-card {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="filter-container">
+        <div class="filter-card">
+            <!-- Header -->
+            <div class="filter-header">
+                <h1 class="filter-title">Filter Vehicles</h1>
+                <p class="filter-subtitle">Refine your search with specific criteria</p>
+            </div>
+
+            <!-- Make & Model -->
+            <div class="filter-group">
+                <h3 class="filter-group-title">Vehicle Details</h3>
+                <div class="filter-row">
+                    <div class="filter-input">
+                        <label for="make">Make</label>
+                        <select id="make">
+                            <option value="">Any Make</option>
+                            <option value="toyota">Toyota</option>
+                            <option value="honda">Honda</option>
+                            <option value="nissan">Nissan</option>
+                            <option value="suzuki">Suzuki</option>
+                            <option value="hyundai">Hyundai</option>
+                            <option value="kia">Kia</option>
+                            <option value="mercedes">Mercedes</option>
+                            <option value="bmw">BMW</option>
+                            <option value="audi">Audi</option>
+                        </select>
+                    </div>
+                    <div class="filter-input">
+                        <label for="model">Model</label>
+                        <input type="text" id="model" placeholder="Any model">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-input">
+                        <label for="year-from">Year From</label>
+                        <input type="number" id="year-from" placeholder="2000" min="1990" max="2024">
+                    </div>
+                    <div class="filter-input">
+                        <label for="year-to">Year To</label>
+                        <input type="number" id="year-to" placeholder="2024" min="1990" max="2024">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price & Mileage -->
+            <div class="filter-group">
+                <h3 class="filter-group-title">Price & Mileage</h3>
+                
+                <!-- Price Slider -->
+                <div class="slider-container">
+                    <label class="slider-label">
+                        Maximum Price: <span class="slider-value" id="price-display">Rs 2,000,000</span>
+                    </label>
+                    <input type="range" class="slider" id="price-slider" 
+                           min="0" max="5000000" value="2000000" step="100000">
+                    <div class="slider-display">
+                        <span>Rs 0</span>
+                        <span>Rs 5,000,000</span>
+                    </div>
+                </div>
+                
+                <!-- Mileage Slider -->
+                <div class="slider-container">
+                    <label class="slider-label">
+                        Maximum Mileage: <span class="slider-value" id="mileage-display">100,000 km</span>
+                    </label>
+                    <input type="range" class="slider" id="mileage-slider" 
+                           min="0" max="300000" value="100000" step="10000">
+                    <div class="slider-display">
+                        <span>0 km</span>
+                        <span>300,000 km</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specifications -->
+            <div class="filter-group">
+                <h3 class="filter-group-title">Specifications</h3>
+                <div class="filter-row">
+                    <div class="filter-input">
+                        <label for="fuel-type">Fuel Type</label>
+                        <select id="fuel-type">
+                            <option value="">Any Fuel Type</option>
+                            <option value="petrol">Petrol</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="electric">Electric</option>
+                            <option value="hybrid">Hybrid</option>
+                        </select>
+                    </div>
+                    <div class="filter-input">
+                        <label for="transmission">Transmission</label>
+                        <select id="transmission">
+                            <option value="">Any Transmission</option>
+                            <option value="automatic">Automatic</option>
+                            <option value="manual">Manual</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="filter-group">
+                <h3 class="filter-group-title">Location in Mauritius</h3>
+                <div class="filter-row">
+                    <div class="filter-input">
+                        <label for="district">District</label>
+                        <select id="district">
+                            <option value="">Any District</option>
+                            <option value="port-louis">Port Louis</option>
+                            <option value="pamplemousses">Pamplemousses</option>
+                            <option value="riviere-du-rempart">Rivière du Rempart</option>
+                            <option value="flacq">Flacq</option>
+                            <option value="grand-port">Grand Port</option>
+                            <option value="savanne">Savanne</option>
+                            <option value="plaines-wilhems">Plaines Wilhems</option>
+                            <option value="moka">Moka</option>
+                            <option value="black-river">Black River</option>
+                        </select>
+                    </div>
+                    <div class="filter-input">
+                        <label for="region">Region</label>
+                        <select id="region">
+                            <option value="">Any Region</option>
+                            <option value="north">North</option>
+                            <option value="south">South</option>
+                            <option value="east">East</option>
+                            <option value="west">West</option>
+                            <option value="central">Central</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sorting -->
+            <div class="sort-section">
+                <h4 class="sort-title">Sort Results By</h4>
+                <div class="sort-options">
+                    <label class="sort-option">
+                        <input type="radio" name="sort" value="newest" checked>
+                        Newest First
+                    </label>
+                    <label class="sort-option">
+                        <input type="radio" name="sort" value="price-low">
+                        Price: Low to High
+                    </label>
+                    <label class="sort-option">
+                        <input type="radio" name="sort" value="price-high">
+                        Price: High to Low
+                    </label>
+                    <label class="sort-option">
+                        <input type="radio" name="sort" value="mileage">
+                        Mileage: Low to High
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="clear-btn" type="button">Clear All</button>
+                <button class="apply-btn" type="button">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const applyBtn = document.querySelector('.apply-btn');
+            const clearBtn = document.querySelector('.clear-btn');
+            const priceSlider = document.getElementById('price-slider');
+            const priceDisplay = document.getElementById('price-display');
+            const mileageSlider = document.getElementById('mileage-slider');
+            const mileageDisplay = document.getElementById('mileage-display');
+            
+            // Formatting functions
+            function formatPrice(price) {
+                return 'Rs ' + parseInt(price).toLocaleString();
+            }
+            
+            function formatMileage(mileage) {
+                return parseInt(mileage).toLocaleString() + ' km';
+            }
+            
+            // Price slider functionality
+            priceSlider.addEventListener('input', function() {
+                priceDisplay.textContent = formatPrice(this.value);
+            });
+            
+            // Mileage slider functionality
+            mileageSlider.addEventListener('input', function() {
+                mileageDisplay.textContent = formatMileage(this.value);
+            });
+            
+            applyBtn.addEventListener('click', function() {
+                // Collect filter data
+                const filters = {
+                    make: document.getElementById('make').value,
+                    model: document.getElementById('model').value,
+                    yearFrom: document.getElementById('year-from').value,
+                    yearTo: document.getElementById('year-to').value,
+                    maxPrice: priceSlider.value,
+                    maxMileage: mileageSlider.value,
+                    fuelType: document.getElementById('fuel-type').value,
+                    transmission: document.getElementById('transmission').value,
+                    district: document.getElementById('district').value,
+                    region: document.getElementById('region').value,
+                    sort: document.querySelector('input[name="sort"]:checked').value
+                };
+                
+                // In a real app, this would submit the filters
+                console.log('Applied filters:', filters);
+                alert('Filters applied successfully!\nMax Price: ' + formatPrice(filters.maxPrice) + 
+                      '\nMax Mileage: ' + formatMileage(filters.maxMileage));
+            });
+            
+            clearBtn.addEventListener('click', function() {
+                // Clear all inputs
+                document.querySelectorAll('select').forEach(select => {
+                    select.selectedIndex = 0;
+                });
+                
+                document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
+                    input.value = '';
+                });
+                
+                // Reset sliders
+                priceSlider.value = 2000000;
+                priceDisplay.textContent = formatPrice(2000000);
+                
+                mileageSlider.value = 100000;
+                mileageDisplay.textContent = formatMileage(100000);
+                
+                // Reset radio to default
+                document.querySelector('input[value="newest"]').checked = true;
+                
+                alert('All filters cleared!');
+            });
+        });
+    </script>
+</body>
+</html>

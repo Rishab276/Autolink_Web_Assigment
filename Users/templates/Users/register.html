@@ -1,0 +1,229 @@
+<!--bysalwan-->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration - Choose Role</title>
+    <style>
+        body {
+            background: url("https://img.freepik.com/premium-photo/car-is-waiting-sale-used-car-shop-background_85347-2663.jpg") no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 80px;
+        }
+
+        footer {
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .register-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background-color: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            width: 450px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+        .welcome h1 {
+            margin-bottom: 15px;
+            font-size: 47px;
+            color: #ff8c00;
+        }
+        .welcome p {
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .register-box h2 {
+            font-size: 26px;
+            margin-bottom: 15px;
+        }
+
+        .user-type {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .user-option {
+            width: 180px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #444;
+            border-radius: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 20px;
+        }
+
+        .user-option input {
+            display: none;
+        }
+
+        .user-option label {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            text-align: center;
+        }
+
+        input[type="radio"]:checked + label {
+            border: 3px solid #ff8c00;
+            background-color: rgba(255, 140, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
+            border-radius: 11px;
+            padding: 30px;
+        }
+
+        button {
+            background: #ff8c00;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #e67e00;
+            transform: scale(1.05);
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 16px;
+        }
+
+        .links a {
+            color: #ff8c00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .next-steps {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 140, 0, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #ff8c00;
+        }
+
+        nav {
+            padding: 8px 40px !important;
+        }
+
+        nav .logo-container img {
+            height: 30px !important;
+        }
+
+        nav .logo-container span {
+            font-size: 30px !important;
+        }
+
+        nav ul li a {
+            font-size: 15px !important;
+            padding: 5px 0 !important;
+        }
+    </style>
+</head>
+<body>
+
+{% include 'nav.html' %}
+
+<main>
+    <div class="register-container">
+        <div class="welcome">
+            <h1>Join Autolink</h1>
+            <p>"Create your account and start your journey with us today! First, choose your role."</p>
+        </div>
+
+        <div class="register-box">
+            <h2>Select Your Role</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="user-type">
+                    <div class="user-option">
+                        <input type="radio" name="user_type" id="buyer" value="buyer" required>
+                        <label for="buyer">
+                            🛒<br>Buyer<br>
+                            <span style="font-size:14px;color:#ccc;">Looking to purchase vehicles</span>
+                        </label>
+                    </div>
+
+                    <div class="user-option">
+                        <input type="radio" name="user_type" id="seller" value="seller">
+                        <label for="seller">
+                            🚗<br>Seller<br>
+                            <span style="font-size:14px;color:#ccc;">Want to sell your vehicles</span>
+                        </label>
+                    </div>
+
+                    <div class="user-option">
+                        <input type="radio" name="user_type" id="renter" value="renter">
+                        <label for="renter">
+                            🔑<br>Renter<br>
+                            <span style="font-size:14px;color:#ccc;">Interested in renting vehicles</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="next-steps">
+                    <p>After selecting your role, you'll be asked to provide additional information on the next page.</p>
+                </div>
+
+                <button type="submit">Continue</button>
+            </form>
+
+            <div class="links">
+                <p>Already have an account? <a href="{% url 'users:login' %}">Log in</a></p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    {% include "footer.html" %}
+</footer>
+
+</body>
+</html>
