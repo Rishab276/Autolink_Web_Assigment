@@ -1,3 +1,4 @@
+<!--bysalwan-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -748,13 +749,14 @@
             <p>Autolink connects buyers and sellers in a seamless marketplace for cars, bikes, buses, and trucks. Find your dream vehicle or list yours in minutes.</p>
             
             <div class="hero-buttons">
-                <button class="btn btn-primary">
+                <a href="{% url 'vehicles:standardsearch' %}" class="btn btn-primary">
                     <i class="fas fa-search"></i> Browse Vehicles
-                </button>
-                <button class="btn btn-secondary">
+                </a>
+                <a href="{% url 'users:uploadvehicles' %}" class="btn btn-secondary">
                     <i class="fas fa-plus"></i> List Your Vehicle
-                </button>
+                </a>
             </div>
+
             
             <div class="hero-stats">
                 <div class="stat">
