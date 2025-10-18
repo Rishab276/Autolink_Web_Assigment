@@ -1,0 +1,166 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="standardsearch.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Standard Search{% endblock %}</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+        }
+
+        /* Hero background */
+        .hero {
+            position: relative;
+            background: url('your-image.jpg') no-repeat center center/cover;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: #fcb300;
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Uniform spacing between elements */
+            box-sizing: border-box;
+        }
+
+        .form-card * {
+            box-sizing: border-box;
+        }
+
+        .stars {
+            font-size: 20px;
+            color: #ccc;
+            text-align: center;
+        }
+
+        .stars span:hover,
+        .stars span:hover ~ span {
+            color: gold;
+            cursor: pointer;
+        }
+
+        .form-card input, 
+        .form-card textarea {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 3px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-card textarea {
+            height: 80px;
+            resize: none;
+        }
+
+        .form-card button {
+            background: #fff;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .form-card button:hover {
+            background: #f1f1f1;
+        }
+
+        /* Footer */
+       
+       /* Footer */
+footer {
+    background: #f8f8f8;
+    padding: 40px 0 20px;
+    font-size: 14px;
+    color: #333;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 40px;
+}
+
+.footer-section {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-section h4 {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+}
+
+.footer-section a {
+    text-decoration: none;
+    color: #333;
+    margin: 6px 0;
+    transition: color 0.2s;
+}
+
+.footer-section a:hover {
+    text-decoration: underline;
+    color: #fcb300;
+}
+
+footer .bottom {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 13px;
+    color: gray;
+}
+    </style>
+</head>
+<body>
+
+    {% include "nav.html" %}
+    
+
+    <main>
+        <!-- Hero with Form -->
+        <section class="hero">
+            <div class="form-card">
+                <div class="stars">
+                    ★ ★ ★ ★ ★
+                </div>
+                <input type="text" placeholder="Title">
+                <textarea placeholder="Review"></textarea>
+                <input type="text" placeholder="Your name">
+                <input type="email" placeholder="Email">
+                <button>Post</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        {% include "footer.html" %}
+    </footer>
+</body>
+</html>
