@@ -1,5 +1,5 @@
+<!--bysalwan-->
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,29 +8,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Standard Search{% endblock %}</title>
 </head>
-
 <body>
     {% include "nav.html" %} 
 
-    <!-- Header with search bar and filter button -->
     <div class="header">
         <div class="search-container">
             <div class="search-bar">
                 <input type="text" placeholder="Search for vehicles...">
-                <button type="submit">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                </button>
+                <button type="submit">🔍</button>
             </div>
-            
-            <a href="{% url 'filter' %}" class="filter-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                </svg>
-                Filters
-            </a>
+            <a href="{% url 'vehicles:filter' %}" class="filter-btn">Filters</a>
         </div>
     </div>
 
@@ -49,26 +36,15 @@
                         {% endif %}
                     </button>
 
-                    <!-- Image / Slider linking to detail page -->
-                    <a href="{% url 'detail' vehicle.pk %}">
-                        <div class="slider-container" id="slider-{{ forloop.counter }}">
-                            {% if vehicle.images.all %}
-                                {% for img in vehicle.images.all %}
-                                    {% if forloop.first %}
-                                        <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="active">
-                                    {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                <img src="{% static 'placeholder.png' %}" alt="No image" class="active">
-                            {% endif %}
-                        </div>
+                    <!-- Vehicle image -->
+                    <a href="{% url 'vehicles:detail' vehicle.pk %}">
+                        <img src="{{ vehicle.images.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="active">
                     </a>
 
                     <div class="listing-info">
                         <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
                         <div class="listing-details">
-                            • {{ vehicle.mileage }} km • {{ vehicle.fuel_type }} <br>
-                            • {{ vehicle.transmission }} • Year - {{ vehicle.year }}
+                            • {{ vehicle.vehicle_type|title }} • Year: {{ vehicle.year }}
                         </div>
                         <div class="listing-price">Rs {{ vehicle.price }}</div>
                     </div>
@@ -83,86 +59,47 @@
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
                         <span class="page-link active">{{ num }}</span>
-                    {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}
+                    {% else %}
                         <a href="?page={{ num }}" class="page-link">{{ num }}</a>
-                    {% elif forloop.first or forloop.last %}
-                        <a href="?page={{ num }}" class="page-link">{{ num }}</a>
-                    {% elif forloop.counter0 == 1 or forloop.counter0 == page_obj.paginator.num_pages|add:-2 %}
-                        <span class="page-ellipsis">...</span>
                     {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
                     <a href="?page={{ page_obj.next_page_number }}" class="page-link">&gt;</a>
                 {% endif %}
             </div>
-
-
-
-        </div>
-
-        <!-- Map Column -->
-        <div class="map">
-            <div class="map-container">
-                <img class="map-image" src="https://via.placeholder.com/600x800?text=Regional+Pricing+Map" alt="Regional Pricing Map">
-                
-                <!-- Price Tags -->
-                <div class="price-tag" style="top: 20%; left: 30%;">Rs 110k</div>
-                <div class="price-tag" style="top: 40%; left: 60%;">Rs 95k</div>
-                <div class="price-tag" style="top: 70%; left: 45%;">Rs 120k</div>
-                <div class="price-tag" style="top: 50%; left: 20%;">Rs 85k</div>
-                
-                <!-- Map Legend -->
-                <div class="map-legend">
-                    <h3>Price Legend</h3>
-                    <div class="legend-items">
-                        <div class="legend-item">
-                            <div class="color-box" style="background-color: #4CAF50;"></div>
-                            <span>Low: Rs 70k - 90k</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="color-box" style="background-color: #FFC107;"></div>
-                            <span>Medium: Rs 90k - 110k</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="color-box" style="background-color: #F44336;"></div>
-                            <span>High: Rs 110k+</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- AJAX for Save/Unsave -->
+    <!-- AJAX Save/Unsave -->
     <script>
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.fav-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 const vehicleId = button.dataset.vehicleId;
 
-                fetch(`/profile/toggle_save/${vehicleId}/`, {
+                // Use a placeholder 0 in the template URL and replace with the actual JS variable
+                const url = "{% url 'profile:toggle_save' 0 %}".replace('0', vehicleId);
+
+                fetch(url, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-CSRFToken': csrftoken,
                         'X-Requested-With': 'XMLHttpRequest',
                     },
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'saved') {
-                        button.textContent = '🔖';
-                    } else if (data.status === 'removed') {
-                        button.textContent = '📑';
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+                    button.textContent = data.status === 'saved' ? '🔖' : '📑';
+                });
             });
         });
     });
     </script>
 
-    {% include "footer.html" %}
 
+    {% include "footer.html" %}
 </body>
 </html>
