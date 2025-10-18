@@ -1,0 +1,75 @@
+<!--bysalwan-->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Vehicles - Autolink</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: #f8f9fa; font-family: Arial, sans-serif; }
+        .main-content { flex: 1; padding-bottom: 40px; }
+        .empty-state { padding: 3rem 1rem; }
+        .empty-icon { font-size: 4rem; color: #dc3545; }
+        .empty-title { color: #6c757d; margin-bottom: 1rem; font-weight: 300; }
+        .empty-text { color: #6c757d; margin-bottom: 2rem; }
+        .vehicle-card { transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #dee2e6; border-radius: 0.5rem; overflow: hidden; }
+        .vehicle-card:hover { transform: translateY(-5px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); }
+        .vehicle-image { height: 200px; object-fit: cover; }
+        footer { flex-shrink: 0; width: 100%; margin-top: auto; }
+    </style>
+</head>
+<body>
+    {% include "nav.html" %}
+
+    <main class="main-content">
+        <div class="container mt-4">
+            <h1>My Saved Vehicles</h1>
+
+            {% if saved_vehicles %}
+            <div class="row mt-4">
+                {% for saved in saved_vehicles %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 vehicle-card">
+                        <img src="{{ saved.vehicle.images.url }}" class="card-img-top vehicle-image" alt="{{ saved.vehicle.make }} {{ saved.vehicle.model }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ saved.vehicle.make }} {{ saved.vehicle.model }} ({{ saved.vehicle.year }})</h5>
+                            <p class="card-text">
+                                <i class="bi bi-tag"></i> {{ saved.vehicle.get_vehicle_type_display }}<br>
+                                <i class="bi bi-telephone"></i> {{ saved.vehicle.contact_number }}<br>
+                                <i class="bi bi-cash-stack"></i> Rs {{ saved.vehicle.price }}
+                            </p>
+                            <form action="{% url 'profile:remove_saved_vehicle' saved.vehicle.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash"></i> Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 empty-state">
+                <div class="mb-4">
+                    <i class="bi bi-heart empty-icon"></i>
+                </div>
+                <h3 class="empty-title">No vehicles saved yet</h3>
+                <p class="empty-text">You haven't saved any vehicles to your list yet.</p>
+                <a href="{% url 'vehicles:Vehicles' %}" class="btn btn-primary mt-3">Browse Vehicles</a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer>
+        {% include "footer.html" %}
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
