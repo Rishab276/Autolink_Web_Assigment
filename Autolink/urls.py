@@ -1,3 +1,4 @@
+#bysalwan
 """
 URL configuration for Autolink project.
 
@@ -15,30 +16,41 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from django.urls import include
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
+# Main app
 urlpatterns += [
-    path('Main/', include('Main.urls')),
+    path('main/', include(('Main.urls','main'), namespace='main')),
 ]
 
+# Profile app
 urlpatterns += [
-    path('Profile/', include('Profile.urls')),
+    path('profile/', include(('Profile.urls','profile'), namespace='profile')),
 ]
 
+# Reviews app
 urlpatterns += [
-    path('Reviews/', include('Reviews.urls')),
+    path('reviews/', include(('Reviews.urls','reviews'), namespace='reviews')),
 ]
 
+# Users app
 urlpatterns += [
-    path('Users/', include(('Users.urls','users'),namespace='users')),
+    path('users/', include(('Users.urls','users'), namespace='users')),
 ]
 
+# Vehicles app
 urlpatterns += [
-    path('Vehicles/', include('Vehicles.urls')),
+    path('vehicles/', include(('Vehicles.urls','vehicles'), namespace='vehicles')),
 ]
+
+# Django auth URLs
+urlpatterns += [
+    path('users/', include('django.contrib.auth.urls')),
+]
+
+
 
