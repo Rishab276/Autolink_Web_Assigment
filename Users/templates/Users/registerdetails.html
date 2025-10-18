@@ -1,3 +1,4 @@
+<!--bysalwan-->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -101,7 +102,7 @@
             {% endfor %}
         {% endif %}
         
-        <form method="POST">
+        <form method="POST" action="{% url 'users:registerdetails' %}">
             {% csrf_token %}
             <input type="text" name="first_name" placeholder="First Name" class="form-control mb-3" required>
             <input type="text" name="last_name" placeholder="Last Name" class="form-control mb-3" required>
@@ -123,7 +124,7 @@
 
         <div class="contact-info mt-3">
             <p>If you have any problems, please contact us:</p>
-            <p>📞 580 25578  |✉️ autolink@gmail.com</p>
+            <p>📞 +230 59378817  |✉️ info@autolink.mu</p>
         </div>
     </div>
     <footer>

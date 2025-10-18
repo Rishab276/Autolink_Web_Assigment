@@ -1,76 +1,64 @@
-from django.shortcuts import render
-from django.contrib.auth import logout
-
-
-def login_view(request):
-    return render(request, 'Users/login.html')
-
-def register_view(request):
-    return render(request, 'Users/register.html')
-
-def registerdetails_view(request):
-    return render(request, 'Users/registerdetails.html')
-
-def sellerRenterdetails_view(request):
-    return render(request, 'Users/sellerRenterdetails.html')
-
-def uploadvehicles_view(request):
-    return render(request, 'Users/uploadvehicles.html')
-
-from django.shortcuts import render, redirect
+#bysalwan
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .models import UserProfile, Vehicle
+from django.contrib.auth.decorators import login_required
+from .models import UserProfile, Vehicle, SavedVehicle
 
 
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
-from django.contrib import messages
-
+# =========================
+# LOGIN / LOGOUT
+# =========================
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('Main:home') 
+        return redirect('main:home')
 
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+
         try:
             user_obj = User.objects.get(email=email)
             user = authenticate(request, username=user_obj.username, password=password)
         except User.DoesNotExist:
             user = None
-        
+
         if user is not None:
             login(request, user)
             messages.success(request, f"Welcome, {user.username}!")
-            return redirect('home')  
+            return redirect('main:home')
         else:
-            messages.error(request, 'Invalid email or password')
-            return render(request, 'users/login.html')
+            messages.error(request, 'Invalid email or password.')
 
     return render(request, 'users/login.html')
 
-def logout_view(request):
-    logout(request)  
-    return redirect('users:login') 
 
+def logout_view(request):
+    logout(request)
+    messages.info(request, "You have been logged out.")
+    return redirect('users:login')
+
+
+# =========================
+# REGISTRATION FLOW
+# =========================
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('main:home')
+
     if request.method == 'POST':
         role = request.POST.get('user_type')
         if role == 'buyer':
             return redirect('users:registerdetails')
         elif role in ['seller', 'renter']:
             return redirect('users:sellerRenterdetails')
+
     return render(request, 'users/register.html')
 
 
-
 def registerdetails_view(request):
+    """Handles Buyer registration"""
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -81,20 +69,35 @@ def registerdetails_view(request):
         contact_number = request.POST.get('contact_number')
 
         if password != confirm_password:
-            messages.error(request, "Passwords do not match")
+            messages.error(request, "Passwords do not match.")
             return render(request, 'users/registerdetails.html')
 
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered")
+            messages.error(request, "Email already registered.")
             return render(request, 'users/registerdetails.html')
 
-        user = User.objects.create_user(username=email,email=email, password=password,first_name=first_name, last_name=last_name)
-        UserProfile.objects.create(user=user, address=address, contact_number=contact_number)
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+        UserProfile.objects.create(
+            user=user,
+            user_type='buyer',
+            address=address,
+            contact_number=contact_number
+        )
+
         messages.success(request, "Buyer account created successfully!")
         return redirect('users:login')
+
     return render(request, 'users/registerdetails.html')
 
+
 def sellerRenterdetails_view(request):
+    """Handles Seller and Renter registration"""
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -104,27 +107,45 @@ def sellerRenterdetails_view(request):
         address = request.POST.get('address')
         contact_number = request.POST.get('contact_number')
         driver_license = request.POST.get('driverliscence')
-        role = request.POST.get('user_type', 'seller') 
+        role = request.POST.get('user_type', 'seller')
+
         if password != confirm_password:
-            messages.error(request, "Passwords do not match")
+            messages.error(request, "Passwords do not match.")
             return render(request, 'users/sellerRenterdetails.html')
 
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered")
+            messages.error(request, "Email already registered.")
             return render(request, 'users/sellerRenterdetails.html')
 
-        user = User.objects.create_user(username=email, email=email, password=password,first_name=first_name, last_name=last_name)
-        UserProfile.objects.create(user=user, address=address,contact_number=contact_number, driver_license=driver_license)
-        messages.success(request, "Seller/Renter account created successfully!")
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+        UserProfile.objects.create(
+            user=user,
+            user_type=role,
+            address=address,
+            contact_number=contact_number,
+            driver_license=driver_license
+        )
+
+        messages.success(request, f"{role.capitalize()} account created successfully!")
         return redirect('users:login')
+
     return render(request, 'users/sellerRenterdetails.html')
 
-from django.contrib.auth.decorators import login_required
 
+# =========================
+# VEHICLE UPLOAD
+# =========================
 @login_required
 def uploadvehicles_view(request):
+    profile = UserProfile.objects.get(user=request.user)
+
     if request.method == 'POST':
-        seller_renter = UserProfile.objects.get(user=request.user)
         title = request.POST.get('title')
         make = request.POST.get('make')
         model = request.POST.get('model')
@@ -137,7 +158,7 @@ def uploadvehicles_view(request):
         images = request.FILES.get('images')
 
         Vehicle.objects.create(
-            seller_renter=seller_renter,
+            owner=profile,
             title=title,
             make=make,
             model=model,
@@ -147,13 +168,34 @@ def uploadvehicles_view(request):
             vehicle_type=vehicle_type,
             description=description,
             contact_number=contact,
-            image=images
+            images=images
         )
         messages.success(request, "Vehicle uploaded successfully!")
-        return redirect('home')  
-    
+        return redirect('main:home')
+
     return render(request, 'users/uploadvehicles.html')
 
 
-def uploadvehicles_view(request):
-    return render(request, 'Users/uploadvehicles.html')
+# =========================
+# PROFILE VIEW (Unified)
+# =========================
+@login_required
+def profile_view(request):
+    """Display unified profile for all roles"""
+    profile = UserProfile.objects.get(user=request.user)
+    user_type = profile.user_type
+
+    vehicles = None
+    saved_vehicles = None
+
+    if user_type in ['seller', 'renter']:
+        vehicles = Vehicle.objects.filter(owner=profile)
+    elif user_type == 'buyer':
+        saved_vehicles = SavedVehicle.objects.filter(user=profile)
+
+    return render(request, 'profile/profile.html', {
+        'profile': profile,
+        'user_type': user_type,
+        'vehicles': vehicles,
+        'saved_vehicles': saved_vehicles,
+    })
