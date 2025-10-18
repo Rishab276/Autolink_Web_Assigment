@@ -1,3 +1,4 @@
+<!--bysalwan-->
 {% load static %}
 <style>
   nav {
@@ -51,14 +52,19 @@
     <img src="{% static 'autologo/logo.png' %}" alt="Autolink Logo" class="logo-img">
   </div>
 
-  <ul>
-    <li><a href="/">Home</a></li>
-    <li><a href="">Upload Vehicle</a></li>
+<ul>
+    <li><a href="{% url 'main:home' %}">Home</a></li>
+    <li><a href="{% url 'users:uploadvehicles' %}">Upload Vehicle</a></li>
     <li><a href="/report/">Report</a></li>
     <li><a href="/review/">Reviews</a></li>
-    <li><a href="/aboutus/">About Us</a></li>
-    <li><a href="/contact/">Our Services</a></li>
-    <li><a href="/login/">Log in</a></li>
-    <li><a href="/userprofile/">&#128100; Profile</a></li>
-  </ul>
+    <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
+    <li><a href="{% url 'main:faq' %}">FAQs</a></li>
+    {% if request.user.is_authenticated %}
+        <li><a href="{% url 'profile:profile' %}">&#128100; Profile</a></li>
+        <li><a href="{% url 'users:logout' %}">Logout</a></li>
+    {% else %}
+        <li><a href="{% url 'users:login' %}?next={{ request.path }}">&#128100; Profile</a></li>
+    {% endif %}
+</ul>
+
 </nav>
