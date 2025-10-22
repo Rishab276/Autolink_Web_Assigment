@@ -103,11 +103,11 @@
     <div class="footer-col">
       <h4>Explore</h4>
       <ul>
-        <li><a href="#">Home</a></li>
+        <li><a href="{% url 'main:home' %}">Home</a></li>
         <li><a href="#">All Vehicles</a></li>
-        <li><a href="#">Filter</a></li>
+        <li><a href="{% url 'vehicles:filter' %}">Filter</a></li>
         <li><a href="#">Saved Vehicles</a></li>
-        <li><a href="#">Recommendations</a></li>
+        <li><a href="{% url 'reviews:recommendations' %}">Recommendations</a></li>
       </ul>
     </div>
 
@@ -115,11 +115,11 @@
     <div class="footer-col">
       <h4>Info</h4>
       <ul>
-        <li><a href="#">About Us</a></li>
-        <li><a href="#">Reviews</a></li>
-        <li><a href="#">Report</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="#">FAQ</a></li>
+        <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
+        <li><a href="{% url 'reviews:review' %}">Reviews</a></li>
+        <li><a href="{% url 'reviews:report' %}">Report</a></li>
+        <li><a href="{% url 'main:aboutus' %}#contact">Contact</a></li>
+        <li><a href="{% url 'main:faq' %}">FAQs</a></li>
       </ul>
     </div>
 
@@ -127,8 +127,8 @@
     <div class="footer-col">
       <h4>Account</h4>
       <ul>
-        <li><a href="#">Login</a></li>
-        <li><a href="#">Register</a></li>
+        <li><a href="{% url 'users:login' %}">Login</a></li>
+        <li><a href="{% url 'users:register' %}">Register</a></li>
         <li><a href="#">Profile</a></li>
       </ul>
     </div>
