@@ -12,15 +12,14 @@
             font-family: 'Segoe UI', system-ui, sans-serif;
             min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
+            flex-direction: column;
         }
         
         .filter-container {
             max-width: 600px;
             width: 100%;
-            margin: 0 auto;
+            margin: 2rem auto;
+            flex: 1;
         }
         
         .filter-card {
@@ -29,6 +28,7 @@
             padding: 2.5rem;
             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
             border: 1px solid #e9ecef;
+            margin: 1rem 0;
         }
         
         .filter-header {
@@ -247,11 +247,17 @@
             .filter-card {
                 padding: 2rem 1.5rem;
             }
+            
+            .filter-container {
+                margin: 1rem auto;
+                padding: 0 1rem;
+            }
         }
     </style>
 </head>
 <body>
-
+    {% include "nav.html" %} 
+    
     <div class="filter-container">
         <div class="filter-card">
             <!-- Header -->
@@ -416,7 +422,7 @@
         </div>
     </div>
 
-    
+    {% include "footer.html" %} 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
