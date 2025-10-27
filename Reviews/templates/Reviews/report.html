@@ -1,3 +1,4 @@
+<!--humaa -->
 {% load static %}
 
 <!DOCTYPE html>
@@ -151,11 +152,14 @@ footer .bottom {
         <!-- Hero Section with Centered Form -->
         <section class="hero">
             <div class="form-box">
-                <input type="text" placeholder="Your Name">
-                <input type="email" placeholder="Your Email">
-                <input type="text" placeholder="Subject">
-                <textarea placeholder="Write your report..."></textarea>
-                <button>Submit Report</button>
+                <form method="POST" action="{% url 'reviews:submit_report' %}">
+                    {% csrf_token %}
+                    <input type="text" name="reporter_name" placeholder="Your Name" required>
+                    <input type="email" name="email" placeholder="Your Email" required>
+                    <input type="text" name="subject" placeholder="Subject" required>
+                    <textarea name="report_content" placeholder="Write your report..." required></textarea>
+                    <button type="submit">Submit Report</button>
+                </form>
             </div>
         </section>
     </main>

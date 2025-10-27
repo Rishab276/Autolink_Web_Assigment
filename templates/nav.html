@@ -55,8 +55,8 @@
 <ul>
     <li><a href="{% url 'main:home' %}">Home</a></li>
     <li><a href="{% url 'users:uploadvehicles' %}">Upload Vehicle</a></li>
-    <li><a href="{% url 'reviews:review' %}">Reviews</a></li>
-    <li><a href="{% url 'reviews:report' %}">Report</a></li>
+    <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
+    <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
     <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
     <li><a href="{% url 'main:faq' %}">FAQs</a></li>
     {% if request.user.is_authenticated %}
