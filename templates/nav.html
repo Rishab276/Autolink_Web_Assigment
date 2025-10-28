@@ -1,4 +1,4 @@
-<!--bysalwan-->
+<!-- bysalwan -->
 {% load static %}
 <style>
   nav {
@@ -52,19 +52,26 @@
     <img src="{% static 'autologo/logo.png' %}" alt="Autolink Logo" class="logo-img">
   </div>
 
-<ul>
+  <ul>
     <li><a href="{% url 'main:home' %}">Home</a></li>
-    <li><a href="{% url 'users:uploadvehicles' %}">Upload Vehicle</a></li>
     <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
     <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
     <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
     <li><a href="{% url 'main:faq' %}">FAQs</a></li>
+
     {% if request.user.is_authenticated %}
+        {% with user_profile=request.user.userprofile %}
+            {% if user_profile.user_type == 'seller' or user_profile.user_type == 'renter' %}
+                <li><a href="{% url 'users:uploadvehicles' %}">Upload Vehicle</a></li>
+            {% elif user_profile.user_type == 'buyer' %}
+                <li><a href="{% url 'vehicles:standardsearch' %}">Browse Vehicles</a></li>
+            {% endif %}
+        {% endwith %}
+        
         <li><a href="{% url 'profile:profile' %}">&#128100; Profile</a></li>
         <li><a href="{% url 'users:logout' %}">Logout</a></li>
     {% else %}
         <li><a href="{% url 'users:login' %}?next={{ request.path }}">&#128100; Profile</a></li>
     {% endif %}
-</ul>
-
+  </ul>
 </nav>
