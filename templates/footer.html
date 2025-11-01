@@ -106,7 +106,6 @@
         <li><a href="{% url 'main:home' %}">Home</a></li>
         <li><a href="#">All Vehicles</a></li>
         <li><a href="{% url 'vehicles:filter' %}">Filter</a></li>
-        <li><a href="#">Saved Vehicles</a></li>
         <li><a href="{% url 'reviews:recommendations' %}">Recommendations</a></li>
       </ul>
     </div>
@@ -116,10 +115,9 @@
       <h4>Info</h4>
       <ul>
         <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
-        <li><a href="{% url 'reviews:review' %}">Reviews</a></li>
-        <li><a href="{% url 'reviews:report' %}">Report</a></li>
-        <li><a href="{% url 'main:aboutus' %}#contact">Contact</a></li>
-        <li><a href="{% url 'main:faq' %}">FAQs</a></li>
+         <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
+        <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
+        <li><a href="{% url 'main:faq' %}">FAQ</a></li>
       </ul>
     </div>
 
@@ -129,7 +127,7 @@
       <ul>
         <li><a href="{% url 'users:login' %}">Login</a></li>
         <li><a href="{% url 'users:register' %}">Register</a></li>
-        <li><a href="#">Profile</a></li>
+        <li><a href="{% url 'profile:profile' %}">Profile</a></li>
       </ul>
     </div>
   </div>
