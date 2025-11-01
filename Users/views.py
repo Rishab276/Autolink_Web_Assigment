@@ -1,4 +1,3 @@
-#bysalwan
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -107,7 +106,13 @@ def sellerRenterdetails_view(request):
         address = request.POST.get('address')
         contact_number = request.POST.get('contact_number')
         driver_license = request.POST.get('driverliscence')
-        role = request.POST.get('user_type', 'seller')
+        role = request.POST.get('user_type')
+
+        print("DEBUG ROLE VALUE:", role)
+
+        if not role:
+            messages.error(request, "User type not found in form.")
+            return render(request, 'users/sellerRenterdetails.html')
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
