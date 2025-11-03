@@ -2,51 +2,65 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <link rel="stylesheet" href="{% static 'standardsearch.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Standard Search{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'standardsearch.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .main-layout { display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
+        .container { width: 60%; overflow-y: auto; padding: 20px; }
+        #map { width: 40%; height: 100vh; position: sticky; top: 0; }
+        .price-marker { background: white; border-radius: 15px; padding: 4px 8px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .price-marker:hover { background: #ff5a5f; color: white; }
+        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px auto; gap: 8px; padding: 10px 0; }
+        .page-link { display: inline-block; background: #f5f5f5; border: 1px solid #ccc; border-radius: 6px; padding: 6px 12px; color: #333; text-decoration: none; font-weight: 500; transition: all 0.2s ease-in-out; }
+        .page-link:hover { background: #ff5a5f; color: #fff; border-color: #ff5a5f; }
+        .page-link.active { background: #ff5a5f; color: #fff; border-color: #ff5a5f; }
+    </style>
 </head>
+
 <body>
-    {% include "nav.html" %} 
+    {% include "nav.html" %}
 
     <div class="header">
         <div class="search-container">
             <div class="search-bar">
-                <input type="text" placeholder="Search for vehicles...">
+                <input type="text" id="vehicle-search" placeholder="Search for vehicles...">
                 <button type="submit">🔍</button>
             </div>
             <a href="{% url 'vehicles:filter' %}" class="filter-btn">Filters</a>
         </div>
     </div>
 
-    <div class="container">
-        <div class="listings">
+    <div class="main-layout">
+        <div class="container">
             <div class="listings-grid">
                 {% for vehicle in page_obj %}
-                <div class="listing-card">
-
-                    <!-- Save button -->
+                <div class="listing-card" data-latlng="{{ vehicle.gps_coor }}" data-make="{{ vehicle.make|lower }}" data-model="{{ vehicle.model|lower }}">
                     <button class="fav-btn" data-vehicle-id="{{ vehicle.id }}">
-                        {% if vehicle.id in saved_vehicle_ids %}
-                            🔖
-                        {% else %}
-                            📑
-                        {% endif %}
+                        {% if vehicle.id in saved_vehicle_ids %}🔖{% else %}📑{% endif %}
                     </button>
 
-                    <!-- Vehicle image -->
-                    <a href="{% url 'vehicles:detail' vehicle.pk %}">
-                        <img src="{{ vehicle.images.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="active">
-                    </a>
+                    {% with first_image=Vehicle.images.all|first %}
+                        {% if first_image %}
+                            <a href="{% url 'vehicles:detail' vehicle.pk %}">
+                                <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="active">
+                            </a>
+                        {% else %}
+                            <a href="{% url 'vehicles:detail' vehicle.pk %}">
+                                <img src="{% static 'default_vehicle.png' %}" alt="No Image" class="active">
+                            </a>
+                        {% endif %}
+                    {% endwith %}
 
                     <div class="listing-info">
                         <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
-                        <div class="listing-details">
-                            • {{ vehicle.vehicle_type|title }} • Year: {{ vehicle.year }}
-                        </div>
-                        <div class="listing-price">Rs {{ vehicle.price }}</div>
+                        <div class="listing-details">• {{ vehicle.type_of_vehicle|title }} • Year: {{ vehicle.year }}</div>
+                        <div class="listing-price" data-price="{{ vehicle.price }}"></div>
                     </div>
                 </div>
                 {% endfor %}
@@ -68,38 +82,115 @@
                 {% endif %}
             </div>
         </div>
+
+        <div id="map"></div>
     </div>
 
-    <!-- AJAX Save/Unsave -->
+    {% include "footer.html" %}
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        // --- Helper to format prices ---
+        function formatPrice(num) {
+            num = parseFloat(num);
+            if(num >= 1000000) return (num/1000000).toFixed(1)+"M";
+            if(num >= 1000) return (num/1000).toFixed(1)+"K";
+            return num.toFixed(1);
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.fav-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                const vehicleId = button.dataset.vehicleId;
+        // --- Initialize Map ---
+        const map = L.map('map').setView([-20.1609, 57.5012], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap contributors', maxZoom:19 }).addTo(map);
 
-                // Use a placeholder 0 in the template URL and replace with the actual JS variable
-                const url = "{% url 'profile:toggle_save' 0 %}".replace('0', vehicleId);
+        // --- Vehicles Data ---
+        const vehicleData = [
+            {% for vehicle in page_obj %}
+                {% if vehicle.gps_coor %}
+                { 
+                    id: {{ vehicle.id }},
+                    make: "{{ vehicle.make|escapejs }}",
+                    model: "{{ vehicle.model|escapejs }}",
+                    price: "{{ vehicle.price }}",
+                    coords: "{{ vehicle.gps_coor }}"
+                },
+                {% endif %}
+            {% endfor %}
+        ];
 
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    button.textContent = data.status === 'saved' ? '🔖' : '📑';
+        // --- Create markers ---
+        const markers = [];
+        vehicleData.forEach(v => {
+            const [lat,lng] = v.coords.split(',').map(Number);
+            if(!isNaN(lat) && !isNaN(lng)){
+                const marker = L.marker([lat,lng], {
+                    icon: L.divIcon({ className:'price-marker', html:` ${formatPrice(v.price)}`, iconSize:[60,25], iconAnchor:[30,25] })
+                }).addTo(map);
+                marker.on('click', ()=> { window.location.href = "{% url 'vehicles:detail' 0 %}".replace('0', v.id); });
+                markers.push({vehicleId: v.id, marker: marker});
+            }
+        });
+
+        // --- Function to update visible cards and markers ---
+        function updateVisibility() {
+            const searchValue = document.getElementById('vehicle-search').value.toLowerCase();
+            const bounds = map.getBounds();
+
+            document.querySelectorAll('.listing-card').forEach(card => {
+                const make = card.dataset.make;
+                const model = card.dataset.model;
+                const latlng = card.dataset.latlng;
+                let visible = true;
+
+                if(latlng){
+                    const [lat,lng] = latlng.split(',').map(Number);
+                    visible = bounds.contains(L.latLng(lat,lng));
+                }
+
+                if(searchValue && !(make.includes(searchValue) || model.includes(searchValue))){
+                    visible = false;
+                }
+
+                card.style.display = visible ? 'block' : 'none';
+
+                // Update map markers
+                const markerObj = markers.find(m => m.vehicleId == card.querySelector('.fav-btn').dataset.vehicleId);
+                if(markerObj){
+                    if(visible){
+                        markerObj.marker.addTo(map);
+                    } else {
+                        map.removeLayer(markerObj.marker);
+                    }
+                }
+            });
+        }
+
+        // --- Map move / zoom updates ---
+        map.on('moveend', updateVisibility);
+
+        // --- Search bar input ---
+        document.getElementById('vehicle-search').addEventListener('input', updateVisibility);
+
+        // --- Format prices ---
+        document.querySelectorAll('.listing-price').forEach(priceEl=>{
+            const price=parseFloat(priceEl.dataset.price);
+            if(!isNaN(price)) priceEl.textContent = "Rs "+formatPrice(price);
+        });
+    </script>
+
+    <script>
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        document.addEventListener('DOMContentLoaded',()=>{
+            document.querySelectorAll('.fav-btn').forEach(button=>{
+                button.addEventListener('click',e=>{
+                    e.preventDefault();
+                    const vehicleId = button.dataset.vehicleId;
+                    const url="{% url 'profile:toggle_save' 0 %}".replace('0',vehicleId);
+
+                    fetch(url,{ method:'POST', headers:{'X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'} })
+                    .then(res=>res.json()).then(data=>{ button.textContent = data.status==='saved'?'🔖':'📑'; });
                 });
             });
         });
-    });
     </script>
-
-
-    {% include "footer.html" %}
 </body>
 </html>
