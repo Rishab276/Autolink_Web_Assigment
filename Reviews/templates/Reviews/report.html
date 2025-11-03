@@ -1,0 +1,171 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="standardsearch.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Standard Search{% endblock %}</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            background-color: #fcb300;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            background: url('your-image.jpg') no-repeat center center/cover;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+       /* Form Box */
+        .form-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        .form-box * {
+            box-sizing: border-box;
+        }
+
+        .form-box input,
+        .form-box textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-box textarea {
+            height: 120px;
+            resize: none;
+        }
+
+        .form-box button {
+            background: #fcb300;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 3px;
+            width: 100%;
+            color: #333;
+            transition: background 0.3s ease;
+        }
+
+        .form-box button:hover {
+            background: #e0a600;
+        }
+   
+
+       /* Footer */
+footer {
+    background: #f8f8f8;
+    padding: 40px 0 20px;
+    font-size: 14px;
+    color: #333;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 40px;
+}
+
+.footer-section {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-section h4 {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+}
+
+.footer-section a {
+    text-decoration: none;
+    color: #333;
+    margin: 6px 0;
+    transition: color 0.2s;
+}
+
+.footer-section a:hover {
+    text-decoration: underline;
+    color: #fcb300;
+}
+
+footer .bottom {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 13px;
+    color: gray;
+}
+    </style>
+</head>
+<body>
+
+    {% include "nav.html" %} 
+    
+
+    <main>
+        <!-- Header -->
+        <header>
+            Report
+        </header>
+
+        <!-- Hero Section with Centered Form -->
+        <section class="hero">
+            <div class="form-box">
+                <form method="POST" action="{% url 'reviews:submit_report' %}">
+                    {% csrf_token %}
+                    <input type="text" name="reporter_name" placeholder="Your Name" required>
+                    <input type="email" name="email" placeholder="Your Email" required>
+                    <input type="text" name="subject" placeholder="Subject" required>
+                    <textarea name="report_content" placeholder="Write your report..." required></textarea>
+                    <button type="submit">Submit Report</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        {% include "footer.html" %}
+    </footer>
+
+</body>
+</html>

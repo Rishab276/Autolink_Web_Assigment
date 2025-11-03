@@ -1,0 +1,285 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="standardsearch.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Standard Search{% endblock %}</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+        }
+
+        /* Hero background */
+        .hero {
+            position: relative;
+            background: url('your-image.jpg') no-repeat center center/cover;
+            min-height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: #fcb300;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 10px;
+            box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            box-sizing: border-box;
+        }
+
+        .form-card * {
+            box-sizing: border-box;
+        }
+
+        .stars {
+            font-size: 28px;
+            color: #fff;
+            text-align: center;
+            margin: 10px 0;
+            letter-spacing: 5px;
+        }
+
+        .stars span {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .stars span:hover,
+        .stars span:hover ~ span {
+            color: gold;
+            transform: scale(1.1);
+        }
+
+        .stars span.active {
+            color: gold;
+        }
+
+        .form-group {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-group-title {
+            margin-bottom: 15px;
+        }
+
+        .form-group-review {
+            margin: 15px 0;
+        }
+
+        .form-group-details {
+            margin-top: 15px;
+        }
+
+        .form-card input, 
+        .form-card textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #f0f0f0;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .form-card input:focus, 
+        .form-card textarea:focus {
+            outline: none;
+            border-color: #fcb300;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-card textarea {
+            height: 100px;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        .form-card button {
+            background: #fff;
+            border: none;
+            padding: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            border: 2px solid transparent;
+        }
+
+        .form-card button:hover {
+            background: #f1f1f1;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.25);
+            border-color: #fcb300;
+        }
+
+        /* Footer */
+        footer {
+            background: #f8f8f8;
+            padding: 40px 0 20px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .footer-section {
+            flex: 1 1 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .footer-section a {
+            text-decoration: none;
+            color: #333;
+            margin: 6px 0;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            text-decoration: underline;
+            color: #fcb300;
+        }
+
+        footer .bottom {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 13px;
+            color: gray;
+        }
+    </style>
+        
+</head>
+<body>
+
+    {% include "nav.html" %}
+    
+
+    <main>
+        <!-- Hero with Form -->
+        <section class="hero">
+            <div class="form-card">
+                <div class="stars" id="starRating">
+                    <span data-value="1">★</span>
+                    <span data-value="2">★</span>
+                    <span data-value="3">★</span>
+                    <span data-value="4">★</span>
+                    <span data-value="5">★</span>
+                </div>
+                <form method="POST" action="{% url 'reviews:submit_review' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="rating" id="ratingValue" value="0">
+                    
+                    <!-- Title Section with Border -->
+                    <div class="form-group form-group-title">
+                        <input type="text" name="title" placeholder="Review Title" required>
+                    </div>
+
+                    <!-- Review Text Section with Border -->
+                    <div class="form-group form-group-review">
+                        <textarea name="review_text" placeholder="Write your review..." required></textarea>
+                    </div>
+
+                    <!-- Name & Email Section with Border -->
+                    <div class="form-group form-group-details">
+                        <input type="text" name="author_name" placeholder="Your Name" required style="margin-bottom: 15px;">
+                        <input type="email" name="email" placeholder="Your Email" required>
+                    </div>
+
+                    <button type="submit">Post Review</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        {% include "footer.html" %}
+    </footer>
+    
+    <!-- JavaScript for star rating -->
+    <script>
+        const stars = document.querySelectorAll('#starRating span');
+        const ratingValue = document.getElementById('ratingValue');
+        let currentRating = 0;
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                currentRating = value;
+                ratingValue.value = value;
+                
+                // Update star display
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.style.color = 'gold';
+                        s.classList.add('active');
+                    } else {
+                        s.style.color = '#fff';
+                        s.classList.remove('active');
+                    }
+                });
+            });
+
+            star.addEventListener('mouseover', function() {
+                const value = this.getAttribute('data-value');
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.style.color = 'gold';
+                    } else {
+                        s.style.color = '#fff';
+                    }
+                });
+            });
+
+            star.addEventListener('mouseout', function() {
+                stars.forEach((s, index) => {
+                    if (index < currentRating) {
+                        s.style.color = 'gold';
+                    } else {
+                        s.style.color = '#fff';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
