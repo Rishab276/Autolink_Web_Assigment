@@ -129,7 +129,11 @@
                     {% for vehicle in uploaded_vehicles %}
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card vehicle-card h-100">
-                                <img src="{{ vehicle.images.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                                {% if vehicle.images.first %}
+                                    <img src="{{ vehicle.images.first.image.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                                {% else %}
+                                    <img src="{% static 'default-vehicle.jpg' %}" class="card-img-top vehicle-image" alt="No image">
+                                {% endif %}
                                 <div class="card-body">
                                     <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
                                 </div>
@@ -150,15 +154,42 @@
             <h4 class="section-title text-center">Saved Vehicles</h4>
             {% if saved_vehicles %}
                 <div class="row justify-content-center">
-                    {% for vehicle in saved_vehicles %}
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card vehicle-card h-100">
-                                <img src="{{ vehicle.images.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
+                    {% for saved_vehicle in saved_vehicles %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card vehicle-card h-100 position-relative">
+                            
+                            <!-- Unsave Button on Photo -->
+                            <a href="{% url 'profile:toggle_save' saved_vehicle.vehicle.id %}" 
+                            class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2" 
+                            style="z-index: 10;"
+                            title="Unsave Vehicle">
+                                ❌ Unsave
+                            </a>
+
+                            <!-- Vehicle Image -->
+                            {% if saved_vehicle.vehicle.images.first %}
+                                <img src="{{ saved_vehicle.vehicle.images.first.image.url }}" 
+                                    class="card-img-top vehicle-image" 
+                                    alt="{{ saved_vehicle.vehicle.make }} {{ saved_vehicle.vehicle.model }}">
+                            {% else %}
+                                <div class="card-img-top vehicle-image bg-light d-flex align-items-center justify-content-center">
+                                    <span>No Image Available</span>
                                 </div>
+                            {% endif %}
+
+                            <div class="card-body">
+                                <h5 class="card-title">{{ saved_vehicle.vehicle.make }} {{ saved_vehicle.vehicle.model }} ({{ saved_vehicle.vehicle.year }})</h5>
+                                <p class="card-text">
+                                    <strong>Price:</strong> Rs {{ saved_vehicle.vehicle.price }}<br>
+                                    <strong>Mileage:</strong> {{ saved_vehicle.vehicle.mileage }} km<br>
+                                    <strong>Transmission:</strong> {{ saved_vehicle.vehicle.transmission }}
+                                </p>
+                                <a href="{% url 'vehicles:detail' saved_vehicle.vehicle.id %}" class="btn btn-primary btn-sm">
+                                    View Details
+                                </a>
                             </div>
                         </div>
+                    </div>
                     {% endfor %}
                 </div>
             {% else %}

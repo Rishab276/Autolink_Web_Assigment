@@ -1,35 +1,32 @@
-#bysalwan
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from Vehicles.models import Vehicle
+from Vehicles.models import Vehicle, VehicleImage
 from Users.models import UserProfile
 from .models import SavedVehicle
 
 @login_required
 def profile_view(request):
-    """
-    Display user profile with role-specific content:
-    - Sellers → uploaded vehicles
-    - Buyers → saved vehicles
-    - Renters → rented vehicles (optional)
-    """
     user_profile = get_object_or_404(UserProfile, user=request.user)
 
     uploaded_vehicles = []
     saved_vehicles = []
     rented_vehicles = []
 
+    print(f"DEBUG: User type: {user_profile.user_type}")
+
     if user_profile.user_type == 'seller':
         uploaded_vehicles = Vehicle.objects.filter(uploader=request.user).order_by('-id')
+        print(f"DEBUG: Found {len(uploaded_vehicles)} uploaded vehicles")
 
     elif user_profile.user_type == 'buyer':
-        saved_vehicles = SavedVehicle.objects.filter(user=request.user).select_related('vehicle').order_by('-id')
+        saved_vehicles = SavedVehicle.objects.filter(user=request.user).select_related('vehicle').order_by('-saved_at')
+        print(f"DEBUG: Found {len(saved_vehicles)} saved vehicles")
+        
+        for saved in saved_vehicles:
+            print(f"DEBUG: Saved vehicle - {saved.vehicle.make} {saved.vehicle.model}")
 
     elif user_profile.user_type == 'renter':
-        # Option 1: show rented vehicles if you have a Rental model
-        # rented_vehicles = Rental.objects.filter(renter=request.user).select_related('vehicle').order_by('-id')
-        # Option 2: leave empty for now
         rented_vehicles = []
 
     context = {
@@ -38,10 +35,7 @@ def profile_view(request):
         'saved_vehicles': saved_vehicles,
         'rented_vehicles': rented_vehicles,
     }
-
     return render(request, 'profile.html', context)
-
-
 
 @login_required
 def remove_uploaded_vehicle(request, vehicle_id):
@@ -75,13 +69,15 @@ def remove_saved_vehicle(request, vehicle_id):
 
 @login_required
 def toggle_save(request, vehicle_id):
-    user = request.user
-    vehicle = Vehicle.objects.get(id=vehicle_id)
-    if vehicle in user.saved_vehicles.all():
-        user.saved_vehicles.remove(vehicle)
-        status = 'unsaved'
-    else:
-        user.saved_vehicles.add(vehicle)
-        status = 'saved'
-    return JsonResponse({'status': status})
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    
+    try:
+        saved_vehicle = SavedVehicle.objects.get(user=request.user, vehicle=vehicle)
+        saved_vehicle.delete()
+        print(f"DEBUG: Vehicle {vehicle_id} UNSAVED")
+    except SavedVehicle.DoesNotExist:
+        SavedVehicle.objects.create(user=request.user, vehicle=vehicle)  # Save
+        print(f"DEBUG: Vehicle {vehicle_id} SAVED")
+    
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
