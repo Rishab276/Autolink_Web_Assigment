@@ -26,14 +26,14 @@
                 {% for vehicle in page_obj %}
                 <div class="listing-card">
 
-                    <!-- Save button -->
-                    <button class="fav-btn" data-vehicle-id="{{ vehicle.id }}">
+                    <!-- SIMPLE Save button - NO AJAX -->
+                    <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn" style="text-decoration: none;">
                         {% if vehicle.id in saved_vehicle_ids %}
-                            🔖
+                            🔖 Saved
                         {% else %}
-                            📑
+                            📑 Save
                         {% endif %}
-                    </button>
+                    </a>
 
                     <!-- Vehicle image -->
                     <a href="{% url 'vehicles:detail' vehicle.pk %}">
@@ -69,35 +69,7 @@
         </div>
     </div>
 
-    <!-- AJAX Save/Unsave -->
-    <script>
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.fav-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                const vehicleId = button.dataset.vehicleId;
-
-                // Use a placeholder 0 in the template URL and replace with the actual JS variable
-                const url = "{% url 'profile:toggle_save' 0 %}".replace('0', vehicleId);
-
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    button.textContent = data.status === 'saved' ? '🔖' : '📑';
-                });
-            });
-        });
-    });
-    </script>
-
+    <!-- REMOVED ALL THE COMPLEX JAVASCRIPT -->
 
     {% include "footer.html" %}
 </body>

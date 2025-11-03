@@ -1,20 +1,21 @@
 #bysalwan
-from django.shortcuts import render, get_object_or_404
-from .models import Vehicle
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from .models import Vehicle
 from django.core.paginator import Paginator
+from Profile.models import SavedVehicle  # Import from Profile app
 
 def standardsearch(request):
     vehicles = Vehicle.objects.all().order_by('id')
-    paginator = Paginator(vehicles, 9)  # 9 per page
+    paginator = Paginator(vehicles, 9)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     saved_vehicle_ids = []
     if request.user.is_authenticated:
-        saved_vehicle_ids = list(request.user.saved_vehicles.values_list('vehicle_id', flat=True))
+        saved_vehicle_ids = list(SavedVehicle.objects.filter(
+            user=request.user
+        ).values_list('vehicle_id', flat=True))
 
     context = {
         'page_obj': page_obj,
