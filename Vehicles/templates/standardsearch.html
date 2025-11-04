@@ -5,20 +5,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Standard Search{% endblock %}</title>
-
+    <title>{% block title %}Vehicle Marketplace{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'standardsearch.css' %}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        .main-layout { display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
-        .container { width: 60%; overflow-y: auto; padding: 20px; }
-        #map { width: 40%; height: 100vh; position: sticky; top: 0; }
-        .price-marker { background: white; border-radius: 15px; padding: 4px 8px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .price-marker:hover { background: #ff5a5f; color: white; }
-        .pagination { display: flex; justify-content: center; align-items: center; margin: 20px auto; gap: 8px; padding: 10px 0; }
-        .page-link { display: inline-block; background: #f5f5f5; border: 1px solid #ccc; border-radius: 6px; padding: 6px 12px; color: #333; text-decoration: none; font-weight: 500; transition: all 0.2s ease-in-out; }
-        .page-link:hover { background: #ff5a5f; color: #fff; border-color: #ff5a5f; }
-        .page-link.active { background: #ff5a5f; color: #fff; border-color: #ff5a5f; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .main-layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 60%;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        #map {
+            width: 40%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        /* Marker style */
+        .price-marker {
+            background: white;
+            color: #000;
+            border-radius: 20px;
+            /* oval */
+            padding: 6px 12px;
+            /* horizontal oval shape */
+            border: 1px solid #ddd;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        .price-marker:hover {
+            background: #ff5a5f;
+            color: white;
+        }
+
+        .listings-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .listing-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            position: relative;
+        }
+
+        .listing-card img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .listing-info {
+            margin-top: 10px;
+        }
+
+        .listing-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .listing-details {
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .listing-price {
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .fav-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: #f8f9fa;
+            align-items: center;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-bar input {
+            padding: 8px 12px;
+            width: 200px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .search-bar button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .filter-container {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            padding: 16px;
+            z-index: 1000;
+        }
+
+        .filter-btn {
+            padding: 8px 12px;
+            background: #28a745;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .close-filter {
+            display: block;
+            text-align: right;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .filter-group {
+            margin-bottom: 12px;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .apply-btn,
+        .clear-btn {
+            width: 48%;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .apply-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .clear-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .pagination .current {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .pagination .disabled {
+            color: #aaa;
+            border-color: #ccc;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -26,40 +232,80 @@
     {% include "nav.html" %}
 
     <div class="header">
-        <div class="search-container">
-            <div class="search-bar">
-                <input type="text" id="vehicle-search" placeholder="Search for vehicles...">
-                <button type="submit">🔍</button>
-            </div>
-            <a href="{% url 'vehicles:filter' %}" class="filter-btn">Filters</a>
+        <div class="search-bar">
+            <input type="text" id="vehicle-search" placeholder="Search for vehicles...">
+            <button type="button" id="search-btn">🔍</button>
         </div>
+        <button class="filter-btn" id="toggle-filter">Filters</button>
+    </div>
+
+    <div class="filter-container" id="filter-panel">
+        <span class="close-filter" id="close-filter">✖</span>
+        <div class="filter-group">
+            <label for="make">Make</label>
+            <select id="make">
+                <option value="">Any Make</option>
+                <option value="toyota">Toyota</option>
+                <option value="honda">Honda</option>
+                <option value="nissan">Nissan</option>
+                <option value="suzuki">Suzuki</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="model">Model</label>
+            <input type="text" id="model">
+        </div>
+        <div class="filter-group">
+            <label for="year-from">Year From</label>
+            <input type="number" id="year-from" min="1990" max="2024">
+        </div>
+        <div class="filter-group">
+            <label for="year-to">Year To</label>
+            <input type="number" id="year-to" min="1990" max="2024">
+        </div>
+        <div class="filter-group">
+            <label for="max-price">Max Price</label>
+            <input type="number" id="max-price" placeholder="5000000">
+        </div>
+        <div class="filter-group">
+            <label for="fuel-type">Fuel Type</label>
+            <select id="fuel-type">
+                <option value="">Any</option>
+                <option value="petrol">Petrol</option>
+                <option value="diesel">Diesel</option>
+                <option value="electric">Electric</option>
+            </select>
+        </div>
+        <button class="apply-btn" id="apply-filter">Apply</button>
+        <button class="clear-btn" id="clear-filter">Clear</button>
     </div>
 
     <div class="main-layout">
         <div class="container">
             <div class="listings-grid">
                 {% for vehicle in page_obj %}
-                <div class="listing-card" data-latlng="{{ vehicle.gps_coor }}" data-make="{{ vehicle.make|lower }}" data-model="{{ vehicle.model|lower }}">
+                <div class="listing-card" data-id="{{ vehicle.id }}" data-make="{{ vehicle.make|lower }}"
+                    data-model="{{ vehicle.model|lower }}" data-year="{{ vehicle.year }}"
+                    data-price="{{ vehicle.price }}" data-fuel="{{ vehicle.fuel_type|lower }}"
+                    data-coords="{{ vehicle.gps_coor }}">
                     <button class="fav-btn" data-vehicle-id="{{ vehicle.id }}">
                         {% if vehicle.id in saved_vehicle_ids %}🔖{% else %}📑{% endif %}
                     </button>
-
-                    {% with first_image=Vehicle.images.all|first %}
-                        {% if first_image %}
-                            <a href="{% url 'vehicles:detail' vehicle.pk %}">
-                                <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="active">
-                            </a>
-                        {% else %}
-                            <a href="{% url 'vehicles:detail' vehicle.pk %}">
-                                <img src="{% static 'default_vehicle.png' %}" alt="No Image" class="active">
-                            </a>
-                        {% endif %}
+                    {% with first_image=vehicle.images.all|first %}
+                    {% if first_image %}
+                    <a href="{% url 'vehicles:detail' vehicle.pk %}">
+                        <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                    </a>
+                    {% else %}
+                    <a href="{% url 'vehicles:detail' vehicle.pk %}">
+                        <img src="{% static 'default_vehicle.png' %}" alt="No Image">
+                    </a>
+                    {% endif %}
                     {% endwith %}
-
                     <div class="listing-info">
                         <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
-                        <div class="listing-details">• {{ vehicle.type_of_vehicle|title }} • Year: {{ vehicle.year }}</div>
-                        <div class="listing-price" data-price="{{ vehicle.price }}"></div>
+                        <div class="listing-details">{{ vehicle.type_of_vehicle }} • Year: {{ vehicle.year }}</div>
+                        <div class="listing-price" data-raw="{{ vehicle.price }}">Rs {{ vehicle.price }}</div>
                     </div>
                 </div>
                 {% endfor %}
@@ -67,21 +313,26 @@
 
             <div class="pagination">
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}" class="page-link">&lt;</a>
+                <a href="?page={{ page_obj.previous_page_number }}">« Prev</a>
+                {% else %}
+                <span class="disabled">« Prev</span>
                 {% endif %}
+
                 {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                        <span class="page-link active">{{ num }}</span>
-                    {% else %}
-                        <a href="?page={{ num }}" class="page-link">{{ num }}</a>
-                    {% endif %}
+                {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+                {% else %}
+                <a href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
                 {% endfor %}
+
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="page-link">&gt;</a>
+                <a href="?page={{ page_obj.next_page_number }}">Next »</a>
+                {% else %}
+                <span class="disabled">Next »</span>
                 {% endif %}
             </div>
         </div>
-
         <div id="map"></div>
     </div>
 
@@ -89,107 +340,75 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- Helper to format prices ---
-        function formatPrice(num) {
-            num = parseFloat(num);
-            if(num >= 1000000) return (num/1000000).toFixed(1)+"M";
-            if(num >= 1000) return (num/1000).toFixed(1)+"K";
-            return num.toFixed(1);
+        // Format price in k/M with 2 decimals
+        function formatPrice(value) {
+            if (value >= 1000000) return (value / 1000000).toFixed(2) + 'M';
+            if (value >= 1000) return (value / 1000).toFixed(2) + 'k';
+            return value.toString();
         }
 
-        // --- Initialize Map ---
         const map = L.map('map').setView([-20.1609, 57.5012], 10);
-        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap contributors', maxZoom:19 }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
 
-        // --- Vehicles Data ---
-        const vehicleData = [
-            {% for vehicle in page_obj %}
-                {% if vehicle.gps_coor %}
-                { 
-                    id: {{ vehicle.id }},
-                    make: "{{ vehicle.make|escapejs }}",
-                    model: "{{ vehicle.model|escapejs }}",
-                    price: "{{ vehicle.price }}",
-                    coords: "{{ vehicle.gps_coor }}"
-                },
-                {% endif %}
-            {% endfor %}
-        ];
-
-        // --- Create markers ---
         const markers = [];
-        vehicleData.forEach(v => {
-            const [lat,lng] = v.coords.split(',').map(Number);
-            if(!isNaN(lat) && !isNaN(lng)){
-                const marker = L.marker([lat,lng], {
-                    icon: L.divIcon({ className:'price-marker', html:` ${formatPrice(v.price)}`, iconSize:[60,25], iconAnchor:[30,25] })
-                }).addTo(map);
-                marker.on('click', ()=> { window.location.href = "{% url 'vehicles:detail' 0 %}".replace('0', v.id); });
-                markers.push({vehicleId: v.id, marker: marker});
-            }
+        document.querySelectorAll('.listing-card').forEach(card => {
+            const coords = card.dataset.coords.split(',').map(Number);
+            const rawPrice = parseInt(card.dataset.price);
+            card.querySelector('.listing-price').textContent = 'Rs ' + formatPrice(rawPrice);
+
+            const marker = L.marker(coords, {
+                icon: L.divIcon({
+                    className: 'price-marker',
+                    html:formatPrice(rawPrice),
+                    iconSize: [null, null]
+                })
+            }).addTo(map);
+
+            // Redirect to detail page when marker is clicked
+            marker.on('click', () => {
+                window.location.href = '/vehicles/detail/' + card.dataset.id;
+            });
+
+            markers.push({ card: card, marker: marker });
         });
 
-        // --- Function to update visible cards and markers ---
         function updateVisibility() {
             const searchValue = document.getElementById('vehicle-search').value.toLowerCase();
-            const bounds = map.getBounds();
+            const makeFilter = document.getElementById('make').value.toLowerCase();
+            const modelFilter = document.getElementById('model').value.toLowerCase();
+            const yearFrom = parseInt(document.getElementById('year-from').value) || -Infinity;
+            const yearTo = parseInt(document.getElementById('year-to').value) || Infinity;
+            const maxPrice = parseInt(document.getElementById('max-price').value) || Infinity;
+            const fuel = document.getElementById('fuel-type').value.toLowerCase();
 
-            document.querySelectorAll('.listing-card').forEach(card => {
+            markers.forEach(({ card, marker }) => {
                 const make = card.dataset.make;
                 const model = card.dataset.model;
-                const latlng = card.dataset.latlng;
-                let visible = true;
+                const year = parseInt(card.dataset.year);
+                const price = parseInt(card.dataset.price);
+                const fuelType = card.dataset.fuel.toLowerCase();
 
-                if(latlng){
-                    const [lat,lng] = latlng.split(',').map(Number);
-                    visible = bounds.contains(L.latLng(lat,lng));
-                }
+                const matches = (make.includes(searchValue) || model.includes(searchValue)) &&
+                    (makeFilter ? make === makeFilter : true) &&
+                    (modelFilter ? model === modelFilter : true) &&
+                    year >= yearFrom && year <= yearTo &&
+                    price <= maxPrice &&
+                    (fuel ? fuelType === fuel : true);
 
-                if(searchValue && !(make.includes(searchValue) || model.includes(searchValue))){
-                    visible = false;
-                }
-
-                card.style.display = visible ? 'block' : 'none';
-
-                // Update map markers
-                const markerObj = markers.find(m => m.vehicleId == card.querySelector('.fav-btn').dataset.vehicleId);
-                if(markerObj){
-                    if(visible){
-                        markerObj.marker.addTo(map);
-                    } else {
-                        map.removeLayer(markerObj.marker);
-                    }
-                }
+                card.style.display = matches ? 'block' : 'none';
+                if (matches) marker.addTo(map); else map.removeLayer(marker);
             });
         }
 
-        // --- Map move / zoom updates ---
-        map.on('moveend', updateVisibility);
-
-        // --- Search bar input ---
         document.getElementById('vehicle-search').addEventListener('input', updateVisibility);
-
-        // --- Format prices ---
-        document.querySelectorAll('.listing-price').forEach(priceEl=>{
-            const price=parseFloat(priceEl.dataset.price);
-            if(!isNaN(price)) priceEl.textContent = "Rs "+formatPrice(price);
+        document.getElementById('apply-filter').addEventListener('click', updateVisibility);
+        document.getElementById('clear-filter').addEventListener('click', () => {
+            document.querySelectorAll('#filter-panel select, #filter-panel input').forEach(el => el.value = '');
+            updateVisibility();
         });
-    </script>
-
-    <script>
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-        document.addEventListener('DOMContentLoaded',()=>{
-            document.querySelectorAll('.fav-btn').forEach(button=>{
-                button.addEventListener('click',e=>{
-                    e.preventDefault();
-                    const vehicleId = button.dataset.vehicleId;
-                    const url="{% url 'profile:toggle_save' 0 %}".replace('0',vehicleId);
-
-                    fetch(url,{ method:'POST', headers:{'X-CSRFToken':csrftoken,'X-Requested-With':'XMLHttpRequest'} })
-                    .then(res=>res.json()).then(data=>{ button.textContent = data.status==='saved'?'🔖':'📑'; });
-                });
-            });
-        });
+        document.getElementById('toggle-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'block'; });
+        document.getElementById('close-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'none'; });
     </script>
 </body>
+
 </html>
