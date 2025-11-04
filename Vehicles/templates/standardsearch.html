@@ -26,12 +26,12 @@
                 {% for vehicle in page_obj %}
                 <div class="listing-card">
 
-                    <!-- SIMPLE Save button - NO AJAX -->
-                    <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn" style="text-decoration: none;">
+                    <!-- Clean Save button - ONE icon only -->
+                    <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn">
                         {% if vehicle.id in saved_vehicle_ids %}
-                            🔖 Saved
+                            ❤️
                         {% else %}
-                            📑 Save
+                            🤍
                         {% endif %}
                     </a>
 
@@ -68,8 +68,6 @@
             </div>
         </div>
     </div>
-
-    <!-- REMOVED ALL THE COMPLEX JAVASCRIPT -->
 
     {% include "footer.html" %}
 </body>
