@@ -284,6 +284,20 @@
         <div class="container">
             <div class="listings-grid">
                 {% for vehicle in page_obj %}
+<<<<<<< HEAD
+                <div class="listing-card">
+
+                    <!-- Clean Save button - ONE icon only -->
+                    <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn">
+                        {% if vehicle.id in saved_vehicle_ids %}
+                            ❤️
+                        {% else %}
+                            🤍
+                        {% endif %}
+                    </a>
+
+                    <!-- Vehicle image -->
+=======
                 <div class="listing-card" data-id="{{ vehicle.id }}" data-make="{{ vehicle.make|lower }}"
                     data-model="{{ vehicle.model|lower }}" data-year="{{ vehicle.year }}"
                     data-price="{{ vehicle.price }}" data-fuel="{{ vehicle.fuel_type|lower }}"
@@ -293,6 +307,7 @@
                     </button>
                     {% with first_image=vehicle.images.all|first %}
                     {% if first_image %}
+>>>>>>> b1a120d7e268818296113d72a7fd8d68f9eec138
                     <a href="{% url 'vehicles:detail' vehicle.pk %}">
                         <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
                     </a>
