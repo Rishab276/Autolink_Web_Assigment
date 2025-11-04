@@ -38,9 +38,7 @@
             background: white;
             color: #000;
             border-radius: 20px;
-            /* oval */
             padding: 6px 12px;
-            /* horizontal oval shape */
             border: 1px solid #ddd;
             font-size: 12px;
             font-weight: bold;
@@ -56,6 +54,7 @@
 
         .listings-grid {
             display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
         }
 
@@ -65,10 +64,18 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             padding: 12px;
             position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .listing-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
         }
 
         .listing-card img {
             width: 100%;
+            height: 180px;
+            object-fit: cover;
             border-radius: 8px;
         }
 
@@ -79,26 +86,44 @@
         .listing-title {
             font-weight: 600;
             font-size: 1rem;
+            margin-bottom: 5px;
+            color: #2c3e50;
         }
 
         .listing-details {
             font-size: 0.85rem;
             color: #555;
+            margin-bottom: 8px;
         }
 
         .listing-price {
             font-weight: bold;
-            margin-top: 4px;
+            color: #e74c3c;
+            font-size: 1.1rem;
         }
 
         .fav-btn {
             position: absolute;
             top: 8px;
             right: 8px;
-            background: none;
+            background: rgba(255, 255, 255, 0.9);
             border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 18px;
             cursor: pointer;
+            text-decoration: none;
+            z-index: 10;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .fav-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
         }
 
         .header {
@@ -107,6 +132,7 @@
             padding: 12px 20px;
             background: #f8f9fa;
             align-items: center;
+            border-bottom: 1px solid #dee2e6;
         }
 
         .search-bar {
@@ -119,6 +145,7 @@
             width: 200px;
             border-radius: 6px;
             border: 1px solid #ccc;
+            font-size: 14px;
         }
 
         .search-bar button {
@@ -128,6 +155,7 @@
             background: #007bff;
             color: #fff;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .filter-container {
@@ -147,8 +175,11 @@
             padding: 8px 12px;
             background: #28a745;
             color: white;
+            border: none;
             border-radius: 6px;
             text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
         }
 
         .close-filter {
@@ -157,6 +188,7 @@
             cursor: pointer;
             font-weight: bold;
             margin-bottom: 8px;
+            color: #6c757d;
         }
 
         .filter-group {
@@ -167,6 +199,8 @@
             font-size: 0.85rem;
             display: block;
             margin-bottom: 4px;
+            font-weight: 600;
+            color: #495057;
         }
 
         .filter-group input,
@@ -175,6 +209,7 @@
             padding: 6px;
             border-radius: 6px;
             border: 1px solid #ccc;
+            font-size: 14px;
         }
 
         .apply-btn,
@@ -185,6 +220,7 @@
             border-radius: 6px;
             cursor: pointer;
             margin-top: 8px;
+            font-size: 14px;
         }
 
         .apply-btn {
@@ -212,6 +248,7 @@
             border-radius: 6px;
             text-decoration: none;
             color: #007bff;
+            font-size: 14px;
         }
 
         .pagination .current {
@@ -253,18 +290,18 @@
         </div>
         <div class="filter-group">
             <label for="model">Model</label>
-            <input type="text" id="model">
+            <input type="text" id="model" placeholder="Any model">
         </div>
         <div class="filter-group">
             <label for="year-from">Year From</label>
-            <input type="number" id="year-from" min="1990" max="2024">
+            <input type="number" id="year-from" min="1990" max="2024" placeholder="1990">
         </div>
         <div class="filter-group">
             <label for="year-to">Year To</label>
-            <input type="number" id="year-to" min="1990" max="2024">
+            <input type="number" id="year-to" min="1990" max="2024" placeholder="2024">
         </div>
         <div class="filter-group">
-            <label for="max-price">Max Price</label>
+            <label for="max-price">Max Price (Rs)</label>
             <input type="number" id="max-price" placeholder="5000000">
         </div>
         <div class="filter-group">
@@ -284,28 +321,39 @@
         <div class="container">
             <div class="listings-grid">
                 {% for vehicle in page_obj %}
-                <div class="listing-card" data-id="{{ vehicle.id }}" data-make="{{ vehicle.make|lower }}"
-                    data-model="{{ vehicle.model|lower }}" data-year="{{ vehicle.year }}"
-                    data-price="{{ vehicle.price }}" data-fuel="{{ vehicle.fuel_type|lower }}"
-                    data-coords="{{ vehicle.gps_coor }}">
-                    <button class="fav-btn" data-vehicle-id="{{ vehicle.id }}">
-                        {% if vehicle.id in saved_vehicle_ids %}🔖{% else %}📑{% endif %}
-                    </button>
-                    {% with first_image=vehicle.images.all|first %}
-                    {% if first_image %}
-                    <a href="{% url 'vehicles:detail' vehicle.pk %}">
-                        <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                <div class="listing-card" 
+                     data-id="{{ vehicle.id }}" 
+                     data-coords="{{ vehicle.gps_coor|default:'-20.1609,57.5012' }}" 
+                     data-price="{{ vehicle.price }}" 
+                     data-make="{{ vehicle.make|lower }}" 
+                     data-model="{{ vehicle.model|lower }}" 
+                     data-year="{{ vehicle.year }}" 
+                     data-fuel="{{ vehicle.fuel_type|lower }}">
+
+                    <!-- Clean Save button -->
+                    <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn">
+                        {% if vehicle.id in saved_vehicle_ids %}
+                            ❤️
+                        {% else %}
+                            🤍
+                        {% endif %}
                     </a>
-                    {% else %}
+
+                    <!-- Vehicle image -->
                     <a href="{% url 'vehicles:detail' vehicle.pk %}">
-                        <img src="{% static 'default_vehicle.png' %}" alt="No Image">
+                        {% with first_image=vehicle.images.first %}
+                            {% if first_image %}
+                                <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                            {% else %}
+                                <img src="{% static 'default_vehicle.png' %}" alt="No Image Available">
+                            {% endif %}
+                        {% endwith %}
                     </a>
-                    {% endif %}
-                    {% endwith %}
+
                     <div class="listing-info">
                         <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
                         <div class="listing-details">{{ vehicle.type_of_vehicle }} • Year: {{ vehicle.year }}</div>
-                        <div class="listing-price" data-raw="{{ vehicle.price }}">Rs {{ vehicle.price }}</div>
+                        <div class="listing-price">Rs {{ vehicle.price }}</div>
                     </div>
                 </div>
                 {% endfor %}
@@ -347,31 +395,47 @@
             return value.toString();
         }
 
+        // Initialize map
         const map = L.map('map').setView([-20.1609, 57.5012], 10);
-        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { 
+            attribution: '© OpenStreetMap contributors', 
+            maxZoom: 19 
+        }).addTo(map);
 
         const markers = [];
+        
+        // Initialize markers for each vehicle
         document.querySelectorAll('.listing-card').forEach(card => {
             const coords = card.dataset.coords.split(',').map(Number);
             const rawPrice = parseInt(card.dataset.price);
-            card.querySelector('.listing-price').textContent = 'Rs ' + formatPrice(rawPrice);
+            const vehicleId = card.dataset.id;
 
+            // Create marker
             const marker = L.marker(coords, {
                 icon: L.divIcon({
                     className: 'price-marker',
-                    html:formatPrice(rawPrice),
+                    html: 'Rs ' + formatPrice(rawPrice),
                     iconSize: [null, null]
                 })
             }).addTo(map);
 
             // Redirect to detail page when marker is clicked
             marker.on('click', () => {
-                window.location.href = '/vehicles/detail/' + card.dataset.id;
+                window.location.href = '/vehicles/detail/' + vehicleId;
             });
 
-            markers.push({ card: card, marker: marker });
+            markers.push({ 
+                card: card, 
+                marker: marker,
+                make: card.dataset.make,
+                model: card.dataset.model,
+                year: parseInt(card.dataset.year),
+                price: rawPrice,
+                fuel: card.dataset.fuel
+            });
         });
 
+        // Filter function
         function updateVisibility() {
             const searchValue = document.getElementById('vehicle-search').value.toLowerCase();
             const makeFilter = document.getElementById('make').value.toLowerCase();
@@ -381,34 +445,49 @@
             const maxPrice = parseInt(document.getElementById('max-price').value) || Infinity;
             const fuel = document.getElementById('fuel-type').value.toLowerCase();
 
-            markers.forEach(({ card, marker }) => {
-                const make = card.dataset.make;
-                const model = card.dataset.model;
-                const year = parseInt(card.dataset.year);
-                const price = parseInt(card.dataset.price);
-                const fuelType = card.dataset.fuel.toLowerCase();
+            markers.forEach(({ card, marker, make, model, year, price, fuelType }) => {
+                const matchesSearch = make.includes(searchValue) || model.includes(searchValue);
+                const matchesMake = !makeFilter || make === makeFilter;
+                const matchesModel = !modelFilter || model.includes(modelFilter);
+                const matchesYear = year >= yearFrom && year <= yearTo;
+                const matchesPrice = price <= maxPrice;
+                const matchesFuel = !fuel || fuelType === fuel;
 
-                const matches = (make.includes(searchValue) || model.includes(searchValue)) &&
-                    (makeFilter ? make === makeFilter : true) &&
-                    (modelFilter ? model === modelFilter : true) &&
-                    year >= yearFrom && year <= yearTo &&
-                    price <= maxPrice &&
-                    (fuel ? fuelType === fuel : true);
+                const matches = matchesSearch && matchesMake && matchesModel && matchesYear && matchesPrice && matchesFuel;
 
                 card.style.display = matches ? 'block' : 'none';
-                if (matches) marker.addTo(map); else map.removeLayer(marker);
+                if (matches) {
+                    marker.addTo(map);
+                } else {
+                    map.removeLayer(marker);
+                }
             });
         }
 
+        // Event listeners
         document.getElementById('vehicle-search').addEventListener('input', updateVisibility);
         document.getElementById('apply-filter').addEventListener('click', updateVisibility);
         document.getElementById('clear-filter').addEventListener('click', () => {
             document.querySelectorAll('#filter-panel select, #filter-panel input').forEach(el => el.value = '');
             updateVisibility();
         });
-        document.getElementById('toggle-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'block'; });
-        document.getElementById('close-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'none'; });
+        document.getElementById('toggle-filter').addEventListener('click', () => { 
+            document.getElementById('filter-panel').style.display = 'block'; 
+        });
+        document.getElementById('close-filter').addEventListener('click', () => { 
+            document.getElementById('filter-panel').style.display = 'none'; 
+        });
+
+        // Close filter when clicking outside
+        document.addEventListener('click', (e) => {
+            const filterPanel = document.getElementById('filter-panel');
+            const filterBtn = document.getElementById('toggle-filter');
+            if (filterPanel.style.display === 'block' && 
+                !filterPanel.contains(e.target) && 
+                !filterBtn.contains(e.target)) {
+                filterPanel.style.display = 'none';
+            }
+        });
     </script>
 </body>
-
 </html>
