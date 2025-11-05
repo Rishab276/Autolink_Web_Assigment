@@ -32,3 +32,9 @@ class Report(models.Model):
     
     def __str__(self):
         return f"Report: {self.subject} by {self.reporter_name}"
+
+
+
+
+
+
