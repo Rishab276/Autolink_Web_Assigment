@@ -2,12 +2,14 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ vehicle.make }} {{ vehicle.model }} - Car Details</title>
     <link rel="stylesheet" href="{% static 'car_details.css' %}">
 </head>
+
 <body>
     {% include 'nav.html' %}
 
@@ -16,7 +18,9 @@
             <div class="left-column">
                 <div class="car-image">
                     {% for img in vehicle.images.all %}
-                        <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="{% if forloop.first %}active{% endif %}">
+
+                    <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}"
+                        class="{% if forloop.first %}active{% endif %}">
                     {% endfor %}
 
                     <!-- Prev/Next buttons -->
@@ -32,7 +36,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="car-info">
                 <h2>{{ vehicle.make }} {{ vehicle.model }}</h2>
 
@@ -72,7 +76,7 @@
             </div>
         </div>
     </div>
-    
+
     <footer>
         {% include "footer.html" %}
     </footer>
@@ -80,32 +84,33 @@
     <script>
         // JavaScript functions for image carousel
         let slideIndex = 1;
-        
+
         function changeImage(n) {
             showImage(slideIndex += n);
         }
-        
+
         function currentImage(n) {
             showImage(slideIndex = n);
         }
-        
+
         function showImage(n) {
             let i;
             let images = document.getElementsByClassName("car-image")[0].getElementsByTagName("img");
-            
-            if (n > images.length) {slideIndex = 1}
-            if (n < 1) {slideIndex = images.length}
-            
+
+            if (n > images.length) { slideIndex = 1 }
+            if (n < 1) { slideIndex = images.length }
+
             for (i = 0; i < images.length; i++) {
                 images[i].classList.remove("active");
             }
-            
-            images[slideIndex-1].classList.add("active");
+
+            images[slideIndex - 1].classList.add("active");
         }
-        
+
         function contactSeller() {
             alert("Contact form would open here");
         }
     </script>
 </body>
+
 </html>

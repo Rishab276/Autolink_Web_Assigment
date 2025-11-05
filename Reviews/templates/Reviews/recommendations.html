@@ -1,4 +1,4 @@
-<!--humaa -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -402,7 +402,7 @@
         </section>
 
         <section class="featured-recommendation">
-            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Toyota RAV4">
+            <img src="{% static 'images/cars/toyota-rav4.png' %}" alt="Toyota RAV4">
             <div class="text">
                 <h3>2023 Toyota RAV4 - <span class="currency">Rs 1,450,000</span></h3>
                 <p>Our top recommendation for Mauritian families! The Toyota RAV4 combines reliability, comfort, and excellent fuel efficiency. With its spacious interior and advanced safety features, it's perfect for navigating both city streets and coastal roads.</p>
@@ -414,25 +414,27 @@
         <div class="recommendations-grid">
             <div class="recommendation-card">
                 <div class="badge">Best Seller</div>
-                <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Honda CR-V">
+                <img src="{% static 'images/cars/honda-crv.png' %}" alt="Honda CR-V">
                 <div class="card-content">
                     <h3>2023 Honda CR-V - <span class="currency">Rs 1,520,000</span></h3>
                     <p>We recommend the Honda CR-V for its exceptional reliability and comfortable ride. The spacious interior and advanced infotainment system make it ideal for Mauritian families.</p>
                 </div>
             </div>
             
-            <div class="recommendation-card">
+                            <div class="recommendation-card">
                 <div class="badge">Premium Pick</div>
-                <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="BMW X3">
+                <img src="{% static 'images/cars/bmw-x3.png' %}" alt="BMW X3">
                 <div class="card-content">
                     <h3>2023 BMW X3 - <span class="currency">Rs 2,850,000</span></h3>
                     <p>For those seeking luxury and performance, we propose the BMW X3. Its powerful engine and premium interior provide an exceptional driving experience on Mauritian roads.</p>
                 </div>
-            </div>
-            
+            </div>       
+           
+
+               
             <div class="recommendation-card">
                 <div class="badge">Eco Choice</div>
-                <img src="https://images.unsplash.com/photo-1563720223485-41b7d82de7c1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Toyota Prius">
+                <img src="{% static 'images/cars/toyota-prius.png' %}" alt="Toyota Prius">
                 <div class="card-content">
                     <h3>2023 Toyota Prius - <span class="currency">Rs 1,380,000</span></h3>
                     <p>We highly recommend the Toyota Prius for its outstanding fuel efficiency. Perfect for daily commuting in Mauritius with significant savings on fuel costs.</p>
@@ -440,7 +442,7 @@
             </div>
             
             <div class="recommendation-card">
-                <img src="https://images.unsplash.com/photo-1621135802920-133df287f89c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Mitsubishi Outlander">
+                <img src="{% static 'images/cars/mitsubishi-outlander.png' %}" alt="Mitsubishi Outlander">
                 <div class="card-content">
                     <h3>2023 Mitsubishi Outlander - <span class="currency">Rs 1,420,000</span></h3>
                     <p>We propose the Mitsubishi Outlander for its rugged capability and comfortable interior. Excellent for both city driving and weekend adventures around Mauritius.</p>
@@ -448,7 +450,7 @@
             </div>
 
             <div class="recommendation-card">
-                <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Ford Ranger">
+                <img src="{% static 'images/cars/ford-ranger.png' %}" alt="Ford Ranger">
                 <div class="card-content">
                     <h3>2023 Ford Ranger - <span class="currency">Rs 1,680,000</span></h3>
                     <p>Our top pick for utility and work vehicles. The Ford Ranger offers impressive towing capacity and durability, perfect for both business and personal use in Mauritius.</p>
@@ -457,7 +459,7 @@
 
             <div class="recommendation-card">
                 <div class="badge">Family Choice</div>
-                <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Kia Sorento">
+                <img src="{% static 'images/cars/kia-sorento.png' %}" alt="Kia Sorento">
                 <div class="card-content">
                     <h3>2023 Kia Sorento - <span class="currency">Rs 1,550,000</span></h3>
                     <p>We recommend the Kia Sorento for its exceptional value and spacious three-row seating. Perfect for larger families exploring Mauritius together.</p>
@@ -465,7 +467,7 @@
             </div>
 
             <div class="recommendation-card">
-                <img src="https://images.unsplash.com/photo-1593941707882-a5bba5331f5a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Mercedes GLC">
+                <img src="{% static 'images/cars/mercedes-glc.png' %}" alt="Mercedes GLC">
                 <div class="card-content">
                     <h3>2023 Mercedes GLC - <span class="currency">Rs 3,250,000</span></h3>
                     <p>Experience luxury and sophistication with the Mercedes GLC. Premium comfort meets advanced technology in this exceptional SUV for Mauritian roads.</p>
@@ -474,7 +476,7 @@
 
             <div class="recommendation-card">
                 <div class="badge">Adventure Ready</div>
-                <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Land Rover Discovery">
+                <img src="{% static 'images/cars/land-rover.png' %}" alt="Land Rover Discovery">
                 <div class="card-content">
                     <h3>2023 Land Rover Discovery - <span class="currency">Rs 3,850,000</span></h3>
                     <p>Conquer any terrain with the Land Rover Discovery. Perfect for exploring Mauritius' diverse landscapes while enjoying premium comfort and capability.</p>
@@ -486,7 +488,7 @@
 
         <div class="budget-grid">
             <div class="budget-card">
-                <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Suzuki Swift">
+                <img src="{% static 'images/cars/suzuki-swift.png' %}" alt="Suzuki Swift">
                 <div class="budget-content">
                     <h3>2023 Suzuki Swift - <span class="currency">Rs 680,000</span></h3>
                     <p>Our top budget recommendation! The Suzuki Swift offers excellent fuel efficiency and agile handling at an affordable price. Perfect for navigating Mauritian roads.</p>
@@ -494,7 +496,7 @@
             </div>
 
             <div class="budget-card">
-                <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Toyota Yaris">
+                <img src="{% static 'images/cars/toyota-yaris.png' %}" alt="Toyota Yaris">
                 <div class="budget-content">
                     <h3>2023 Toyota Yaris - <span class="currency">Rs 720,000</span></h3>
                     <p>We propose the Toyota Yaris for its legendary reliability and low maintenance costs. Compact yet surprisingly spacious for Mauritian driving conditions.</p>
@@ -502,7 +504,7 @@
             </div>
 
             <div class="budget-card">
-                <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Hyundai i10">
+                <img src="{% static 'images/cars/hyundai-i10.png' %}" alt="Hyundai i10">
                 <div class="budget-content">
                     <h3>2023 Hyundai i10 - <span class="currency">Rs 590,000</span></h3>
                     <p>Our recommendation for first-time car buyers. The Hyundai i10 is the perfect city car with its compact dimensions and excellent fuel economy.</p>
@@ -510,7 +512,7 @@
             </div>
 
             <div class="budget-card">
-                <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Nissan Micra">
+                <img src="{% static 'images/cars/nissan-micra.png' %}" alt="Nissan Micra">
                 <div class="budget-content">
                     <h3>2023 Nissan Micra - <span class="currency">Rs 650,000</span></h3>
                     <p>The Nissan Micra offers style and efficiency at an unbeatable price. Perfect for urban driving with its compact size and modern features.</p>
@@ -518,7 +520,7 @@
             </div>
 
             <div class="budget-card">
-                <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Kia Picanto">
+                <img src="{% static 'images/cars/kia-picanto.png' %}" alt="Kia Picanto">
                 <div class="budget-content">
                     <h3>2023 Kia Picanto - <span class="currency">Rs 550,000</span></h3>
                     <p>The Kia Picanto combines affordability with modern styling. Excellent for city commuting with low running costs and comprehensive warranty.</p>
@@ -526,7 +528,7 @@
             </div>
 
             <div class="budget-card">
-                <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Renault Kwid">
+                <img src="{% static 'images/cars/renault-kwid.png' %}" alt="Renault Kwid">
                 <div class="budget-content">
                     <h3>2023 Renault Kwid - <span class="currency">Rs 520,000</span></h3>
                     <p>The Renault Kwid offers SUV-inspired styling at a hatchback price. Perfect for young drivers and first-time car owners in Mauritius.</p>

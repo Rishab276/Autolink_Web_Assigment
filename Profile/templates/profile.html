@@ -1,4 +1,3 @@
-<!--bysalwan-->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -9,18 +8,89 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f8f9fa; min-height: 100vh; }
-        .profile-header { background-color: #fff; padding: 2rem; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1); text-align: center; }
-        .profile-header h2 { margin-bottom: 0.5rem; }
-        .profile-header p { margin-bottom: 0.25rem; color: #6c757d; }
-        .section-title { margin-bottom: 1rem; margin-top: 2rem; text-align: center; }
-        .vehicle-card { transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #dee2e6; border-radius: 0.5rem; overflow: hidden; background-color: #fff; }
-        .vehicle-card:hover { transform: translateY(-5px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); }
-        .vehicle-image { height: 200px; object-fit: cover; }
-        .remove-btn { font-size: 0.9rem; }
-        .save-btn { font-size: 1.2rem; cursor: pointer; background: none; border: none; }
-        footer { margin-top: 2rem; }
-        .empty-msg { display: flex; justify-content: center; align-items: center; height: 150px; font-size: 1.2rem; color: #6c757d; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f8f9fa; 
+            min-height: 100vh; 
+        }
+
+        .profile-header { 
+            background-color: #fff; 
+            padding: 2rem; 
+            margin-bottom: 2rem; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1); 
+            text-align: center; 
+        }
+
+        .profile-header h2 { 
+            margin-bottom: 0.5rem; 
+        }
+
+        .profile-header p { 
+            margin-bottom: 0.25rem; 
+            color: #6c757d; 
+        }
+
+        .section-title {
+            margin-bottom: 1rem; 
+            margin-top: 2rem; 
+            text-align: center; 
+        }
+
+        .vehicle-card { 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            border: 1px solid #dee2e6; 
+            border-radius: 0.5rem; 
+            overflow: hidden; 
+            background-color: #fff; 
+        }
+
+        .vehicle-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); 
+        }
+
+        .vehicle-image { 
+            height: 200px; 
+            object-fit: cover; 
+        }
+
+        .remove-btn { 
+            font-size: 0.9rem; 
+        }
+
+        .save-btn { 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            background: none; 
+            border: none; 
+        }
+
+        footer { 
+            margin-top: 2rem; 
+        }
+        
+        .empty-msg { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 150px; 
+            font-size: 1.2rem; 
+            color: #6c757d; 
+        }
+
+        .empty-heart i {
+            font-size: 3rem;
+            color: #dc3545;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
     </style>
 </head>
 <body>
@@ -59,7 +129,11 @@
                     {% for vehicle in uploaded_vehicles %}
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card vehicle-card h-100">
-                                <img src="{{ vehicle.images.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                                {% if vehicle.images.first %}
+                                    <img src="{{ vehicle.images.first.image.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                                {% else %}
+                                    <img src="{% static 'default-vehicle.jpg' %}" class="card-img-top vehicle-image" alt="No image">
+                                {% endif %}
                                 <div class="card-body">
                                     <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
                                 </div>
@@ -80,21 +154,53 @@
             <h4 class="section-title text-center">Saved Vehicles</h4>
             {% if saved_vehicles %}
                 <div class="row justify-content-center">
-                    {% for vehicle in saved_vehicles %}
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card vehicle-card h-100">
-                                <img src="{{ vehicle.images.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
+                    {% for saved_vehicle in saved_vehicles %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card vehicle-card h-100 position-relative">
+                            
+                            <!-- Unsave Button on Photo -->
+                            <a href="{% url 'profile:toggle_save' saved_vehicle.vehicle.id %}" 
+                            class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2" 
+                            style="z-index: 10;"
+                            title="Unsave Vehicle">
+                                ❌ Unsave
+                            </a>
+
+                            <!-- Vehicle Image -->
+                            {% if saved_vehicle.vehicle.images.first %}
+                                <img src="{{ saved_vehicle.vehicle.images.first.image.url }}" 
+                                    class="card-img-top vehicle-image" 
+                                    alt="{{ saved_vehicle.vehicle.make }} {{ saved_vehicle.vehicle.model }}">
+                            {% else %}
+                                <div class="card-img-top vehicle-image bg-light d-flex align-items-center justify-content-center">
+                                    <span>No Image Available</span>
                                 </div>
+                            {% endif %}
+
+                            <div class="card-body">
+                                <h5 class="card-title">{{ saved_vehicle.vehicle.make }} {{ saved_vehicle.vehicle.model }} ({{ saved_vehicle.vehicle.year }})</h5>
+                                <p class="card-text">
+                                    <strong>Price:</strong> Rs {{ saved_vehicle.vehicle.price }}<br>
+                                    <strong>Mileage:</strong> {{ saved_vehicle.vehicle.mileage }} km<br>
+                                    <strong>Transmission:</strong> {{ saved_vehicle.vehicle.transmission }}
+                                </p>
+                                <a href="{% url 'vehicles:detail' saved_vehicle.vehicle.id %}" class="btn btn-primary btn-sm">
+                                    View Details
+                                </a>
                             </div>
                         </div>
+                    </div>
                     {% endfor %}
                 </div>
             {% else %}
                 <div class="text-center mt-4">
-                    <p>No saved vehicles yet.</p>
-                    <a href="{% url 'vehicles:standardsearch' %}" class="btn btn-primary">Browse Vehicles</a>
+                    <div class="empty-heart mb-2">
+                        <i class="fa-regular fa-heart text-danger"></i>
+                    </div>
+                    <p class="fs-5 text-muted">No saved vehicles yet.</p>
+                    <a href="{% url 'vehicles:standardsearch' %}" class="btn btn-primary">
+                        Browse Vehicles
+                    </a>
                 </div>
             {% endif %}
         {% endif %}
