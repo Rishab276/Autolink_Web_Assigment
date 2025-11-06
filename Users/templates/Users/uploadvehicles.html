@@ -96,76 +96,115 @@
   {% include 'nav.html' %}
 
   <div class="upload-container">
-    <h2>Upload Your Vehicle</h2>
-    <form>
-      
-      <div class="mb-3">
-        <label for="title">Vehicle Title</label>
-        <input type="text" id="title" class="form-control" placeholder="e.g., Car, Van, Bus, Motocycle" required />
-      </div>
+    <h2>
+    {% if user_type == 'seller' %}
+      Upload Your Vehicle for Sale
+    {% elif user_type == 'renter' %}
+      Upload Your Vehicle for Rent
+    {% else %}
+     Upload Your Vehicle
+    {% endif %}
+  </h2>
+   
+      <form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <!-- Vehicle Title -->
+  <div class="mb-3">
+    <label for="title">Vehicle Title</label>
+    <input type="text" id="title" name="title" class="form-control" placeholder="e.g., Car, Van, Bus, Motorcycle" required />
+  </div>
+
+  
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="make">Make</label>
+      <input type="text" id="make" name="make" class="form-control" placeholder="e.g., Toyota" required />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="model">Model</label>
+      <input type="text" id="model" name="model" class="form-control" placeholder="e.g., Corolla" required />
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label for="year">Year</label>
+      <input type="number" id="year" name="year" class="form-control" placeholder="e.g., 2020" required />
+    </div>
+    <div class="col-md-4 mb-3">
+      <label for="price">Price (Rs)</label>
+      <input type="number" id="price" name="price" class="form-control" placeholder="e.g., 550000" required />
+    </div>
+    <div class="col-md-4 mb-3">
+      <label for="mileage">Mileage (km)</label>
+      <input type="number" id="condition" name="condition" class="form-control" placeholder="e.g., 10000" required />
+    </div>
+  </div>
+
+  
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="transmission">Transmission</label>
+      <select id="transmission" name="transmission" class="form-select" required>
+        <option value="">Select Transmission</option>
+        <option value="manual">Manual</option>
+        <option value="automatic">Automatic</option>
+        <option value="semi-automatic">Semi-Automatic</option>
+      </select>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="fuel_type">Fuel Type</label>
+      <select id="fuel_type" name="fuel_type" class="form-select" required>
+        <option value="">Select Fuel Type</option>
+        <option value="petrol">Petrol</option>
+        <option value="diesel">Diesel</option>
+        <option value="hybrid">Hybrid</option>
+        <option value="electric">Electric</option>
+      </select>
+    </div>
+  </div>
+
+ 
+  <div class="mb-3">
+    <label for="type">Vehicle Type</label>
+    <select id="type" name="type" class="form-select" required>
+      <option value="">Select Option</option>
+      <option value="sale" {% if user_type == 'seller' %}selected{% endif %}>For Sale</option>
+      <option value="rent" {% if user_type == 'renter' %}selected{% endif %}>For Rent</option>
+    </select>
+  </div>
+
+ 
+  <div class="mb-3">
+    <label for="gps_coordinates">GPS Coordinates</label>
+    <input type="text" id="gps_coordinates" name="gps_coordinates" class="form-control"
+           placeholder="e.g., -20.20665 57.6755" required />
+  </div>
+
+  <div class="mb-3">
+    <label for="description">Description</label>
+    <textarea id="description" name="description" class="form-control" rows="4" placeholder="Describe your vehicle..." required></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label for="contact">Contact Number</label>
+    <input type="tel" id="contact" name="contact" class="form-control" placeholder="e.g., 58012345" required />
+  </div>
+
+ 
+  <div class="mb-3">
+    <label for="images">Upload Your Vehicle Images</label>
+    <input type="file" id="images" name="images" class="form-control" multiple required />
+    <small class="note">You can upload multiple images</small>
+  </div>
+
+ 
+  <button type="submit" class="btn-upload">Submit Vehicle</button>
+</form>
 
      
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="make">Make</label>
-          <input type="text" id="make" class="form-control" placeholder="e.g., Toyota" required />
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="model">Model</label>
-          <input type="text" id="model" class="form-control" placeholder="e.g., Corolla" required />
-        </div>
-      </div>
-
-      
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label for="year">Year</label>
-          <input type="number" id="year" class="form-control" placeholder="e.g., 2020" required />
-        </div>
-        <div class="col-md-6 mb-3">
-          <label for="price">Price (Rs)</label>
-          <input type="number" id="price" class="form-control" placeholder="e.g., 550000" required />
-          
-        </div>
-        <div class="col-md-6 mb-3">
-            <label for="condition">Condition(over 10)</label>
-            <input type="number" id="condition" class="form-control" placeholder="e.g.,3 or 9" required />
-        </div>
-
-      </div>
-
-      
-      <div class="mb-3">
-        <label for="type">Vehicle Type</label>
-        <select id="type" class="form-select" required>
-          <option value="">Select Option</option>
-          <option value="sale">For Sale</option>
-          <option value="rent">For Rent</option>
-        </select>
-      </div>
-
-      
-      <div class="mb-3">
-        <label for="description">Description</label>
-        <textarea id="description" class="form-control" rows="4" placeholder="Describe your vehicle..." required></textarea>
-      </div>
-
-     
-      <div class="mb-3">
-        <label for="contact">Contact Number</label>
-        <input type="tel" id="contact" class="form-control" placeholder="e.g., 58012345" required />
-      </div>
-
-      
-      <div class="mb-3">
-        <label for="images">Upload Your Vehicle Images</label>
-        <input type="file" id="images" class="form-control" multiple required />
-        <small class="note">You can upload multiple images</small>
-      </div>
-
-      
-      <button type="submit" class="btn-upload">Submit Vehicle</button>
-    </form>
   </div>
 
   {% include 'footer.html' %}

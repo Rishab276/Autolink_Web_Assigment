@@ -156,29 +156,39 @@ def uploadvehicles_view(request):
         model = request.POST.get('model')
         year = request.POST.get('year')
         price = request.POST.get('price')
-        condition = request.POST.get('condition')
+        mileage = request.POST.get('mileage')
         vehicle_type = request.POST.get('type')
         description = request.POST.get('description')
         contact = request.POST.get('contact')
         images = request.FILES.get('images')
+        transmission = request.POST.get('transmission')
+        fuel_type = request.POST.get('fuel_type')
+        gps_coordinates = request.POST.get('gps_coordinates')
 
         Vehicle.objects.create(
-            owner=profile,
-            title=title,
-            make=make,
-            model=model,
-            year=year,
-            price=price,
-            condition=condition,
-            vehicle_type=vehicle_type,
-            description=description,
-            contact_number=contact,
-            images=images
+        owner=profile,
+        title=title,
+        make=make,
+        model=model,
+        year=year,
+        price=price,
+        mileage=mileage,
+        vehicle_type=vehicle_type,
+        description=description,
+        contact_number=contact,
+        images=images,
+        transmission=transmission,
+        fuel_type=fuel_type,
+        gps_coordinates=gps_coordinates,
         )
         messages.success(request, "Vehicle uploaded successfully!")
         return redirect('main:home')
 
-    return render(request, 'users/uploadvehicles.html')
+    
+    return render(request, 'users/uploadvehicles.html', {
+        'user_type': profile.user_type,
+    })
+
 
 
 # =========================
