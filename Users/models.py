@@ -18,7 +18,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} ({self.user_type})"
 
-# Add this back to Users/models.py temporarily:
+
 class Vehicle(models.Model):
     """Temporary model to fix imports - will be removed later"""
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
@@ -26,8 +26,12 @@ class Vehicle(models.Model):
     make = models.CharField(max_length=50)
     model = models.CharField(max_length=50)
     year = models.PositiveIntegerField()
+    mileage = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     images = models.ImageField(upload_to='vehicles/', blank=True, null=True)
+    transmission = models.CharField(max_length=20)
+    fuel_type = models.CharField(max_length=20)
+    gps_coordinates = models.CharField(max_length=50)
 
     def __str__(self):
         return f"{self.title}"
