@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from .models import UserProfile, Vehicle
 
 
+
 class LoginForm(forms.Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput)
