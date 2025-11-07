@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
+from Vehicles.models import Vehicle, VehicleImage
 
 
 # =========================
@@ -151,44 +152,49 @@ def uploadvehicles_view(request):
     profile = UserProfile.objects.get(user=request.user)
 
     if request.method == 'POST':
-        title = request.POST.get('title')
+        # Collect form data
         make = request.POST.get('make')
-        model = request.POST.get('model')
+        model_name = request.POST.get('model')
         year = request.POST.get('year')
-        price = request.POST.get('price')
         mileage = request.POST.get('mileage')
-        vehicle_type = request.POST.get('type')
-        description = request.POST.get('description')
-        contact = request.POST.get('contact')
-        images = request.FILES.get('images')
         transmission = request.POST.get('transmission')
         fuel_type = request.POST.get('fuel_type')
+        vehicle_type = request.POST.get('type')
+        price = request.POST.get('price')
         gps_coordinates = request.POST.get('gps_coordinates')
+        description = request.POST.get('description')
+        contact = request.POST.get('contact')  # optional field from form
 
-        Vehicle.objects.create(
-        owner=profile,
-        title=title,
-        make=make,
-        model=model,
-        year=year,
-        price=price,
-        mileage=mileage,
-        vehicle_type=vehicle_type,
-        description=description,
-        contact_number=contact,
-        images=images,
-        transmission=transmission,
-        fuel_type=fuel_type,
-        gps_coordinates=gps_coordinates,
+        # Determine if it's for rent or sale
+        is_rental = True if vehicle_type and vehicle_type.lower() == 'rent' else False
+
+        # Create Vehicle (Salwan’s model)
+        vehicle = Vehicle.objects.create(
+            uploader=request.user,
+            make=make,
+            model=model_name,
+            year=year,
+            mileage=mileage,
+            transmission=transmission.capitalize() if transmission else 'Other',
+            fuel_type=fuel_type.capitalize() if fuel_type else 'Other',
+            type_of_vehicle=vehicle_type.capitalize() if vehicle_type else 'Car',
+            price=price,
+            gps_coor=gps_coordinates,
+            is_rental=is_rental,
+            desc=description,
         )
-        messages.success(request, "Vehicle uploaded successfully!")
+
+        # Handle multiple images
+        images = request.FILES.getlist('images')
+        for img in images:
+            VehicleImage.objects.create(vehicle=vehicle, image=img)
+
+        messages.success(request, "✅ Vehicle uploaded successfully!")
         return redirect('main:home')
 
-    
     return render(request, 'users/uploadvehicles.html', {
         'user_type': profile.user_type,
     })
-
 
 
 # =========================

@@ -16,14 +16,18 @@ class Vehicle(models.Model):
         ('Manual', 'Manual'),
         ('CVT', 'CVT'),
         ('Other', 'Other'),
-    ])
+    ],
+        default='Manual'
+    )
     fuel_type = models.CharField(max_length=50, choices=[
         ('Petrol', 'Petrol'),
         ('Diesel', 'Diesel'),
         ('Hybrid', 'Hybrid'),
         ('Electric', 'Electric'),
         ('Other', 'Other'),
-    ])
+    ],
+        default='Petrol'
+    )
     type_of_vehicle = models.CharField(max_length=50, choices=[
         ('Car', 'Car'),
         ('Truck', 'Truck'),
@@ -31,7 +35,9 @@ class Vehicle(models.Model):
         ('SUV', 'SUV'),
         ('Motorbike', 'Motorbike'),
         ('Bus', 'Bus'),
-    ])
+    ],
+        default='Car'
+    )
 
     # Other Details
     price = models.DecimalField(max_digits=10, decimal_places=0)
