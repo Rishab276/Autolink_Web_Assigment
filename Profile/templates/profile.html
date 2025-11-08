@@ -1,4 +1,6 @@
 {% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +19,7 @@
         <!-- User Info -->
         <div class="profile-header">
             <h2>{{ request.user.get_full_name }}</h2>
-            <p>Email Address: {{ request.user.email }}</p>
+            <p>Email address: {{ request.user.email|mask_email }}</p>
             <p class="text-muted">
                 Role: <strong>{{ request.user.userprofile.get_user_type_display }}</strong>
             </p>
@@ -62,7 +64,7 @@
                                 class="btn btn-primary btn-sm position-absolute top-0 end-0 m-2" 
                                 style="z-index: 10;"
                                 title="View Details">
-                                    👁️ Details
+                                    📃 Details
                                 </a>
 
                                 {% if vehicle.images.first %}
@@ -80,6 +82,9 @@
             {% else %}
                 <div class="text-center mt-4">
                     <p>No uploaded vehicles yet.</p>
+                    <div class="empty-exclamation mb-2">
+                        <span>!</span>
+                    </div>
                     <a href="{% url 'users:uploadvehicles' %}" class="btn btn-primary">Upload Vehicles</a>
                 </div>
             {% endif %}
