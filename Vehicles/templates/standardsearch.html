@@ -331,14 +331,40 @@
                      data-year="{{ vehicle.year }}" 
                      data-fuel="{{ vehicle.fuel_type|lower }}">
 
-                    <!-- Clean Save button -->
-                    <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn">
-                        {% if vehicle.id in saved_vehicle_ids %}
-                            ❤️
-                        {% else %}
+                    <!-- Save button with role-based logic -->
+                    {% if not request.user.is_authenticated %}
+                        <!-- Visitor - not logged in -->
+                        <a href="{% url 'users:login' %}" class="fav-btn" title="Login to save vehicles">
                             🤍
+                        </a>
+                    {% else %}
+                        <!-- Logged in users -->
+                        {% if request.user.userprofile.user_type == 'buyer' %}
+                            <!-- Buyer - can save -->
+                            <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn">
+                                {% if vehicle.id in saved_vehicle_ids %}
+                                    ❤️
+                                {% else %}
+                                    🤍
+                                {% endif %}
+                            </a>
+                        {% elif request.user.userprofile.user_type == 'seller' %}
+                            <!-- Seller - cannot save -->
+                            <span class="fav-btn" 
+                                style="cursor: default;" 
+                                title="Sellers can browse but cannot save vehicles">
+                                🤍
+                            </span>
+
+                        {% elif request.user.userprofile.user_type == 'renter' %}
+                            <!-- Renter - cannot save -->
+                            <span class="fav-btn" 
+                                style="cursor: default;" 
+                                title="Renters can browse but cannot save vehicles">
+                                🤍
+                            </span>
                         {% endif %}
-                    </a>
+                    {% endif %}
 
                     <!-- Vehicle image -->
                     <a href="{% url 'vehicles:detail' vehicle.pk %}">
@@ -489,6 +515,33 @@
                 filterPanel.style.display = 'none';
             }
         });
+    </script>
+    <!--JavaScript to handle types of clicks on Save button based on users-->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle ALL fav-btn clicks
+        document.querySelectorAll('.fav-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Check if it's a visitor (login link)
+                if (this.getAttribute('href') && this.getAttribute('href').includes('login')) {
+                    e.preventDefault();
+                    alert('Login as a buyer to save vehicles');
+                }
+                // Check if it's a seller/renter (span element)
+                else if (this.tagName === 'SPAN') {
+                    e.preventDefault();
+                    // Check the title to determine seller vs renter
+                    const title = this.getAttribute('title') || '';
+                    if (title.includes('Seller')) {
+                        alert('Sellers cannot save vehicles. You can only view and browse.');
+                    } else if (title.includes('Renter')) {
+                        alert('Renters cannot save vehicles. You can only view and browse.');
+                    }
+                }
+                // Buyers (links to toggle_save) will work normally - no prevention
+            });
+        });
+    });
     </script>
 </body>
 </html>
