@@ -106,7 +106,11 @@
         <li><a href="{% url 'main:home' %}">Home</a></li>
         <li><a href="{% url 'vehicles:standardsearch' %}">All Vehicles</a></li>
         <li><a href="{% url 'vehicles:filter' %}">Filter</a></li>
-        <li><a href="{% url 'reviews:recommendations' %}">Recommendations</a></li>
+        {% if request.user.is_authenticated %}
+          <li><a href="{% url 'reviews:recommendations' %}">Recommendations</a></li>
+        {% else %}
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:recommendations' %}">Report</a></li>
+        {% endif %}
       </ul>
     </div>
 
