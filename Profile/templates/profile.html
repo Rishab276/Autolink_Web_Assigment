@@ -101,12 +101,15 @@
         <!-- User Info -->
         <div class="profile-header">
             <h2>{{ request.user.get_full_name }}</h2>
-            <p>{{ request.user.email }}</p>
+            <p>Email address: {{ request.user.email }}</p>
             <p class="text-muted">
                 Role: <strong>{{ request.user.userprofile.get_user_type_display }}</strong>
             </p>
             <p class="text-muted">
-                Contact: <strong>{{ request.user.userprofile.contact_number }}</strong>
+                Address: <strong>{{ request.user.userprofile.contact_number }}</strong>
+            </p>
+            <p class="text-muted">
+                Contact Number: <strong>{{ request.user.userprofile.address }}</strong>
             </p>
             {% if request.user.userprofile.driver_license %}
                 <p class="text-muted">

@@ -15,7 +15,7 @@ def profile_view(request):
 
     print(f"DEBUG: User type: {user_profile.user_type}")
 
-    if user_profile.user_type == 'seller':
+    if user_profile.user_type in ['seller', 'renter']:
         uploaded_vehicles = Vehicle.objects.filter(uploader=request.user).order_by('-id')
         print(f"DEBUG: Found {len(uploaded_vehicles)} uploaded vehicles")
 
@@ -26,8 +26,6 @@ def profile_view(request):
         for saved in saved_vehicles:
             print(f"DEBUG: Saved vehicle - {saved.vehicle.make} {saved.vehicle.model}")
 
-    elif user_profile.user_type == 'renter':
-        rented_vehicles = []
 
     context = {
         'user_profile': user_profile,
