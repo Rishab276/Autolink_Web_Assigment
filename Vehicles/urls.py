@@ -1,4 +1,3 @@
-# bysalwan
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -10,6 +9,7 @@ urlpatterns = [
     path('standardsearch/', views.standardsearch, name='standardsearch'),
     path('filter/', views.filter, name='filter'),
     path('detail/<int:pk>/', views.detail, name='detail'),
+    path('category/<str:category>/', views.category_list, name='category'),
 ]
 
 # ✅ Serve media files (vehicle images) during development
