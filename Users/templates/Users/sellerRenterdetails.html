@@ -105,6 +105,7 @@
         
         <form method="POST" action="{% url 'users:sellerRenterdetails' %}">
             {% csrf_token %}
+            <input type="hidden" name="user_type" value="{{ request.resolver_match.kwargs.role }}">
             <input type="text" name="first_name" placeholder="First Name" class="form-control mb-3" required>
             <input type="text" name="last_name" placeholder="Last Name" class="form-control mb-3" required>
             <input type="email" name="email" placeholder="Email" class="form-control mb-3" required>
@@ -113,7 +114,7 @@
             <input type="text" name="address" placeholder="Address" class="form-control mb-3" required>
             <input type="text" name="contact_number" placeholder="Contact Number" class="form-control mb-3" required>
             <input type="text" name="driverliscence" placeholder="Driver license Number" class="form-control mb-3" required>
-            <input type="hidden" name="user_type" value="renter">
+            
 
 
             <div class="form-check mb-3">
