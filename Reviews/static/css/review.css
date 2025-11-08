@@ -11,7 +11,7 @@
 
 /* Form Card */
 .form-card {
-    background: #1e3c72;
+    background: #3498db;
     padding: 40px 30px;
     width: 100%;
     max-width: 450px;
@@ -43,7 +43,7 @@
 
 .stars span:hover,
 .stars span:hover ~ span {
-    color: #1e3c72(0, 55, 255);
+    color: #687c89(0, 55, 255);
     transform: scale(1.1);
 }
 
@@ -86,7 +86,7 @@
 .form-card input:focus, 
 .form-card textarea:focus {
     outline: none;
-    border-color: #1e3c72;
+    border-color: #3498db;
     background: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -117,7 +117,7 @@
     background: #f1f1f1;
     transform: translateY(-2px);
     box-shadow: 0 5px 12px rgba(0,0,0,0.25);
-    border-color: #1e3c72;
+    border-color: #3498db;
 }
 
 @media (max-width: 768px) {
