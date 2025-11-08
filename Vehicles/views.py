@@ -27,5 +27,5 @@ def filter(request):
     return render(request, 'filter.html')
 
 def detail(request, pk):
-    vehicle_detail = get_object_or_404(Vehicle, pk=pk)
+    vehicle_detail = get_object_or_404(Vehicle.objects.prefetch_related('images'), pk=pk)
     return render(request, 'detail.html', {'vehicle': vehicle_detail})

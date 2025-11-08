@@ -101,12 +101,15 @@
         <!-- User Info -->
         <div class="profile-header">
             <h2>{{ request.user.get_full_name }}</h2>
-            <p>{{ request.user.email }}</p>
+            <p>Email Address: {{ request.user.email }}</p>
             <p class="text-muted">
                 Role: <strong>{{ request.user.userprofile.get_user_type_display }}</strong>
             </p>
             <p class="text-muted">
-                Contact: <strong>{{ request.user.userprofile.contact_number }}</strong>
+                Contact Number: <strong>{{ request.user.userprofile.contact_number }}</strong>
+            </p>
+            <p class="text-muted">
+                Address: <strong>{{ request.user.userprofile.address }}</strong>
             </p>
             {% if request.user.userprofile.driver_license %}
                 <p class="text-muted">
@@ -129,6 +132,23 @@
                     {% for vehicle in uploaded_vehicles %}
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card vehicle-card h-100">
+                                <!-- Delete Button -->
+                                <a href="{% url 'profile:remove_uploaded_vehicle' vehicle.id %}" 
+                                class="btn btn-danger btn-sm position-absolute top-0 start-0 m-2" 
+                                style="z-index: 10;"
+                                onclick="return confirm('Are you sure you want to delete this vehicle?')"
+                                title="Delete Vehicle">
+                                    🗑️ Delete
+                                </a>
+
+                                <!-- View Details Button -->
+                                <a href="{% url 'vehicles:detail' vehicle.id %}" 
+                                class="btn btn-primary btn-sm position-absolute top-0 end-0 m-2" 
+                                style="z-index: 10;"
+                                title="View Details">
+                                    👁️ Details
+                                </a>
+
                                 {% if vehicle.images.first %}
                                     <img src="{{ vehicle.images.first.image.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
                                 {% else %}
@@ -213,28 +233,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- AJAX Save/Unsave -->
-    <script>
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.save-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const vehicleId = button.dataset.vehicleId;
-                    fetch("{% url 'profile:toggle_save' 0 %}".replace('0', vehicleId), {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': csrftoken,
-                            'X-Requested-With': 'XMLHttpRequest',
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        button.textContent = data.status === 'saved' ? '🔖' : '📑';
-                    });
-                });
-            });
-        });
-    </script>
 </body>
 </html>
