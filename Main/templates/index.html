@@ -655,16 +655,24 @@
             <h1>Find Your Perfect Vehicle Today</h1>
             <p>Autolink connects buyers and sellers in a seamless marketplace for cars, bikes, buses, and trucks. Find your dream vehicle or list yours in minutes.</p>
             
-            <div class="hero-buttons">
+            <div class="hero-buttons" style="justify-content: center;">
+                {% if request.user.is_authenticated %}
+                    {% with up=request.user.userprofile %}
+                    {% if up.user_type == 'seller' or up.user_type == 'renter' %}
+                        <!-- Show List Vehicle for Seller/Renter -->
+                        <a href="{% url 'users:uploadvehicles' %}" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i> List Your Vehicle
+                        </a>
+                    {% endif %}
+                    {% endwith %}
+                {% endif %}
+
+                <!-- Always show Browse Vehicles centered -->
                 <a href="{% url 'vehicles:standardsearch' %}" class="btn btn-primary">
                     <i class="fas fa-search"></i> Browse Vehicles
                 </a>
-                <a href="{% url 'users:uploadvehicles' %}" class="btn btn-secondary">
-                    <i class="fas fa-plus"></i> List Your Vehicle
-                </a>
             </div>
 
-            
             <div class="hero-stats">
                 <div class="stat">
                     <div class="stat-number">15K+</div>
@@ -848,7 +856,7 @@
                 
                 <div class="divider"></div>
                 
-                <a href="/recommendation" class="simple-btn">
+                <a href="{% url 'reviews:recommendations' %}" class="simple-btn">
                     Find Out More <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
