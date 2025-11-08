@@ -15,7 +15,7 @@ def profile_view(request):
 
     print(f"DEBUG: User type: {user_profile.user_type}")
 
-    if user_profile.user_type == 'seller':
+    if user_profile.user_type in ['seller', 'renter']:
         uploaded_vehicles = Vehicle.objects.filter(uploader=request.user).order_by('-id')
         print(f"DEBUG: Found {len(uploaded_vehicles)} uploaded vehicles")
 
@@ -26,8 +26,6 @@ def profile_view(request):
         for saved in saved_vehicles:
             print(f"DEBUG: Saved vehicle - {saved.vehicle.make} {saved.vehicle.model}")
 
-    elif user_profile.user_type == 'renter':
-        rented_vehicles = []
 
     context = {
         'user_profile': user_profile,
@@ -42,9 +40,13 @@ def remove_uploaded_vehicle(request, vehicle_id):
     """
     Allow sellers/renters to remove a vehicle they uploaded.
     """
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-    vehicle = get_object_or_404(Vehicle, id=vehicle_id, owner=user_profile)
-    vehicle.delete()
+    try:
+        vehicle = Vehicle.objects.get(id=vehicle_id, uploader=request.user)
+        vehicle.delete()
+        messages.success(request, "Vehicle deleted successfully!")
+    except Vehicle.DoesNotExist:
+        messages.error(request, "Vehicle not found or you don't have permission to delete it.")
+    
     return redirect('profile:profile')
 
 
@@ -80,4 +82,3 @@ def toggle_save(request, vehicle_id):
         print(f"DEBUG: Vehicle {vehicle_id} SAVED")
     
     return redirect(request.META.get('HTTP_REFERER', '/'))
-
