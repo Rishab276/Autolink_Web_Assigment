@@ -4,7 +4,6 @@ from django.http import JsonResponse
 from Vehicles.models import Vehicle, VehicleImage
 from Users.models import UserProfile
 from .models import SavedVehicle
-from django.contrib import messages
 
 @login_required
 def profile_view(request):
@@ -83,4 +82,3 @@ def toggle_save(request, vehicle_id):
         print(f"DEBUG: Vehicle {vehicle_id} SAVED")
     
     return redirect(request.META.get('HTTP_REFERER', '/'))
-
