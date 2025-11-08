@@ -1,4 +1,3 @@
-#bysalwan
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from .models import Vehicle
@@ -19,6 +18,7 @@ def standardsearch(request):
 
     context = {
         'page_obj': page_obj,
+        'all_vehicles': vehicles,  
         'saved_vehicle_ids': saved_vehicle_ids
     }
     return render(request, 'standardsearch.html', context)
