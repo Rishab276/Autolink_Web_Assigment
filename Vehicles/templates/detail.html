@@ -18,9 +18,8 @@
             <div class="left-column">
                 <div class="car-image">
                     {% for img in vehicle.images.all %}
-
-                    <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}"
-                        class="{% if forloop.first %}active{% endif %}">
+                        <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}"
+                            class="{% if forloop.first %}active{% endif %}">
                     {% endfor %}
 
                     <!-- Prev/Next buttons -->
