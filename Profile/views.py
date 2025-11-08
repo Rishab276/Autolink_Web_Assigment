@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from Vehicles.models import Vehicle, VehicleImage
 from Users.models import UserProfile
 from .models import SavedVehicle
+from django.contrib import messages
 
 @login_required
 def profile_view(request):
@@ -40,9 +41,13 @@ def remove_uploaded_vehicle(request, vehicle_id):
     """
     Allow sellers/renters to remove a vehicle they uploaded.
     """
-    user_profile = get_object_or_404(UserProfile, user=request.user)
-    vehicle = get_object_or_404(Vehicle, id=vehicle_id, owner=user_profile)
-    vehicle.delete()
+    try:
+        vehicle = Vehicle.objects.get(id=vehicle_id, uploader=request.user)
+        vehicle.delete()
+        messages.success(request, "Vehicle deleted successfully!")
+    except Vehicle.DoesNotExist:
+        messages.error(request, "Vehicle not found or you don't have permission to delete it.")
+    
     return redirect('profile:profile')
 
 

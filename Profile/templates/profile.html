@@ -132,6 +132,23 @@
                     {% for vehicle in uploaded_vehicles %}
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card vehicle-card h-100">
+                                <!-- Delete Button -->
+                                <a href="{% url 'profile:remove_uploaded_vehicle' vehicle.id %}" 
+                                class="btn btn-danger btn-sm position-absolute top-0 start-0 m-2" 
+                                style="z-index: 10;"
+                                onclick="return confirm('Are you sure you want to delete this vehicle?')"
+                                title="Delete Vehicle">
+                                    🗑️ Delete
+                                </a>
+
+                                <!-- View Details Button -->
+                                <a href="{% url 'vehicles:detail' vehicle.id %}" 
+                                class="btn btn-primary btn-sm position-absolute top-0 end-0 m-2" 
+                                style="z-index: 10;"
+                                title="View Details">
+                                    👁️ Details
+                                </a>
+                                
                                 {% if vehicle.images.first %}
                                     <img src="{{ vehicle.images.first.image.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
                                 {% else %}
