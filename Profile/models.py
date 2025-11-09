@@ -8,7 +8,7 @@ class SavedVehicle(models.Model):
     saved_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'vehicle')  # prevent duplicates
+        unique_together = ('user', 'vehicle')
 
     def __str__(self):
         return f"{self.user.username} saved {self.vehicle}"
