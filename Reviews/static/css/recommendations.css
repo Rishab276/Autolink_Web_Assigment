@@ -319,3 +319,50 @@ header p {
         margin: 20px 10px;
     }
 }
+
+
+        nav {
+            width: 100%;
+            background: rgba(0, 0, 0);
+            padding: 20px 50px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-container img {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo-container span {
+            font-size: 22px;
+            font-weight: bold;
+            color: orange;
+        }
+
+        ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            gap: 20px;
+        }
+
+        li { margin: 0; }
+
+        a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover { text-decoration: underline; }
+        
