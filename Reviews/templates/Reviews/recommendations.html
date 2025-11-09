@@ -5,395 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recommended Vehicles - Our Top Picks</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px 0;
-        }
-
-        header {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            padding: 40px 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-        }
-
-        header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        nav {
-            background: white;
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        nav ul {
-            display: flex;
-            justify-content: center;
-            list-style: none;
-            gap: 30px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #2a5298;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: all 0.3s;
-        }
-
-        nav a:hover, nav a.active {
-            background: #2a5298;
-            color: white;
-        }
-
-        .intro-section {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            margin: 30px 0;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .intro-section h2 {
-            color: #1e3c72;
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-
-        .intro-section p {
-            font-size: 1.1rem;
-            color: #555;
-        }
-
-        .featured-recommendation {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            margin: 40px auto;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            max-width: 1000px;
-        }
-
-        .featured-recommendation img {
-            width: 400px;
-            height: 250px;
-            object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .featured-recommendation .text {
-            flex: 1;
-        }
-
-        .featured-recommendation h3 {
-            color: #1e3c72;
-            margin-bottom: 10px;
-            font-size: 1.6rem;
-        }
-
-        .currency {
-            font-weight: bold;
-            color: #e74c3c;
-            font-size: 1.3rem;
-        }
-
-        .section-title {
-            text-align: center;
-            margin: 50px 0 30px;
-            color: #1e3c72;
-            font-size: 2.2rem;
-            position: relative;
-            padding-bottom: 15px;
-        }
-
-        .section-title:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: #2a5298;
-            border-radius: 2px;
-        }
-
-        .recommendations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 30px;
-            margin: 40px auto;
-            max-width: 1100px;
-        }
-
-        .recommendation-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-            margin: 0 auto;
-        }
-
-        .recommendation-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .recommendation-card img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-        }
-
-        .card-content {
-            padding: 20px;
-        }
-
-        .card-content h3 {
-            color: #1e3c72;
-            margin-bottom: 10px;
-            font-size: 1.4rem;
-        }
-
-        .card-content p {
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #e74c3c;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .budget-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            margin: 40px auto;
-            max-width: 1100px;
-        }
-
-        .budget-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            display: flex;
-            flex-direction: column;
-            margin: 0 auto;
-        }
-
-        .budget-card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-
-        .budget-content {
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .budget-content h3 {
-            color: #1e3c72;
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-
-        .budget-content p {
-            color: #666;
-            margin-bottom: 15px;
-            flex: 1;
-        }
-
-        .why-choose-us {
-            background: #1e3c72;
-            color: white;
-            padding: 50px 0;
-            margin: 50px 0 0;
-        }
-
-        .why-choose-us h2 {
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 2.2rem;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .feature {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .feature i {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: #ffd700;
-        }
-
-        .feature h3 {
-            margin-bottom: 10px;
-            font-size: 1.4rem;
-        }
-
-        /* Centered Footer Styles */
-        footer {
-            background: #0d1b3a;
-            color: white;
-            padding: 40px 0 20px;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: center;
-            gap: 60px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .footer-column {
-            text-align: center;
-            max-width: 300px;
-        }
-
-        .footer-column h3 {
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-            color: #ffd700;
-        }
-
-        .footer-column ul {
-            list-style: none;
-        }
-
-        .footer-column ul li {
-            margin-bottom: 10px;
-        }
-
-        .footer-column a {
-            color: #ddd;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .footer-column a:hover {
-            color: #ffd700;
-        }
-
-        .copyright {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: #aaa;
-            font-size: 0.9rem;
-            max-width: 1100px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        @media (max-width: 768px) {
-            .featured-recommendation {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .featured-recommendation img {
-                width: 100%;
-                max-width: 400px;
-            }
-            
-            nav ul {
-                flex-direction: column;
-                gap: 10px;
-                align-items: center;
-            }
-            
-            .recommendations-grid, .budget-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .footer-content {
-                flex-direction: column;
-                align-items: center;
-                gap: 30px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/recommendations.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
         {% include "nav.html" %} 
+    
     <header>
         <div class="container">
             <h1>Recommended Vehicles</h1>
             <p>Our Carefully Selected Top Picks for Mauritian Drivers</p>
         </div>
     </header>
-
-    <nav>
-        <div class="container">
-            <ul>
-                <li><a href="#" class="active">Our Recommendations</a></li>
-                
-            </ul>
-        </div>
-    </nav>
             
     <main>
         <section class="intro-section">
@@ -421,7 +45,7 @@
                 </div>
             </div>
             
-                            <div class="recommendation-card">
+            <div class="recommendation-card">
                 <div class="badge">Premium Pick</div>
                 <img src="{% static 'images/cars/bmw-x3.png' %}" alt="BMW X3">
                 <div class="card-content">
@@ -430,8 +54,6 @@
                 </div>
             </div>       
            
-
-               
             <div class="recommendation-card">
                 <div class="badge">Eco Choice</div>
                 <img src="{% static 'images/cars/toyota-prius.png' %}" alt="Toyota Prius">
@@ -560,9 +182,10 @@
         </section>
     </main>
 
-    <footer>
+    <footer class="recommendations-footer">
         {% include "footer.html" %}
     </footer>
-    
 </body>
 </html>
+
+       

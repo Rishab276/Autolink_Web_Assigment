@@ -1,4 +1,3 @@
-#bysalwan
 from django.db import models
 from django.contrib.auth.models import User
 from Vehicles.models import Vehicle
@@ -9,7 +8,13 @@ class SavedVehicle(models.Model):
     saved_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'vehicle')  # prevent duplicates
+        unique_together = ('user', 'vehicle')
 
     def __str__(self):
         return f"{self.user.username} saved {self.vehicle}"
+
+class UploadedVehicle(Vehicle):
+    class Meta:
+        proxy = True
+        verbose_name = "Uploaded Vehicle"
+        verbose_name_plural = "Uploaded Vehicles"

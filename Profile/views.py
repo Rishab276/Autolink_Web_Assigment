@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from Vehicles.models import Vehicle, VehicleImage
 from Users.models import UserProfile
 from .models import SavedVehicle
+from django.contrib import messages
 
 @login_required
 def profile_view(request):
