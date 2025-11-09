@@ -1,5 +1,5 @@
 from django import template
-
+# Custom template filter to mask email addresses
 register = template.Library()
 
 @register.filter

@@ -28,7 +28,17 @@ def filter(request):
 
 def detail(request, pk):
     vehicle_detail = get_object_or_404(Vehicle.objects.prefetch_related('images'), pk=pk)
-    return render(request, 'detail.html', {'vehicle': vehicle_detail})
+    
+    saved_vehicle_ids = []
+    if request.user.is_authenticated:
+        saved_vehicle_ids = list(SavedVehicle.objects.filter(
+            user=request.user
+        ).values_list('vehicle_id', flat=True))
+    
+    return render(request, 'detail.html', {
+        'vehicle': vehicle_detail,
+        'saved_vehicle_ids': saved_vehicle_ids
+    })
 
 # Browse by category (Car, Motorbike, Bus, Truck)
 def category_list(request, category):
