@@ -16,7 +16,7 @@
 
     <div class="container py-4">
 
-        <!-- User Info -->
+        <!-- User Info regardless of user type-->
         <div class="profile-header">
             <h2>{{ request.user.get_full_name }}</h2>
             <p>Email address: {{ request.user.email|mask_email }}</p>
@@ -50,7 +50,7 @@
                     {% for vehicle in uploaded_vehicles %}
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card vehicle-card h-100">
-                                <!-- Delete Button -->
+                                <!-- Delete Button to remove listing-->
                                 <a href="{% url 'profile:remove_uploaded_vehicle' vehicle.id %}" 
                                 class="btn btn-danger btn-sm position-absolute top-0 start-0 m-2" 
                                 style="z-index: 10;"
@@ -59,7 +59,7 @@
                                     🗑️ Delete
                                 </a>
 
-                                <!-- View Details Button -->
+                                <!-- View Details Button to view own listing in details-->
                                 <a href="{% url 'vehicles:detail' vehicle.id %}" 
                                 class="btn btn-primary btn-sm position-absolute top-0 end-0 m-2" 
                                 style="z-index: 10;"
@@ -99,7 +99,7 @@
                     <div class="col-md-6 col-lg-4 mb-4">
                         <div class="card vehicle-card h-100 position-relative">
                             
-                            <!-- Unsave Button on Photo -->
+                            <!-- Unsave Button on Photo to unsave a saved vehicle-->
                             <a href="{% url 'profile:toggle_save' saved_vehicle.vehicle.id %}" 
                             class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2" 
                             style="z-index: 10;"
