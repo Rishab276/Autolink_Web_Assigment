@@ -19,7 +19,7 @@
         <!-- User Info regardless of user type-->
         <div class="profile-header">
             <h2>{{ request.user.get_full_name }}</h2>
-            <p>Email address: {{ request.user.email|mask_email }}</p>
+            <p>Email address: {{ request.user.email|mask_email }}</p>   <!--imported from template/tags-->
             <p class="text-muted">
                 Role: <strong>{{ request.user.userprofile.get_user_type_display }}</strong>
             </p>
@@ -99,12 +99,21 @@
                     <div class="col-md-6 col-lg-4 mb-4">
                         <div class="card vehicle-card h-100 position-relative">
                             
-                            <!-- Unsave Button on Photo to unsave a saved vehicle-->
+                            <!-- Unsave Button to unsave the saved vehicle -->
                             <a href="{% url 'profile:toggle_save' saved_vehicle.vehicle.id %}" 
-                            class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2" 
+                            class="btn btn-danger btn-sm position-absolute top-0 start-0 m-2" 
                             style="z-index: 10;"
+                            onclick="return confirm('Are you sure you want to unsave this vehicle?')"
                             title="Unsave Vehicle">
                                 ❌ Unsave
+                            </a>
+
+                            <!-- View Details Button to view the saved vehicle in details -->
+                            <a href="{% url 'vehicles:detail' saved_vehicle.vehicle.id %}" 
+                            class="btn btn-primary btn-sm position-absolute top-0 end-0 m-2" 
+                            style="z-index: 10;"
+                            title="View Details">
+                                📃 Details
                             </a>
 
                             <!-- Vehicle Image -->
@@ -125,9 +134,6 @@
                                     <strong>Mileage:</strong> {{ saved_vehicle.vehicle.mileage }} km<br>
                                     <strong>Transmission:</strong> {{ saved_vehicle.vehicle.transmission }}
                                 </p>
-                                <a href="{% url 'vehicles:detail' saved_vehicle.vehicle.id %}" class="btn btn-primary btn-sm">
-                                    View Details
-                                </a>
                             </div>
                         </div>
                     </div>
