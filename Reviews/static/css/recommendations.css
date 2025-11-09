@@ -1,5 +1,5 @@
 header {
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    background: linear-gradient(135deg, #1e3c72, #3498db);
     color: white;
     padding: 40px 0;
     text-align: center;
@@ -31,7 +31,7 @@ header p {
 }
 
 .intro-section h2 {
-    color: #1e3c72;
+    color: #3498db;
     margin-bottom: 20px;
     font-size: 2rem;
 }
@@ -66,7 +66,7 @@ header p {
 }
 
 .featured-recommendation h3 {
-    color: #1e3c72;
+    color: #3498db;
     margin-bottom: 10px;
     font-size: 1.6rem;
 }
@@ -80,7 +80,7 @@ header p {
 .section-title {
     text-align: center;
     margin: 50px 0 30px;
-    color: #1e3c72;
+    color: #3498db;
     font-size: 2.2rem;
     position: relative;
     padding-bottom: 15px;
@@ -94,7 +94,7 @@ header p {
     transform: translateX(-50%);
     width: 100px;
     height: 4px;
-    background: #2a5298;
+    background: #3498db;
     border-radius: 2px;
 }
 
@@ -132,7 +132,7 @@ header p {
 }
 
 .card-content h3 {
-    color: #1e3c72;
+    color: #3498db;
     margin-bottom: 10px;
     font-size: 1.4rem;
 }
@@ -186,7 +186,7 @@ header p {
 }
 
 .budget-content h3 {
-    color: #1e3c72;
+    color: #3498db;
     margin-bottom: 10px;
     font-size: 1.3rem;
 }
@@ -198,7 +198,7 @@ header p {
 }
 
 .why-choose-us {
-    background: #1e3c72;
+    background: #3498db;
     color: white;
     padding: 50px 0;
     margin: 50px 0 0;
