@@ -104,9 +104,13 @@
       <h4>Explore</h4>
       <ul>
         <li><a href="{% url 'main:home' %}">Home</a></li>
-        <li><a href="#">All Vehicles</a></li>
+        <li><a href="{% url 'vehicles:standardsearch' %}">All Vehicles</a></li>
         <li><a href="{% url 'vehicles:filter' %}">Filter</a></li>
-        <li><a href="{% url 'reviews:recommendations' %}">Recommendations</a></li>
+        {% if request.user.is_authenticated %}
+          <li><a href="{% url 'reviews:recommendations' %}">Recommendations</a></li>
+        {% else %}
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:recommendations' %}">Report</a></li>
+        {% endif %}
       </ul>
     </div>
 
@@ -115,8 +119,13 @@
       <h4>Info</h4>
       <ul>
         <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
-         <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
-        <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
+        {% if request.user.is_authenticated %}
+          <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
+          <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
+        {% else %}
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:review_page' %}">Reviews</a></li>
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:report_page' %}">Report</a></li>
+        {% endif %}
         <li><a href="{% url 'main:faq' %}">FAQ</a></li>
       </ul>
     </div>
@@ -125,9 +134,22 @@
     <div class="footer-col">
       <h4>Account</h4>
       <ul>
-        <li><a href="{% url 'users:login' %}">Login</a></li>
-        <li><a href="{% url 'users:register' %}">Register</a></li>
-        <li><a href="{% url 'profile:profile' %}">Profile</a></li>
+        {% if request.user.is_authenticated %}
+          {# Upload Vehicle: only for seller/renter #}
+          {% with up=request.user.userprofile %}
+            {% if up.user_type == 'seller' or up.user_type == 'renter' %}
+              <li><a href="{% url 'users:uploadvehicles' %}">Upload Vehicle</a></li>
+            {% endif %}
+          {% endwith %}
+
+          <li><a href="{% url 'profile:profile' %}">Profile</a></li>
+          <li><a href="{% url 'users:logout' %}">Logout</a></li>
+        {% else %}
+          <li><a href="{% url 'users:login' %}">Login</a></li>
+          <li><a href="{% url 'users:register' %}">Register</a></li>
+          {# Profile link sends to login and returns to profile after auth #}
+          <li><a href="{% url 'users:login' %}?next={% url 'profile:profile' %}">Profile</a></li>
+        {% endif %}
       </ul>
     </div>
   </div>

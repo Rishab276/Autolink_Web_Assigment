@@ -28,4 +28,39 @@ def filter(request):
 
 def detail(request, pk):
     vehicle_detail = get_object_or_404(Vehicle.objects.prefetch_related('images'), pk=pk)
-    return render(request, 'detail.html', {'vehicle': vehicle_detail})
+    
+    saved_vehicle_ids = []
+    if request.user.is_authenticated:
+        saved_vehicle_ids = list(SavedVehicle.objects.filter(
+            user=request.user
+        ).values_list('vehicle_id', flat=True))
+    
+    return render(request, 'detail.html', {
+        'vehicle': vehicle_detail,
+        'saved_vehicle_ids': saved_vehicle_ids
+    })
+
+# Browse by category (Car, Motorbike, Bus, Truck)
+def category_list(request, category):
+    normalized = category.strip().lower()
+    aliases = {
+        'car': 'Car',
+        'motorbike': 'Motorbike',
+        'bus': 'Bus',
+        'truck': 'Truck',
+    }
+    label = aliases.get(normalized, category.title())
+
+    vehicles = Vehicle.objects.filter(type_of_vehicle__iexact=label).order_by('id')
+    paginator = Paginator(vehicles, 9)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'category_label': label,
+        'page_obj': page_obj,
+        'count': vehicles.count(),
+        
+    }
+
+    return render(request, 'standardsearch.html', context)

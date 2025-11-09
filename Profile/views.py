@@ -83,4 +83,3 @@ def toggle_save(request, vehicle_id):
         print(f"DEBUG: Vehicle {vehicle_id} SAVED")
     
     return redirect(request.META.get('HTTP_REFERER', '/'))
-

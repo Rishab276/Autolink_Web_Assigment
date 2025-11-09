@@ -9,6 +9,7 @@ urlpatterns = [
     path('standardsearch/', views.standardsearch, name='standardsearch'),
     path('filter/', views.filter, name='filter'),
     path('detail/<int:pk>/', views.detail, name='detail'),
+    path('category/<str:category>/', views.category_list, name='category'),
 ]
 
 # ✅ Serve media files (vehicle images) during development

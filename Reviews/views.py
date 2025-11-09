@@ -27,20 +27,29 @@ def submit_review(request):
     
     return HttpResponse("Use POST method to submit review")
 
+from django.shortcuts import render
 def submit_report(request):
-    """Handle report form submission"""
     if request.method == 'POST':
-        # SAVE REPORT TO DATABASE
-        report = Report.objects.create(
-            reporter_name=request.POST.get('reporter_name'),
-            email=request.POST.get('email'),
-            subject=request.POST.get('subject'),
-            report_content=request.POST.get('report_content')
+        # Your existing code to save to database
+        reporter_name = request.POST.get('reporter_name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        report_content = request.POST.get('report_content')
+        
+        # Save to database
+        Report.objects.create(
+            reporter_name=reporter_name,
+            email=email,
+            subject=subject,
+            report_content=report_content
         )
-        messages.success(request, 'Report submitted successfully and saved to database!')
-        return redirect('/reviews/report/')  # Use direct URL path
+        
+        # Render the same page with success message
+        return render(request, 'Reviews/report.html', {'submitted': True})
     
-    return HttpResponse("Use POST method to submit report")
-
+    return render(request, 'Reviews/report.html')
+    
+    # If GET request, just render the page
+    return render(request, 'report.html')
 def recommendations_view(request):
     return render(request, 'Reviews/recommendations.html')

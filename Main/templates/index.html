@@ -655,16 +655,24 @@
             <h1>Find Your Perfect Vehicle Today</h1>
             <p>Autolink connects buyers and sellers in a seamless marketplace for cars, bikes, buses, and trucks. Find your dream vehicle or list yours in minutes.</p>
             
-            <div class="hero-buttons">
+            <div class="hero-buttons" style="justify-content: center;">
+                {% if request.user.is_authenticated %}
+                    {% with up=request.user.userprofile %}
+                    {% if up.user_type == 'seller' or up.user_type == 'renter' %}
+                        <!-- Show List Vehicle for Seller/Renter -->
+                        <a href="{% url 'users:uploadvehicles' %}" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i> List Your Vehicle
+                        </a>
+                    {% endif %}
+                    {% endwith %}
+                {% endif %}
+
+                <!-- Always show Browse Vehicles centered -->
                 <a href="{% url 'vehicles:standardsearch' %}" class="btn btn-primary">
                     <i class="fas fa-search"></i> Browse Vehicles
                 </a>
-                <a href="{% url 'users:uploadvehicles' %}" class="btn btn-secondary">
-                    <i class="fas fa-plus"></i> List Your Vehicle
-                </a>
             </div>
 
-            
             <div class="hero-stats">
                 <div class="stat">
                     <div class="stat-number">15K+</div>
@@ -691,37 +699,41 @@
             </div>
             
             <div class="categories-grid">
-                <div class="category-card car">
+                <!-- Car -->
+                <a href="{% url 'vehicles:category' 'car' %}" class="category-card car">
                     <div class="category-icon">
-                        <i class="fas fa-car"></i>
+                    <i class="fas fa-car"></i>
                     </div>
                     <h3>Car</h3>
                     <p>From compact sedans to luxury vehicles, find the perfect car for your lifestyle and budget.</p>
-                </div>
-                
-                <div class="category-card motorbike">
+                </a>
+
+                <!-- Motorbike -->
+                <a href="{% url 'vehicles:category' 'motorbike' %}" class="category-card motorbike">
                     <div class="category-icon">
-                        <i class="fas fa-motorcycle"></i>
+                    <i class="fas fa-motorcycle"></i>
                     </div>
                     <h3>Motorbike</h3>
                     <p>Discover a range of motorcycles from sport bikes to cruisers for your riding adventures.</p>
-                </div>
-                
-                <div class="category-card bus">
+                </a>
+
+                <!-- Bus -->
+                <a href="{% url 'vehicles:category' 'bus' %}" class="category-card bus">
                     <div class="category-icon">
-                        <i class="fas fa-bus"></i>
+                    <i class="fas fa-bus"></i>
                     </div>
                     <h3>Bus</h3>
                     <p>Explore our selection of buses for public transport, school, or private charter services.</p>
-                </div>
-                
-                <div class="category-card truck">
+                </a>
+
+                <!-- Truck -->
+                <a href="{% url 'vehicles:category' 'truck' %}" class="category-card truck">
                     <div class="category-icon">
-                        <i class="fas fa-truck"></i>
+                    <i class="fas fa-truck"></i>
                     </div>
                     <h3>Truck</h3>
                     <p>Find the right truck for your business needs, from light-duty to heavy commercial vehicles.</p>
-                </div>
+                </a>
             </div>
         </section>
         
@@ -844,9 +856,15 @@
                 
                 <div class="divider"></div>
                 
-                <a href="/recommendation" class="simple-btn">
-                    Find Out More <i class="fas fa-arrow-right"></i>
-                </a>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'reviews:recommendations' %}" class="simple-btn">
+                        Find Out More <i class="fas fa-arrow-right"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'users:login' %}?next={% url 'reviews:recommendations' %}" class="simple-btn">
+                        Find Out More <i class="fas fa-arrow-right"></i>
+                    </a>
+                {% endif %}
             </div>
         </section>
     </div>
