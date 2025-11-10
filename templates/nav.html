@@ -35,15 +35,25 @@
     gap: 20px;
   }
 
-  li { margin: 0; }
-
-  a {
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
+  li { 
+    margin: 0; 
   }
 
-  a:hover { text-decoration: underline; }
+  nav a,
+  nav a:hover,
+  nav a:focus,
+  nav a:active,
+  nav a:visited {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    outline: none;
+  }
+
+  nav a:hover {
+    color: #5dade2;
+  }
+
 </style>
 
 <nav>
@@ -53,30 +63,23 @@
 
   <ul>
     <li><a href="{% url 'main:home' %}">Home</a></li>
-    
-    <!-- Browse Vehicles - ALWAYS visible to everyone -->
     <li><a href="{% url 'vehicles:standardsearch' %}">Browse Vehicles</a></li>
-    
     <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
     <li><a href="{% url 'main:faq' %}">FAQs</a></li>
 
     {% if request.user.is_authenticated %}
         {% with user_profile=request.user.userprofile %}
-            <!-- Upload Vehicles - ONLY for sellers/renters -->
             {% if user_profile.user_type == 'seller' or user_profile.user_type == 'renter' %}
                 <li><a href="{% url 'users:uploadvehicles' %}">Upload Vehicle</a></li>
             {% endif %}
             
-            <!-- Reviews and Report - ONLY for logged-in users (all types) -->
             <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
             <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
 
-            <!-- Profile and Logout - ALL logged-in users -->
             <li><a href="{% url 'profile:profile' %}">&#128100; Profile</a></li>
             <li><a href="{% url 'users:logout' %}">Logout</a></li>
         {% endwith %}
     {% else %}
-        <!-- Visitor menu -->
         <li><a href="{% url 'users:login' %}?next={{ request.path }}">&#128100; Profile</a></li>
     {% endif %}
 </ul>
