@@ -1,0 +1,78 @@
+  body {
+        background: url("https://img.freepik.com/premium-photo/car-is-waiting-sale-used-car-shop-background_85347-2663.jpg") no-repeat center center fixed;
+        background-size: cover;
+        min-height: 100vh;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        }
+
+        .register-container {
+            max-width: 450px;
+            margin: 60px auto;
+            background: rgba(255, 255, 255, 0.403);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        h2 {
+            font-family: 'Bebas Neue', cursive;
+            letter-spacing: 2px;
+            text-align: center;
+            color: #000000;
+        }
+
+        .form-control {
+            background-color: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+        }
+
+        .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.223);
+            box-shadow: none;
+            color: #fff;
+        }
+
+        .btn-signup {
+            width: 100%;
+            background: #e63946;
+            border: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-signup:hover {
+            background: #ff4757;
+        }
+
+        .policy-text {
+            font-size: 0.9rem;
+            color: #000000d2;
+        }
+
+        .contact-info {
+            font-size: 0.85rem;
+            margin-top: 20px;
+            color: #000000;
+            text-align: center;
+        }
+     
+
+        nav {
+        padding: 8px 40px !important; 
+        }
+
+        nav .logo-container img {
+        height: 30px !important; 
+        }
+
+        nav .logo-container span {
+        font-size: 18px !important;
+        }
+
+        nav ul li a {
+         font-size: 15px !important; 
+        padding: 5px 0 !important;
+        }

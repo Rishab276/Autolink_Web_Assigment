@@ -1,0 +1,96 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: url("https://img.freepik.com/premium-photo/car-is-waiting-sale-used-car-shop-background_85347-2663.jpg") no-repeat center center fixed;
+  background-size: cover;
+  font-family: "Poppins", sans-serif;
+  color: white;
+}
+
+#page-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center; 
+  align-items: flex-start; 
+  padding: 60px 0;
+}
+
+.upload-container {
+  background: rgba(0, 0, 0, 0.75);
+  padding: 40px;
+  border-radius: 15px;
+  max-width: 750px;
+  width: 90%;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+h2 {
+  text-align: center;
+  color: #ffa500;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+
+label {
+  font-weight: 500;
+  margin-top: 10px;
+  color: #ffcc70;
+}
+
+input, select, textarea {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: #000 !important;
+  border: none;
+  border-radius: 6px;
+}
+
+.form-control:focus {
+  border-color: #ffa500;
+  box-shadow: 0 0 5px #ffa500;
+}
+
+.btn-upload {
+  background-color: #ffa500;
+  border: none;
+  color: black;
+  font-weight: bold;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  transition: 0.3s ease;
+  margin-top: 15px;
+}
+
+.btn-upload:hover {
+  background-color: #cc8500;
+  color: #fff;
+}
+
+.note {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  color: #cccccc;
+}
+
+nav {
+  padding: 8px 40px !important; 
+}
+
+nav .logo-container img {
+  height: 30px !important; 
+}
+
+nav .logo-container span {
+  font-size: 18px !important;
+}
+
+nav ul li a {
+  font-size: 15px !important; 
+  padding: 5px 0 !important;
+}
