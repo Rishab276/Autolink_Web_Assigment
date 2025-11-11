@@ -2,11 +2,12 @@
 .hero {
     position: relative;
     background: url('{% static "images/review-bg.jpg" %}') no-repeat center center/cover;
-    min-height: 80vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
+    padding: 0px 0px;
+    
 }
 
 /* Form Card */
@@ -131,3 +132,4 @@
         padding: 30px 20px;
     }
 }
+
