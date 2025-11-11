@@ -26,7 +26,7 @@ urlpatterns = [
 
 # Main app
 urlpatterns += [
-    path('main/', include(('Main.urls','main'), namespace='main')),
+    path('', include(('Main.urls','main'), namespace='main')),
 ]
 
 # Profile app
