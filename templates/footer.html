@@ -120,11 +120,11 @@
       <ul>
         <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
         {% if request.user.is_authenticated %}
-          <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
-          <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
+          <li><a href="{% url 'reviews:review_page' %}">reviews</a></li>
+          <li><a href="{% url 'reviews:report_page' %}">report</a></li>
         {% else %}
-          <li><a href="{% url 'users:login' %}?next={% url 'reviews:review_page' %}">Reviews</a></li>
-          <li><a href="{% url 'users:login' %}?next={% url 'reviews:report_page' %}">Report</a></li>
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:review_page' %}">reviews</a></li>
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:report_page' %}">report</a></li>
         {% endif %}
         <li><a href="{% url 'main:faq' %}">FAQ</a></li>
       </ul>
