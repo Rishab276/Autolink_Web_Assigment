@@ -1,3 +1,4 @@
+#MAIGHUN-2412258
 from django.contrib import admin
 from .models import SavedVehicle, UploadedVehicle
 
