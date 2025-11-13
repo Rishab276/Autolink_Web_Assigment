@@ -1,4 +1,36 @@
-/* Header */
+/* ========================================
+   RESET - Add this at the TOP
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    line-height: 1.5;
+    background-color: #f9f9f9;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 0 0 auto;
+}
+
+
+/* ========================================
+   Header
+   ======================================== */
+
 header {
     background-color: #3498db;
     padding: 15px 0;
@@ -6,17 +38,20 @@ header {
     font-size: 20px;
     font-weight: bold;
     color: white;
+    margin: 0;
+    width: 100%;
 }
 
 /* Hero Section */
 .hero {
     position: relative;
     background: url('{% static "images/hero-bg.jpg" %}') no-repeat center center/cover;
-    height: 400px;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: 60px 20px;
 }
 
 /* Form Box */
@@ -53,7 +88,7 @@ header {
 }
 
 .form-box button {
-    background:#3498db;
+    background: #3498db;
     border: none;
     padding: 12px;
     font-size: 14px;
@@ -66,13 +101,65 @@ header {
 }
 
 .form-box button:hover {
-    background: #3498db;
+    background: #2980b9;
 }
+
+
+/* ========================================
+   FOOTER - Add/Replace this section
+   ======================================== */
+
+footer {
+    background: #2c3e50;
+    padding: 40px 0 20px;
+    font-size: 14px;
+    color: #fff;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0; /* Makes footer fill space */
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 ;
+}
+
+.footer-bottom {
+    margin: 20px 0 0 0;
+    padding: 0;
+}
+
+/* --- FIX FOOTER SPACING FOR REPORT PAGE ONLY --- */
+
+.footer-main {
+    min-height: 1000px;
+    padding: 80px 24px 60px;
+    width: 100%;
+}
+
+.footer-columns {
+    justify-content: space-around !important;
+    gap: 60px !important;
+    margin-bottom: 0 !important;
+}
+
+.footer-bottom {
+    margin: 0 !important;
+    padding: 10px 0 !important;
+}
+
+body {
+    background-color: #1e1e1e; /* same as footer background to hide small gaps */
+    overflow-x: hidden;
+}
+
+
 
 @media (max-width: 768px) {
     .hero {
-        height: 500px;
-        padding: 20px;
+        min-height: 300px;
+        padding: 40px 20px;
     }
     
     .form-box {
