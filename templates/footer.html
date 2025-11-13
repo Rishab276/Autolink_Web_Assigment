@@ -6,7 +6,7 @@
     .footer-main {
       background: #1e1e1e;
       color: #b9b9b9;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: Arial, sans-serif;
       padding: 50px 24px 30px;
     }
 
@@ -120,11 +120,11 @@
       <ul>
         <li><a href="{% url 'main:aboutus' %}">About Us</a></li>
         {% if request.user.is_authenticated %}
-          <li><a href="{% url 'reviews:review_page' %}">Reviews</a></li>
-          <li><a href="{% url 'reviews:report_page' %}">Report</a></li>
+          <li><a href="{% url 'reviews:review_page' %}">reviews</a></li>
+          <li><a href="{% url 'reviews:report_page' %}">report</a></li>
         {% else %}
-          <li><a href="{% url 'users:login' %}?next={% url 'reviews:review_page' %}">Reviews</a></li>
-          <li><a href="{% url 'users:login' %}?next={% url 'reviews:report_page' %}">Report</a></li>
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:review_page' %}">reviews</a></li>
+          <li><a href="{% url 'users:login' %}?next={% url 'reviews:report_page' %}">report</a></li>
         {% endif %}
         <li><a href="{% url 'main:faq' %}">FAQ</a></li>
       </ul>
