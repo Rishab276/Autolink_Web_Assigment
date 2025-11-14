@@ -1,3 +1,4 @@
+#MAIGHUN-2412258
 from django.apps import AppConfig
 
 
