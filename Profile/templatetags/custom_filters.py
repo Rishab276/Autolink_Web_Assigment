@@ -7,10 +7,13 @@ register = template.Library()
 def mask_email(email):
     if not email or '@' not in email:
         return email
+    
     username, domain = email.split('@')
-    # Keep first part, mask last 4 characters before @
-    if len(username) > 4:
-        masked_username = username[:-4] + '****'
-    else:
-        masked_username = '****'  # If username is too short
+    
+    # Always show only the first character
+    first_char = username[0]
+    
+    # Mask everything else
+    masked_username = first_char + '*' * (len(username) - 1)
+    
     return f"{masked_username}@{domain}"
