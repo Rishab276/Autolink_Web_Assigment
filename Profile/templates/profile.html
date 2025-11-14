@@ -51,8 +51,8 @@
                 <div class="row justify-content-center">
                     {% for vehicle in uploaded_vehicles %}
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card vehicle-card h-100">
-                                <!-- Delete Button to remove listing-->
+                            <div class="card vehicle-card h-100 position-relative">
+                                <!-- Delete Button -->
                                 <a href="{% url 'profile:remove_uploaded_vehicle' vehicle.id %}" 
                                 class="btn btn-danger btn-sm position-absolute top-0 start-0 m-2" 
                                 style="z-index: 10;"
@@ -61,7 +61,7 @@
                                     🗑️ Delete
                                 </a>
 
-                                <!-- View Details Button to view own listing in details-->
+                                <!-- View Details Button -->
                                 <a href="{% url 'vehicles:detail' vehicle.id %}" 
                                 class="btn btn-primary btn-sm position-absolute top-0 end-0 m-2" 
                                 style="z-index: 10;"
@@ -69,13 +69,22 @@
                                     📃 Details
                                 </a>
 
+                                <!-- Vehicle Image -->
                                 {% if vehicle.images.first %}
                                     <img src="{{ vehicle.images.first.image.url }}" class="card-img-top vehicle-image" alt="{{ vehicle.make }} {{ vehicle.model }}">
                                 {% else %}
-                                    <img src="{% static 'default-vehicle.jpg' %}" class="card-img-top vehicle-image" alt="No image">
+                                    <div class="card-img-top vehicle-image bg-light d-flex align-items-center justify-content-center">
+                                        <span>No Image Available</span>
+                                    </div>
                                 {% endif %}
+
                                 <div class="card-body">
                                     <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
+                                    <p class="card-text">
+                                        <strong>Price:</strong> Rs {{ vehicle.price }}<br>
+                                        <strong>Mileage:</strong> {{ vehicle.mileage }} km<br>
+                                        <strong>Transmission:</strong> {{ vehicle.transmission }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
