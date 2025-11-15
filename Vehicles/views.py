@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from Profile.models import SavedVehicle  # Import from Profile app
 
 def standardsearch(request):
-    vehicles = Vehicle.objects.all().order_by('id')
+    vehicles = Vehicle.objects.filter(is_sold=False, is_rented=False).order_by('id')
     paginator = Paginator(vehicles, 9)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -13,7 +13,7 @@ def standardsearch(request):
     saved_vehicle_ids = []
     if request.user.is_authenticated:
         saved_vehicle_ids = list(SavedVehicle.objects.filter(
-            user=request.user
+            user=request.user, vehicle__is_sold=False
         ).values_list('vehicle_id', flat=True))
 
     context = {
@@ -27,7 +27,7 @@ def filter(request):
     return render(request, 'filter.html')
 
 def detail(request, pk):
-    vehicle_detail = get_object_or_404(Vehicle.objects.prefetch_related('images'), pk=pk)
+    vehicle_detail = get_object_or_404(Vehicle.objects.prefetch_related('images'), pk=pk, is_sold=False, is_rented=False)
     
     saved_vehicle_ids = []
     if request.user.is_authenticated:
@@ -51,7 +51,7 @@ def category_list(request, category):
     }
     label = aliases.get(normalized, category.title())
 
-    vehicles = Vehicle.objects.filter(type_of_vehicle__iexact=label).order_by('id')
+    vehicles = Vehicle.objects.filter(type_of_vehicle__iexact=label, is_sold=False, is_rented=False).order_by('id')
     paginator = Paginator(vehicles, 9)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
