@@ -1,169 +1,89 @@
-/* ========================================
-   RESET - Add this at the TOP
-   ======================================== */
+    body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+        }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+        /* Header */
+        header {
+            background-color: #3498db;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    line-height: 1.5;
-    background-color: #f9f9f9;
-}
+        /* Hero Section */
+        .hero {
+            position: relative;
+            background: url('your-image.jpg') no-repeat center center/cover;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
+       /* Form Box */
+        .form-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-sizing: border-box;
+        }
 
-main {
-    flex: 0 0 auto;
-}
+        .form-box * {
+            box-sizing: border-box;
+        }
 
+        .form-box input,
+        .form-box textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            font-family: inherit;
+        }
 
-/* ========================================
-   Header
-   ======================================== */
+        .form-box textarea {
+            height: 120px;
+            resize: none;
+        }
 
-header {
-    background-color: #3498db;
-    padding: 15px 0;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-    margin: 0;
-    width: 100%;
-}
+        .form-box button {
+            background:#3498db;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 3px;
+            width: 100%;
+            color: #333;
+            transition: background 0.3s ease;
+        }
 
-/* Hero Section */
-.hero {
-    position: relative;
-    background: url('{% static "images/hero-bg.jpg" %}') no-repeat center center/cover;
-    min-height: 600px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 60px 20px;
-}
-
-/* Form Box */
-.form-box {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 20px;
-    border-radius: 5px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-sizing: border-box;
-}
-
-.form-box * {
-    box-sizing: border-box;
-}
-
-.form-box input,
-.form-box textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 14px;
-    font-family: inherit;
-}
-
-.form-box textarea {
-    height: 120px;
-    resize: none;
-}
-
-.form-box button {
-    background: #3498db;
-    border: none;
-    padding: 12px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 3px;
-    width: 100%;
-    color: white;
-    transition: background 0.3s ease;
-}
-
-.form-box button:hover {
-    background: #2980b9;
-}
-
-
-/* ========================================
-   FOOTER - Add/Replace this section
-   ======================================== */
-
-footer {
-    background: #2c3e50;
-    padding: 40px 0 20px;
-    font-size: 14px;
-    color: #fff;
-    width: 100%;
-    margin: 0;
-    flex-shrink: 0; /* Makes footer fill space */
-}
-
-.footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 ;
-}
-
-.footer-bottom {
-    margin: 20px 0 0 0;
-    padding: 0;
-}
-
-/* --- FIX FOOTER SPACING FOR REPORT PAGE ONLY --- */
-
-.footer-main {
-    min-height: 1000px;
-    padding: 80px 24px 60px;
-    width: 100%;
-}
-
-.footer-columns {
-    justify-content: space-around !important;
-    gap: 60px !important;
-    margin-bottom: 0 !important;
-}
-
-.footer-bottom {
-    margin: 0 !important;
-    padding: 10px 0 !important;
-}
-
-body {
-    background-color: #1e1e1e; /* same as footer background to hide small gaps */
-    overflow-x: hidden;
-}
-
-
+        .form-box button:hover {
+            background: #3498db;
+        }
 
 @media (max-width: 768px) {
+    /* Adjust hero section for smaller screens */
     .hero {
-        min-height: 300px;
         padding: 40px 20px;
     }
     
-    .form-box {
-        margin: 0 20px;
+    /* Adjust form card padding for mobile */
+    .form-card {
+        margin: 0;
+        padding: 30px 20px;
     }
 }
-
