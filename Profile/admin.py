@@ -23,7 +23,7 @@ class SavedVehicleAdmin(admin.ModelAdmin):
 
 @admin.register(UploadedVehicle)
 class UploadedVehicleAdmin(admin.ModelAdmin):
-    list_display = ['make', 'model', 'year', 'price', 'uploader', 'fuel_type', 'transmission', 'is_rental']
-    list_filter = ['uploader', 'is_rental', 'fuel_type', 'transmission', 'type_of_vehicle']
+    list_display = ['make', 'model', 'year', 'price', 'uploader', 'fuel_type', 'transmission', 'is_rental','is_sold','is_rented']
+    list_filter = ['uploader', 'is_rental', 'fuel_type', 'transmission', 'type_of_vehicle','is_rental','is_sold','is_rented']
     search_fields = ['make', 'model', 'uploader__username', 'uploader__email']
     
