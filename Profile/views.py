@@ -22,7 +22,7 @@ def profile_view(request):
         print(f"DEBUG: Found {len(uploaded_vehicles)} uploaded vehicles")
 
     elif user_profile.user_type == 'buyer':
-        saved_vehicles = SavedVehicle.objects.filter(user=request.user).select_related('vehicle').order_by('-saved_at')
+        saved_vehicles = SavedVehicle.objects.filter(user=request.user, vehicle__is_sold=False).select_related('vehicle').order_by('-saved_at')
         print(f"DEBUG: Found {len(saved_vehicles)} saved vehicles")
         
         for saved in saved_vehicles:
@@ -84,3 +84,35 @@ def toggle_save(request, vehicle_id):
         print(f"DEBUG: Vehicle {vehicle_id} SAVED")
     
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required
+def mark_as_sold(request, vehicle_id):
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
+    vehicle.is_sold = True
+    vehicle.save()
+    messages.success(request, "Vehicle marked as sold.")
+    return redirect('profile:profile')
+
+@login_required
+def unmark_as_sold(request, vehicle_id):
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
+    vehicle.is_sold = False
+    vehicle.save()
+    messages.success(request, "Vehicle is now available again.")
+    return redirect('profile:profile')
+
+@login_required
+def mark_as_rented(request, vehicle_id):
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
+    vehicle.is_rented = True
+    vehicle.save()
+    messages.success(request, "Vehicle marked as rented.")
+    return redirect('profile:profile')
+
+@login_required
+def unmark_as_rented(request, vehicle_id):
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
+    vehicle.is_rented = False
+    vehicle.save()
+    messages.success(request, "Vehicle is now available again.")
+    return redirect('profile:profile')
