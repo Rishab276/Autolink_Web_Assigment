@@ -15,11 +15,8 @@
         <h2>Welcome to Autolink</h2>
         <p class="text-center text-secondary mb-4">Seller | Renter Registration</p>
         
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-info">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+       
+            
         
         <form method="POST" action="{% url 'users:sellerRenterdetails' %}">
             {% csrf_token %}
@@ -54,5 +51,6 @@
     <footer>
         {% include "footer.html" %}
     </footer>
+    <script src="{% static 'JAVASCRIPT/sellerRenter.js' %}" ></script>
 </body>
 </html>

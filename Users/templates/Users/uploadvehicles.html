@@ -96,7 +96,7 @@
 
         <div class="mb-3">
           <label for="description">Description</label>
-          <textarea id="description" name="description" class="form-control" rows="4" placeholder="Describe your vehicle..." required></textarea>
+          <textarea id="description" name="description" class="form-control" rows="4" placeholder="Describe your vehicle for example conditon.." required></textarea>
         </div>
 
         <div class="mb-3">
@@ -107,7 +107,7 @@
         <div class="mb-3">
           <label for="images">Upload Your Vehicle Images</label>
           <input type="file" id="images" name="images" class="form-control" multiple required />
-          <small class="note">You can upload multiple images</small>
+          <small class="note">You can upload only one image</small>
         </div>
 
         <button type="submit" class="btn-upload">Submit Vehicle</button>
@@ -118,5 +118,7 @@
   <footer>
     {% include "footer.html" %}
   </footer>
+  <script src="{% static 'JAVASCRIPT/uploadvehicle.js' %}"></script>
+
 </body>
 </html>
