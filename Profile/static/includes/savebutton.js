@@ -1,3 +1,4 @@
+/*MAIGHUN-2412258*/
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.fav-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
