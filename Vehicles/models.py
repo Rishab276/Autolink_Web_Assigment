@@ -1,4 +1,3 @@
-#bysalwan
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -46,6 +45,9 @@ class Vehicle(models.Model):
     gps_coor = models.CharField(max_length=100, blank=True, null=True)
     is_rental = models.BooleanField(default=False)
     desc = models.TextField(blank=True, null=True)
+
+    is_sold = models.BooleanField(default=False)  #added by MAIGHUN-2412258 for profile purposes
+    is_rented = models.BooleanField(default=False)  #added by MAIGHUN-2412258 for profile purposes
 
     def __str__(self):
         return f"{self.make} {self.model} ({self.year})"

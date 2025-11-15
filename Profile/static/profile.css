@@ -1,3 +1,4 @@
+/* MAIGHUN-2412258 */
 body { 
     font-family: Arial, sans-serif; 
     background-color: #f8f9fa; 
@@ -79,4 +80,104 @@ body {
 
 .empty-exclamation span {
     display: inline-block;
+}
+
+/* ───────────────────────────────
+   SOLD CARD (Seller)
+   ─────────────────────────────── */
+.sold-card {
+    position: relative;
+}
+
+.sold-card .card-img-top,
+.sold-card .card-body {
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
+/* Buttons remain clickable */
+.sold-card a.btn,
+.sold-card button {
+    pointer-events: auto;
+    z-index: 30;
+}
+
+/* Delete button – always bright red */
+.sold-card a.btn-danger {
+    opacity: 1;
+    filter: none;
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+/* Mark as Sold – faded yellow */
+.sold-card a.btn-warning {
+    opacity: 0.7;
+    filter: none;
+    background-color: #ffc107;
+    color: black;
+}
+
+/* Mark as Available – bright green */
+.sold-card a.btn-success {
+    opacity: 1;
+    filter: none;
+    background-color: #28a745;
+    color: white;
+}
+
+/* Hover animations */
+.sold-card a.btn-warning:hover,
+.sold-card a.btn-success:hover,
+.sold-card a.btn-danger:hover {
+    opacity: 1 !important;
+    filter: none;
+}
+
+/* ───────────────────────────────
+   RENTED CARD (Renter)
+   ─────────────────────────────── */
+.rented-card {
+    position: relative;
+}
+
+.rented-card .card-img-top,
+.rented-card .card-body {
+    opacity: 0.5;
+    filter: grayscale(80%);
+}
+
+/* Buttons remain clickable */
+.rented-card a.btn,
+.rented-card button {
+    pointer-events: auto;
+    z-index: 30;
+}
+
+/* Delete stays red */
+.rented-card a.btn-danger {
+    opacity: 1;
+    filter: none;
+}
+
+/* Mark as Rented – faded yellow */
+.rented-card a.btn-warning {
+    opacity: 0.7;
+    filter: grayscale(40%);
+}
+
+/* Mark as Available – green but faded */
+.rented-card a.btn-success {
+    opacity: 1;
+    filter: none;
+    background-color: #28a745;
+    color: white;
+}
+
+/* Hover restores full color */
+.rented-card a.btn-warning:hover,
+.rented-card a.btn-success:hover {
+    opacity: 1 !important;
+    filter: none;
 }
