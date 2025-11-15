@@ -1,6 +1,6 @@
-#MAIGHUN-2412258
 from django.urls import path
 from . import views
+from .views import CustomPasswordChangeView
 
 app_name = 'profile'
 
@@ -15,4 +15,5 @@ urlpatterns = [
     path('unmark_as_sold/<int:vehicle_id>/', views.unmark_as_sold, name='unmark_as_sold'),
     path('vehicle/<int:vehicle_id>/mark_as_rented/', views.mark_as_rented, name='mark_as_rented'),
     path('vehicle/<int:vehicle_id>/unmark_as_rented/', views.unmark_as_rented, name='unmark_as_rented'),
+    path('password_change/', CustomPasswordChangeView.as_view(), name='passwordchange'),
 ]

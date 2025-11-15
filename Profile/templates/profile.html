@@ -36,7 +36,7 @@
                     Driver License: <strong>{{ request.user.userprofile.driver_license }}</strong>
                 </p>
             {% endif %}
-            <a href="{% url 'password_change' %}" class="btn btn-outline-primary btn-sm mt-2">
+            <a href="{% url 'profile:passwordchange' %}" class="btn btn-outline-primary btn-sm mt-2">
                 <i class="bi bi-key"></i> Change Password
             </a>
             <a href="{% url 'users:logout' %}" class="btn btn-outline-danger btn-sm mt-2">
