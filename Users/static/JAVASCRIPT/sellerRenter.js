@@ -7,6 +7,5 @@ document.querySelector("form").addEventListener("submit", function(event) {
         alert("Renter information registered successfully!");
     } else {
         alert("Registration successful!");
-    }
-    
+    } 
 });
