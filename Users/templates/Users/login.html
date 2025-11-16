@@ -36,18 +36,13 @@
                 </div>
             </div>
         </div>
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                     <li style="color: red;">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+       
     </main>
 
     <footer>                            <!--our global footer-->
         {% include "footer.html" %}
     </footer>
+    <script src="{% static 'JAVASCRIPT/login.js' %}" ></script>
 
 </body>
 </html>
