@@ -33,18 +33,16 @@
                 </div>
             </div>
         </div>
-      
-       
+         {% if messages %}
+    <ul>
+        {% for message in messages %}
+            {% if message.tags == "error" %}
+                <li style="color: red;">{{ message }}</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {% endif %}
     </main>
-
-      {% if messages %}
-            <ul>
-                {% for message in messages %}
-                     <li style="color: red;">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
     <footer>                            <!--our global footer-->
         {% include "footer.html" %}
     </footer>
