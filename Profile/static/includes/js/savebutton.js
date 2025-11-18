@@ -1,9 +1,9 @@
-<script>
+/*MAIGHUN-2412258*/
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.fav-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             const userType = this.getAttribute('data-user-type');
-            
+
             // Visitor
             if (userType === 'visitor') {
                 e.preventDefault();
@@ -30,4 +30,3 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-</script>

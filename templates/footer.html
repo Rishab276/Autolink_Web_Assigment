@@ -6,7 +6,7 @@
     .footer-main {
       background: #1e1e1e;
       color: #b9b9b9;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: Arial, sans-serif;
       padding: 50px 24px 30px;
     }
 
@@ -108,8 +108,6 @@
         <li><a href="{% url 'vehicles:filter' %}">Filter</a></li>
         {% if request.user.is_authenticated %}
           <li><a href="{% url 'reviews:recommendations' %}">Recommendations</a></li>
-        {% else %}
-          <li><a href="{% url 'users:login' %}?next={% url 'reviews:recommendations' %}">Report</a></li>
         {% endif %}
       </ul>
     </div>

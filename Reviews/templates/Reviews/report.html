@@ -1,3 +1,4 @@
+<!-- By humaa -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -17,7 +18,7 @@
 
         <section class="hero">
             <div class="form-box">
-                <form method="POST" action="{% url 'reviews:submit_report' %}">
+                <form id="reportForm" method="POST" action="{% url 'reviews:submit_report' %}">
                     {% csrf_token %}
                     <input type="text" name="reporter_name" placeholder="Your Name" required>
                     <input type="email" name="email" placeholder="Your Email" required>
@@ -28,9 +29,11 @@
             </div>
         </section>
     </main>
+   
+    {% include "footer.html" %}
 
-    <footer>
-        {% include "footer.html" %}
-    </footer>
+    <!-- Link your JavaScript file -->
+   <script src="{% static 'js/report.js' %}"></script>
+
 </body>
 </html>

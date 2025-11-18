@@ -1,22 +1,55 @@
-/* Hero background */
+/* By humaa */
+/* ========================================
+   Base Styles & Page Structure
+   ======================================== */
+
+/* Reset default margins and ensure full height */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+/* Flexbox layout to push footer to bottom */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Main content area fills available space */
+main {
+    flex: 1;
+}
+
+
+/* ========================================
+   Hero Section
+   ======================================== */
+
+/* Full-width background image section */
 .hero {
     position: relative;
     background: url('{% static "images/review-bg.jpg" %}') no-repeat center center/cover;
-    min-height: 80vh;
+    min-height: auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
 }
 
-/* Form Card */
+
+/* ========================================
+   Review Form Card
+   ======================================== */
+
+/* Main form container with blue background */
 .form-card {
     background: #3498db;
     padding: 40px 30px;
     width: 100%;
     max-width: 450px;
     border-radius: 10px;
-    box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     gap: 25px;
@@ -27,6 +60,12 @@
     box-sizing: border-box;
 }
 
+
+/* ========================================
+   Star Rating System
+   ======================================== */
+
+/* Star rating display */
 .stars {
     font-size: 28px;
     color: #fff;
@@ -35,30 +74,40 @@
     letter-spacing: 5px;
 }
 
+/* Individual star styling */
 .stars span {
     cursor: pointer;
     transition: all 0.2s ease;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Star hover effect */
 .stars span:hover,
 .stars span:hover ~ span {
-    color: #687c89(0, 55, 255);
+    color: #0037ff;
     transform: scale(1.1);
 }
 
+/* Selected star styling */
 .stars span.active {
     color: gold;
 }
 
+
+/* ========================================
+   Form Groups & Input Fields
+   ======================================== */
+
+/* White background container for form sections */
 .form-group {
     background: white;
     padding: 20px;
     border-radius: 8px;
     border: 2px solid #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Spacing for different form sections */
 .form-group-title {
     margin-bottom: 15px;
 }
@@ -68,9 +117,10 @@
 }
 
 .form-group-details {
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
+/* Input and textarea base styles */
 .form-card input, 
 .form-card textarea {
     width: 100%;
@@ -83,21 +133,29 @@
     background: #fafafa;
 }
 
+/* Input focus state with nice animation */
 .form-card input:focus, 
 .form-card textarea:focus {
     outline: none;
     border-color: #3498db;
     background: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Textarea specific styling */
 .form-card textarea {
     height: 100px;
     resize: none;
     line-height: 1.5;
 }
 
+
+/* ========================================
+   Submit Button
+   ======================================== */
+
+/* Main submit button */
 .form-card button {
     background: #fff;
     border: none;
@@ -108,26 +166,33 @@
     font-size: 16px;
     transition: all 0.3s ease;
     margin-top: 15px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
     border: 2px solid transparent;
     color: #333;
 }
 
+/* Button hover effect */
 .form-card button:hover {
     background: #f1f1f1;
     transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
     border-color: #3498db;
 }
 
+
+/* ========================================
+   Mobile Responsive Design
+   ======================================== */
+
 @media (max-width: 768px) {
+    /* Adjust hero section for smaller screens */
     .hero {
-        min-height: 70vh;
-        padding: 20px;
+        padding: 40px 20px;
     }
     
+    /* Adjust form card padding for mobile */
     .form-card {
-        margin: 0 20px;
+        margin: 0;
         padding: 30px 20px;
     }
 }

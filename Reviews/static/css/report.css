@@ -1,82 +1,90 @@
-/* Header */
-header {
-    background-color: #3498db;
-    padding: 15px 0;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-}
+ /* By humaa */
+    body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+        }
 
-/* Hero Section */
-.hero {
-    position: relative;
-    background: url('{% static "images/hero-bg.jpg" %}') no-repeat center center/cover;
-    height: 400px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
+        /* Header */
+        header {
+            background-color: #3498db;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
 
-/* Form Box */
-.form-box {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 20px;
-    border-radius: 5px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-sizing: border-box;
-}
+        /* Hero Section */
+        .hero {
+            position: relative;
+            background: url('your-image.jpg') no-repeat center center/cover;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
-.form-box * {
-    box-sizing: border-box;
-}
+       /* Form Box */
+        .form-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-sizing: border-box;
+        }
 
-.form-box input,
-.form-box textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 14px;
-    font-family: inherit;
-}
+        .form-box * {
+            box-sizing: border-box;
+        }
 
-.form-box textarea {
-    height: 120px;
-    resize: none;
-}
+        .form-box input,
+        .form-box textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            font-family: inherit;
+        }
 
-.form-box button {
-    background:#3498db;
-    border: none;
-    padding: 12px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 3px;
-    width: 100%;
-    color: white;
-    transition: background 0.3s ease;
-}
+        .form-box textarea {
+            height: 120px;
+            resize: none;
+        }
 
-.form-box button:hover {
-    background: #3498db;
-}
+        .form-box button {
+            background:#3498db;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 3px;
+            width: 100%;
+            color: #333;
+            transition: background 0.3s ease;
+        }
+
+        .form-box button:hover {
+            background: #3498db;
+        }
 
 @media (max-width: 768px) {
+    /* Adjust hero section for smaller screens */
     .hero {
-        height: 500px;
-        padding: 20px;
+        padding: 40px 20px;
     }
     
-    .form-box {
-        margin: 0 20px;
+    /* Adjust form card padding for mobile */
+    .form-card {
+        margin: 0;
+        padding: 30px 20px;
     }
 }
-
