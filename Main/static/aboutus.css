@@ -5,10 +5,11 @@ html, body {
     box-sizing: border-box;
     line-height: 1.6;
     background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
 }
 
 .serif-content {
-    font-family: 'Georgia', 'Times New Roman', serif;
+    font-family: Arial, sans-serif;
 }
 
 .container {

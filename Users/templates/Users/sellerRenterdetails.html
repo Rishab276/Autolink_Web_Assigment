@@ -14,10 +14,6 @@
     <div class="register-container">
         <h2>Welcome to Autolink</h2>
         <p class="text-center text-secondary mb-4">Seller | Renter Registration</p>
-        
-       
-            
-        
         <form method="POST" action="{% url 'users:sellerRenterdetails' %}">
             {% csrf_token %}
             <input type="hidden" name="user_type" value="{{ request.resolver_match.kwargs.role }}">
