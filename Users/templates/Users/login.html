@@ -6,12 +6,9 @@
     <title>User Login</title>
     <!--my css link -->
     <link rel="stylesheet" href="{% static 'login.css' %}">
-    
 </head>
 <body>
-
     {% include 'nav.html' %}   <!--our global navbar-->
-   
     <main>                                             <!--the main part of the login page-->>
         <div class="login-container">
             <div class="welcome">
@@ -36,13 +33,18 @@
                 </div>
             </div>
         </div>
-       
+         {% if messages %}
+    <ul>
+        {% for message in messages %}
+            {% if message.tags == "error" %}
+                <li style="color: red;">{{ message }}</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {% endif %}
     </main>
-
     <footer>                            <!--our global footer-->
         {% include "footer.html" %}
     </footer>
-    <script src="{% static 'JAVASCRIPT/login.js' %}" ></script>
-
 </body>
 </html>
