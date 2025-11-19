@@ -1,117 +1,80 @@
-/* By humaa */
+/*By Bukreedan Humaa Id:2412290*/
+// Wait for the page to fully load before running the script
 document.addEventListener('DOMContentLoaded', function () {
 
+    // Grab all the elements we need from the page
     const starContainer = document.getElementById('starRating');
     const ratingInput = document.getElementById('ratingValue');
     const form = document.getElementById('reviewForm');
 
+    // If any of these don't exist, just stop here
     if (!starContainer || !ratingInput || !form) return;
 
+    // Get all the individual star elements
     const stars = starContainer.querySelectorAll('span');
     stars.forEach(s => s.style.cursor = 'pointer');
 
+    // This function colors the stars based on rating
     function paintStars(value, activeColor = 'gold', inactiveColor = '#ccc') {
         stars.forEach(s => {
             const v = s.getAttribute('data-value');
+            // If star value is less than or equal to rating, color it gold
             s.style.color = (Number(v) <= Number(value)) ? activeColor : inactiveColor;
         });
     }
 
-    // Star click
+    // When user clicks on a star
     starContainer.addEventListener('click', function (e) {
         const target = e.target.closest('span');
         if (!target) return;
+        // Save the rating value and update the stars
         ratingInput.value = target.getAttribute('data-value');
         paintStars(ratingInput.value);
     });
 
-    // Hover
+    // Show preview when hovering over stars
     starContainer.addEventListener('mouseover', function (e) {
         const target = e.target.closest('span');
         if (!target) return;
         paintStars(target.getAttribute('data-value'), '#ffd700');
     });
+
+    // Reset to actual rating when mouse leaves
     starContainer.addEventListener('mouseout', function () {
         paintStars(ratingInput.value);
     });
 
-    // Create modal elements
+    // Creates the success modal popup
     function createModal() {
         const overlay = document.createElement('div');
         overlay.id = 'reviewModalOverlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        `;
+        overlay.className = 'review-modal-overlay';
 
         const modal = document.createElement('div');
-        modal.style.cssText = `
-            background: #1a3a3a;
-            border-radius: 12px;
-            padding: 30px 40px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        `;
+        modal.className = 'review-modal';
 
         const title = document.createElement('div');
         title.textContent = '127.0.0.1:8000 says';
-        title.style.cssText = `
-            color: white;
-            font-size: 16px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        `;
+        title.className = 'review-modal-title';
 
         const message = document.createElement('div');
-        message.textContent = 'Your review has been submitted successfully!';
-        message.style.cssText = `
-            color: white;
-            font-size: 14px;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        `;
+        message.textContent = 'Your review has been submitted successfully!   Thank you for your feedback!';
+        message.className = 'review-modal-message';
 
         const buttonContainer = document.createElement('div');
-        buttonContainer.style.cssText = `
-            display: flex;
-            justify-content: flex-end;
-        `;
+        buttonContainer.className = 'review-modal-button-container';
 
         const okButton = document.createElement('button');
         okButton.textContent = 'OK';
-        okButton.style.cssText = `
-            background: #5dbbbb;
-            color: #1a3a3a;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 30px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        `;
+        okButton.className = 'review-modal-button';
         
-        okButton.addEventListener('mouseover', function() {
-            this.style.background = '#4da9a9';
-        });
-        okButton.addEventListener('mouseout', function() {
-            this.style.background = '#5dbbbb';
-        });
-        
+        // When OK button is clicked, close modal and submit form
         okButton.addEventListener('click', function() {
             overlay.remove();
-            form.submit(); // Submit the form after modal is closed
+            form.submit(); // Actually submit the form to Django
         });
 
+        // Put all the pieces together
         buttonContainer.appendChild(okButton);
         modal.appendChild(title);
         modal.appendChild(message);
@@ -121,21 +84,22 @@ document.addEventListener('DOMContentLoaded', function () {
         return overlay;
     }
 
-    // Form submit
+    // Handle form submission
     form.addEventListener('submit', function (e) {
+        // Make sure user selected a rating first
         if (!ratingInput.value || ratingInput.value === "0") {
             e.preventDefault();
             alert("Please select a star for your review.");
             return;
         }
 
-        e.preventDefault(); // Prevent default after validation
+        e.preventDefault(); // Stop the form from submitting immediately
         
-        // Show modal
+        // Show the success modal instead
         const modal = createModal();
         document.body.appendChild(modal);
     });
 
-    // Initial paint
+    // Color the stars based on initial value (if any)
     paintStars(ratingInput.value);
 });
