@@ -219,9 +219,9 @@ def uploadvehicles_view(request):
         contact = request.POST.get('contact')  # optional field from form
 
         # Determine if it's for rent or sale
-        is_rental = True if vehicle_type and vehicle_type.lower() == 'rent' else False
+        is_rental = True if profile.user_type == "renter" else False
 
-        # Create Vehicle (Salwan’s model)
+        
         vehicle = Vehicle.objects.create(
             uploader=request.user,
             make=make,
