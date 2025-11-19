@@ -11,6 +11,7 @@
 <body>
     {% include 'nav.html' %}
     
+    <!-- Hero Section -->
     <div class="hero-section">
         <div class="hero-content">
             <h1 class="hero-title">Find Your Perfect Vehicle Today</h1>
@@ -27,21 +28,6 @@
 
                 <a href="{% url 'vehicles:standardsearch' %}" class="btn-primary"><i class="fas fa-search"></i> Browse Vehicles</a>
             </div>
-
-            <div class="hero-stats">
-                <div class="stat">
-                    <div class="stat-number">15K+</div>
-                    <div class="stat-label">Happy Customers</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number">2.5K+</div>
-                    <div class="stat-label">Vehicles Listed</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number">98%</div>
-                    <div class="stat-label">Satisfaction Rate</div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -50,140 +36,390 @@
         <div class="category-browser">
             <div class="section-header">
                 <h2 class="section-header-title">Browse by Category</h2>
-                <p class="section-header-text">Explore our wide range of vehicles. Find the perfect option for your needs from our carefully curated categories.</p>            </div>
+                <p class="section-header-text">Explore our wide range of vehicles. Find the perfect option for your needs from our carefully curated categories.</p>
             </div>
 
-            <div class="categories-grid">
-                <!-- Car -->
-                <a href="{% url 'vehicles:category' 'car' %}" class="category-card car">
-                    <div class="category-icon"><i class="fas fa-car"></i></div>
-                    <h3>Car</h3>
-                    <p>From compact sedans to luxury vehicles, find the perfect car for your lifestyle and budget.</p>
-                </a>
-
-                <!-- Motorbike -->
-                <a href="{% url 'vehicles:category' 'motorbike' %}" class="category-card motorbike">
-                    <div class="category-icon"><i class="fas fa-motorcycle"></i></div>
-                    <h3>Motorbike</h3>
-                    <p>Discover a range of motorcycles from sport bikes to cruisers for your riding adventures.</p>
-                </a>
-
-                <!-- Bus -->
-                <a href="{% url 'vehicles:category' 'bus' %}" class="category-card bus">
-                    <div class="category-icon"><i class="fas fa-bus"></i></div>
-                    <h3>Bus</h3>
-                    <p>Explore our selection of buses for public transport, school, or private charter services.</p>
-                </a>
-
-                <!-- Truck -->
-                <a href="{% url 'vehicles:category' 'truck' %}" class="category-card truck">
-                    <div class="category-icon"><i class="fas fa-truck"></i></div>
-                    <h3>Truck</h3>
-                    <p>Find the right truck for your business needs, from light-duty to heavy commercial vehicles.</p>
-                </a>
-            </div>
-        </div>
-        
-        <!-- Services Section -->
-        <div class="services">
-            <div class="section-header">
-                <h2 class="section-header-title">Our Services</h2>
-            </div>
-            
-            <div class="services-content">
-                <div class="services-image">
-                    <img src="{% static 'services.png' %}" alt="Our Services">
+            <div class="categories-container">
+                <!-- Donut Chart -->
+                <div class="chart-section">
+                    <div class="chart-wrapper">
+                        <canvas id="categoryChart" width="200" height="200"></canvas>
+                        <div class="chart-center">
+                            <span class="chart-total">{{ total_vehicles }}</span>
+                            <span class="chart-label">Total Vehicles</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="services-list">
-                    <div class="service-item">
-                        <h3>Browse Vehicles</h3>
-                        <p>Find cars, motorcycles, buses and trucks all in one place. Search easily and explore listings that match your needs.</p>
-                    </div>
-                    
-                    <div class="service-item">
-                        <h3>List Your Vehicle</h3>
-                        <p>Show your vehicle to buyer or renters. Create a listing and let people contact you through WhatsApp.</p>
-                    </div>
-                    
-                    <div class="service-item">
-                        <h3>Book and Connect</h3>
-                        <p>When you see a vehicle you like, contact the owner through Whatsapp to ask questions, arrange a rental or plan a test drive.</p>
-                    </div>
+
+                <!-- Category Cards -->
+                <div class="categories-grid">
+                    {% for category in category_counts %}
+                    <a href="{% url 'vehicles:category' category.type_of_vehicle|lower %}" class="category-card {{ category.type_of_vehicle|lower }}">
+                        <div class="category-icon">
+                            {% if category.type_of_vehicle == 'Car' %}
+                                <i class="fas fa-car"></i>
+                            {% elif category.type_of_vehicle == 'Motorbike' %}
+                                <i class="fas fa-motorcycle"></i>
+                            {% elif category.type_of_vehicle == 'Truck' %}
+                                <i class="fas fa-truck"></i>
+                            {% elif category.type_of_vehicle == 'Van' %}
+                                <i class="fas fa-shuttle-van"></i>
+                            {% elif category.type_of_vehicle == 'SUV' %}
+                                <i class="fas fa-truck-monster"></i>
+                            {% elif category.type_of_vehicle == 'Bus' %}
+                                <i class="fas fa-bus"></i>
+                            {% endif %}
+                        </div>
+                        <div class="category-content">
+                            <h3>{{ category.type_of_vehicle }}</h3>
+                            <span class="category-count">{{ category.total }} vehicles</span> <!-- THIS MUST EXIST -->
+                        </div>
+                    </a>
+                    {% endfor %}
                 </div>
             </div>
         </div>
         
-        <!-- Testimonials -->
-        <div class="testimonials">
-            <div class="section-header">
-                <h2 class="section-header-title">Customer Testimonials</h2>
-                <p class="section-header-text">Hear what our customers have to say about their experience with our vehicle marketplace platform</p>            
+        <!-- Recently Added Vehicles -->
+        <div class="recently-added">
+            <div class="recent-header">
+                <h2>Recently Added</h2>
             </div>
-            
-            <div class="testimonials-grid">
-                <!-- Testimonial 1 -->
-                <div class="testimonial-card">
-                    <h3>Found my car so easily</h3>
-                    <p>I loved how simple it was to browse and filter through vehicles. Within minutes I found exactly what I wanted. The search functionality is intuitive and saved me hours of looking at irrelevant options.</p>
-                    <div class="quote-icon"><i class="fas fa-quote-right"></i></div>
-                    <div class="author">
-                        <div class="initials">LA</div>
-                        <div class="author-info">
-                            <div class="author-name">Leslie Alexander</div>
-                            <div class="author-role">Car Buyer</div>
-                            <div class="rating"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+
+            {% if recent_vehicles %}
+                <div class="recent-grid">
+                    {% for vehicle in recent_vehicles %}
+                        <div class="recent-card">
+                            <div class="recent-image-wrapper">
+                                {% with img=vehicle.images.first %}
+                                    {% if img %}
+                                        <img src="{{ img.image.url }}" alt="{{ vehicle }}" class="recent-image">
+                                    {% else %}
+                                        <div class="recent-image-placeholder">
+                                            <i class="fas fa-car-side"></i>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                                {% if vehicle.is_rental %}
+                                    <span class="recent-badge">For Rent</span>
+                                {% else %}
+                                    <span class="recent-badge">For Sale</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="recent-content">
+                                <h3 class="recent-title">
+                                    {{ vehicle.make }} {{ vehicle.model }} – {{ vehicle.year }}
+                                </h3>
+
+                                <div class="recent-meta">
+                                    <span>{{ vehicle.mileage }} km</span>
+                                    <span>•</span>
+                                    <span>{{ vehicle.fuel_type }}</span>
+                                    <span>•</span>
+                                    <span>{{ vehicle.transmission }}</span>
+                                </div>
+
+                                <div class="recent-price">
+                                    Rs {{ vehicle.price|floatformat:0 }}
+                                </div>
+
+                                <a href="{% url 'vehicles:detail' vehicle.pk %}" class="recent-link">
+                                    View Details <i class="fas fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    {% endfor %}
                 </div>
-                
-                <!-- Testimonial 2 -->
-                <div class="testimonial-card">
-                    <h3>Smooth and Quick</h3>
-                    <p>Listing my vehicle was straightforward and buyers contacted me directly on WhatsApp. Could not have been easier. I sold my car in just 3 days at a price I was happy with.</p>
-                    <div class="quote-icon"><i class="fas fa-quote-right"></i></div>
-                    <div class="author">
-                        <div class="initials">FM</div>
-                        <div class="author-info">
-                            <div class="author-name">Floyd Miles</div>
-                            <div class="author-role">Vehicle Seller</div>
-                            <div class="rating"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
-                        </div>
-                    </div>
+                <div class="recent-view-all-container">
+                    <a href="{% url 'vehicles:standardsearch' %}" class="recent-view-all-bottom">
+                        View All Listings <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
-                
-                <!-- Testimonial 3 -->
-                <div class="testimonial-card">
-                    <h3>Perfect for rentals</h3>
-                    <p>I needed a bus for an event and got connected to an owner instantly. Great platform for finding all kinds of vehicles. The owner was professional and the bus was perfect for our needs.</p>
-                    <div class="quote-icon"><i class="fas fa-quote-right"></i></div>
-                    <div class="author">
-                        <div class="initials">DR</div>
-                        <div class="author-info">
-                            <div class="author-name">Dianne Russell</div>
-                            <div class="author-role">Event Planner</div>
-                            <div class="rating"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% else %}
+                <p class="recent-empty">
+                    No vehicles listed yet. Check back soon.
+                </p>
+            {% endif %}
         </div>
 
         <!-- Recommendation -->
         <div class="simple-recommendation">
             <div class="recommendation-content">
-                <h2>We Make Finding<br><strong>The Right Vehicle</strong><br>Simple</h2>
+                <h2>We Make Finding<br><span class="highlight">The Right Vehicle</span><br>Simple</h2>
                 <p>Let us match you with vehicles that fit your needs, budget, and preferences.</p>
-                <div class="divider"></div>
                 
-                {% if request.user.is_authenticated %}
-                    <a href="{% url 'reviews:recommendations' %}" class="simple-btn">Find Out More <i class="fas fa-arrow-right"></i></a>
+               {% if request.user.is_authenticated %}
+                    <a href="{% url 'reviews:recommendations' %}" class="simple-btn" aria-label="Get personalized vehicle recommendations">
+                        Find Out More <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </a>
                 {% else %}
-                    <a href="{% url 'users:login' %}?next={% url 'reviews:recommendations' %}" class="simple-btn">Find Out More <i class="fas fa-arrow-right"></i></a>
+                    <a href="{% url 'users:login' %}?next={% url 'reviews:recommendations' %}" class="simple-btn" aria-label="Login to get vehicle recommendations">
+                        Find Out More <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </a>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- Why Choose Us Section -->
+        <div class="why-choose-us">
+            <div class="section-header">
+                <h2 class="section-header-title">Why Choose AutoLink</h2>
+                <p class="section-header-text">Experience the difference with features designed for your convenience</p>
+            </div>
+            
+            <div class="features-row">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <h3>Simple Interface</h3>
+                    <p>Easy navigation that anyone can use, regardless of tech experience.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Save Favorites</h3>
+                    <p>Bookmark vehicles to compare and decide at your own pace.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h3>Local Focus</h3>
+                    <p>Find vehicles in your area for easy inspection and test drives.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>24/7 Access</h3>
+                    <p>Browse and manage listings anytime that fits your schedule.</p>
+                </div>
+            </div>
+        </div>
+
+        
+       <!-- Testimonials Carousel -->
+        <div class="testimonials">
+            <div class="section-header">
+                <h2 class="section-header-title">Customer Testimonials</h2>
+                <p class="section-header-text">Hear what our customers have to say about their experience with our vehicle marketplace platform</p>
+            </div>
+            
+            <div class="testimonials-grid">
+                <div class="testimonials-track" id="testimonialsTrack">
+                    {% if recent_reviews %}
+                        {% for review in recent_reviews %}
+                            <div class="testimonial-card" data-review-id="{{ review.id }}">
+                                <div class="quote-icon">
+                                    <i class="fas fa-quote-right"></i>
+                                </div>
+                                
+                                <h3>{{ review.title }}</h3>
+                                <p>{{ review.review_text }}</p>
+
+                                <div class="author">
+                                    <div class="initials">
+                                        {{ review.author_name|slice:":1"|upper }}{{ review.author_name|slice:"1:2"|upper }}
+                                    </div>
+
+                                    <div class="author-info">
+                                        <div class="author-name">{{ review.author_name }}</div>
+                                        <div class="author-role">
+                                            {% for _ in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="testimonial-card" style="flex: 0 0 100%; text-align: center;">
+                            <p style="color:#64748b; margin: 0;">
+                                No reviews yet. Be the first to share your experience.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Carousel Controls - Only show if we have more than 3 reviews -->
+                {% if recent_reviews and recent_reviews|length > 3 %}
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev-btn" aria-label="Previous testimonials">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <div class="carousel-dots" id="carouselDots"></div>
+                    
+                    <button class="carousel-btn next-btn" aria-label="Next testimonials">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Services Section -->
+        <div class="services">
+            <div class="section-header">
+                <h2 class="section-header-title">Our Services</h2>
+                <p class="section-header-text">Simplifying your vehicle buying and selling experience</p>
+            </div>
+            
+            <div class="services-content">
+                <div class="services-image">
+                    <img src="https://images.unsplash.com/photo-1486496572940-2bb2341fdbdf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Car marketplace services" loading="lazy">
+                </div>
+                
+                <div class="services-list">
+                    <div class="service-item">
+                        <div class="service-number">01</div>
+                        <div class="service-content">
+                            <h3>Browse Vehicles</h3>
+                            <p>Find cars, motorcycles, buses and trucks all in one place. Search easily and explore listings that match your needs.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="service-item">
+                        <div class="service-number">02</div>
+                        <div class="service-content">
+                            <h3>List Your Vehicle</h3>
+                            <p>Show your vehicle to buyers or renters. Create a listing and let people contact you through WhatsApp.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="service-item">
+                        <div class="service-number">03</div>
+                        <div class="service-content">
+                            <h3>Book and Connect</h3>
+                            <p>When you see a vehicle you like, contact the owner through WhatsApp to ask questions, arrange a rental or plan a test drive.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      <!-- Contact Us Section -->
+        <div class="contact-section">
+            <div class="contact-inner">
+                <div class="contact-text">
+
+                    <h2 class="section-header-title">Contact Us</h2>
+                    <p class="section-header-text">
+                        Need help with a listing, facing a technical issue, or have an idea to improve Autolink?  
+                        We are here to assist you.
+                    </p>
+
+                    <div class="contact-cards">
+                        <div class="contact-card">
+                            <i class="fas fa-headset"></i>
+                            <h4>Get Help & Support</h4>
+                            <p>Technical issues, account problems, listing assistance, and contact issues.</p>
+                        </div>
+
+                        <div class="contact-card">
+                            <i class="fas fa-question-circle"></i>
+                            <h4>General Questions</h4>
+                            <p>Any questions about using AutoLink or how our platform works.</p>
+                        </div>
+
+                        <div class="contact-card">
+                            <i class="fas fa-lightbulb"></i>
+                            <h4>Share Your Ideas</h4>
+                            <p>Suggest features and improvements to make AutoLink even better.</p>
+                        </div>
+                    </div>
+
+                    <div class="quick-contact">
+                        <p><i class="fas fa-envelope"></i> info@autolink.com</p>
+                        <p><i class="fab fa-whatsapp"></i> WhatsApp Support: +230 59378817</p>
+                        <p><i class="fas fa-clock"></i> Response Time: Within 24 hours</p>
+                    </div>
+                </div>
+
+
+                <div class="contact-form-wrapper">
+                    <h3>Send us a message</h3>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="contact-success">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" class="contact-form">
+                        {% csrf_token %}
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="id_full_name">Full Name</label>
+                                {{ contact_form.full_name }}
+                                {{ contact_form.full_name.errors }}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="id_email">Email</label>
+                                {{ contact_form.email }}
+                                {{ contact_form.email.errors }}
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="id_phone">Phone (optional)</label>
+                                {{ contact_form.phone }}
+                                {{ contact_form.phone.errors }}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="id_inquiry_type">Inquiry Type</label>
+                                {{ contact_form.inquiry_type }}
+                                {{ contact_form.inquiry_type.errors }}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_subject">Subject</label>
+                            {{ contact_form.subject }}
+                            {{ contact_form.subject.errors }}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_message">Message</label>
+                            {{ contact_form.message }}
+                            {{ contact_form.message.errors }}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_attachment">Attachment (optional)</label>
+                            {{ contact_form.attachment }}
+                            {{ contact_form.attachment.errors }}
+                        </div>
+
+                        <div class="form-buttons">
+                            <button type="submit" class="contact-submit-btn">
+                                Send Message <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button type="reset" class="contact-reset-btn">Reset Form</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
     {% include 'footer.html' %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'main.js' %}"></script>
 </body>
 </html>
