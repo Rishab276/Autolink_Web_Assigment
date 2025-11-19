@@ -1,32 +1,24 @@
-/* By humaa */
-/* ========================================
-   Base Styles & Page Structure
-   ======================================== */
+/*By Bukreedan Humaa Id:2412290*/
 
-/* Reset default margins and ensure full height */
+/* Making sure everything takes up the full height properly */
 html, body {
     height: 100%;
     margin: 0;
 }
 
-/* Flexbox layout to push footer to bottom */
+/* Setting up the body to use flexbox so the footer stays at bottom */
 body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* Main content area fills available space */
+/* Main content area should grow to push footer down */
 main {
     flex: 1;
 }
 
-
-/* ========================================
-   Hero Section
-   ======================================== */
-
-/* Full-width background image section */
+/* Hero Section - this is the banner area with background image */
 .hero {
     position: relative;
     background: url('{% static "images/review-bg.jpg" %}') no-repeat center center/cover;
@@ -37,68 +29,54 @@ main {
     padding: 60px 20px;
 }
 
-
-/* ========================================
-   Review Form Card
-   ======================================== */
-
-/* Main form container with blue background */
+/* The main form card container - gave it a nice blue background */
 .form-card {
     background: #3498db;
     padding: 40px 30px;
     width: 100%;
     max-width: 450px;
     border-radius: 10px;
-    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     gap: 25px;
     box-sizing: border-box;
 }
 
+/* This makes sure padding doesn't mess up the width calculations */
 .form-card * {
     box-sizing: border-box;
 }
 
-
-/* ========================================
-   Star Rating System
-   ======================================== */
-
-/* Star rating display */
+/* Star rating display - those clickable stars for user ratings */
 .stars {
     font-size: 28px;
     color: #fff;
     text-align: center;
     margin: 10px 0;
-    letter-spacing: 5px;
+    letter-spacing: 5px; /* spaces them out nicely */
 }
 
-/* Individual star styling */
+/* Individual star styling with hover effects */
 .stars span {
     cursor: pointer;
     transition: all 0.2s ease;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* subtle shadow for depth */
 }
 
-/* Star hover effect */
+/* When you hover over a star, it and the ones before it change color */
 .stars span:hover,
 .stars span:hover ~ span {
     color: #0037ff;
-    transform: scale(1.1);
+    transform: scale(1.1); /* makes them slightly bigger on hover */
 }
 
-/* Selected star styling */
+/* Selected stars turn gold */
 .stars span.active {
     color: gold;
 }
 
-
-/* ========================================
-   Form Groups & Input Fields
-   ======================================== */
-
-/* White background container for form sections */
+/* White containers inside the form for better organization */
 .form-group {
     background: white;
     padding: 20px;
@@ -107,7 +85,7 @@ main {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Spacing for different form sections */
+/* Different spacing for different sections of the form */
 .form-group-title {
     margin-bottom: 15px;
 }
@@ -120,7 +98,7 @@ main {
     margin-top: 10px;
 }
 
-/* Input and textarea base styles */
+/* Styling for all text inputs and textarea */
 .form-card input, 
 .form-card textarea {
     width: 100%;
@@ -128,37 +106,33 @@ main {
     border: 2px solid #f0f0f0;
     border-radius: 6px;
     font-size: 15px;
-    font-family: inherit;
+    font-family: inherit; /* keeps the same font as rest of page */
     transition: all 0.3s ease;
-    background: #fafafa;
+    background: #fafafa; /* slightly off-white background */
 }
 
-/* Input focus state with nice animation */
+/* Nice interactive effect when user clicks into a field */
 .form-card input:focus, 
 .form-card textarea:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: #3498db; /* matches the card background */
     background: white;
-    transform: translateY(-2px);
+    transform: translateY(-2px); /* lifts up slightly */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Textarea specific styling */
+/* Textarea specific styling for the review text box */
 .form-card textarea {
     height: 100px;
-    resize: none;
+    resize: none; /* prevents user from resizing it */
     line-height: 1.5;
 }
 
-
-/* ========================================
-   Submit Button
-   ======================================== */
-
-/* Main submit button */
+/* Submit button styling */
 .form-card button {
     background: #fff;
-    border: none;
+    color: #333;
+    border: 2px solid transparent;
     padding: 16px;
     cursor: pointer;
     font-weight: bold;
@@ -167,32 +141,98 @@ main {
     transition: all 0.3s ease;
     margin-top: 15px;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    border: 2px solid transparent;
-    color: #333;
 }
 
-/* Button hover effect */
+/* Button hover effect - gives nice feedback to user */
 .form-card button:hover {
     background: #f1f1f1;
-    transform: translateY(-2px);
+    transform: translateY(-2px); /* lifts up when you hover */
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
     border-color: #3498db;
 }
 
-
-/* ========================================
-   Mobile Responsive Design
-   ======================================== */
-
+/* Adjustments for smaller screens like phones and tablets */
 @media (max-width: 768px) {
-    /* Adjust hero section for smaller screens */
     .hero {
-        padding: 40px 20px;
+        padding: 40px 20px; /* less padding on mobile */
     }
     
-    /* Adjust form card padding for mobile */
     .form-card {
         margin: 0;
         padding: 30px 20px;
+        max-width: 90%; /* takes up more screen width on mobile */
     }
+    
+    /* Smaller stars on mobile screens */
+    .stars {
+        font-size: 24px;
+        letter-spacing: 3px;
+    }
+}
+
+/* Review display message */
+/* By humaa - Review Success Modal Styles */
+
+/* The dark background overlay that covers the whole screen */
+.review-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* The actual modal box in the center */
+.review-modal {
+    background: #1a3a3a;
+    border-radius: 12px;
+    padding: 30px 40px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* The header text that says "127.0.0.1:8000 says" */
+.review-modal-title {
+    color: white;
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* The success message text */
+.review-modal-message {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+/* Container for the OK button */
+.review-modal-button-container {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* The OK button styling */
+.review-modal-button {
+    background: #5dbbbb;
+    color: #1a3a3a;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 30px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+/* Button gets slightly darker when you hover over it */
+.review-modal-button:hover {
+    background: #4da9a9;
 }
