@@ -1,0 +1,39 @@
+<!--MAIGHUN-2412258-->
+<!-- Save button with role-based logic -->
+{% if not request.user.is_authenticated %}
+    <!-- Visitor - not logged in -->
+    <a href="{% url 'users:login' %}" class="fav-btn" 
+       data-user-type="visitor"
+       title="Login to save vehicles">
+        🤍
+    </a>
+{% else %}
+    <!-- Logged in users -->
+    {% if request.user.userprofile.user_type == 'buyer' %}
+        <!-- Buyer - can save -->
+        <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn"
+           data-user-type="buyer">
+            {% if vehicle.id in saved_vehicle_ids %}
+                ❤️
+            {% else %}
+                🤍
+            {% endif %}
+        </a>
+    {% elif request.user.userprofile.user_type == 'seller' %}
+        <!-- Seller - cannot save -->
+        <span class="fav-btn" 
+              style="cursor: default;" 
+              data-user-type="seller"
+              title="Sellers can browse but cannot save vehicles">
+            🤍
+        </span>
+    {% elif request.user.userprofile.user_type == 'renter' %}
+        <!-- Renter - cannot save -->
+        <span class="fav-btn" 
+              style="cursor: default;" 
+              data-user-type="renter"
+              title="Renters can browse but cannot save vehicles">
+            🤍
+        </span>
+    {% endif %}
+{% endif %}

@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Vehicle Marketplace{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'includes/css/savebutton.css' %}">
     <link rel="stylesheet" href="{% static 'standardsearch.css' %}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -331,15 +332,7 @@
                      data-year="{{ vehicle.year }}" 
                      data-fuel="{{ vehicle.fuel_type|lower }}">
 
-                    <!-- Clean Save button -->
-                    <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn">
-                        {% if vehicle.id in saved_vehicle_ids %}
-                            ❤️
-                        {% else %}
-                            🤍
-                        {% endif %}
-                    </a>
-
+                    {% include "includes/savebutton.html" %}
                     <!-- Vehicle image -->
                     <a href="{% url 'vehicles:detail' vehicle.pk %}">
                         {% with first_image=vehicle.images.first %}
@@ -490,5 +483,8 @@
             }
         });
     </script>
+
+    <script src="{% static 'includes/js/savebutton.js' %}"></script>
+
 </body>
 </html>
