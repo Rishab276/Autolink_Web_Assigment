@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 from Vehicles.models import Vehicle, VehicleImage
+from Profile.models import SavedVehicle
 
 
 # =========================
@@ -57,7 +58,6 @@ def register_view(request):
             return redirect('users:sellerRenterdetails_with_role', role=role)
 
     return render(request, 'users/register.html')
-
 
 def registerdetails_view(request):
     """Handles Buyer registration"""
@@ -216,12 +216,11 @@ def uploadvehicles_view(request):
         price = request.POST.get('price')
         gps_coordinates = request.POST.get('gps_coordinates')
         description = request.POST.get('description')
-        contact = request.POST.get('contact')  # optional field from form
+        contact = request.POST.get('contact')  
 
         # Determine if it's for rent or sale
         is_rental = True if profile.user_type == "renter" else False
 
-        
         vehicle = Vehicle.objects.create(
             uploader=request.user,
             make=make,
@@ -232,6 +231,7 @@ def uploadvehicles_view(request):
             fuel_type=fuel_type.capitalize() if fuel_type else 'Other',
             type_of_vehicle=vehicle_type.capitalize() if vehicle_type else 'Car',
             price=price,
+            contact=contact,
             gps_coor=gps_coordinates,
             is_rental=is_rental,
             desc=description,
