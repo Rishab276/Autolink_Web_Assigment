@@ -31,6 +31,7 @@ class Vehicle(models.Model):
     images = models.ImageField(upload_to='vehicles/', blank=True, null=True)
     transmission = models.CharField(max_length=20)
     fuel_type = models.CharField(max_length=20)
+    contact = models.CharField(max_length=20,null=True,blank=True)
     gps_coordinates = models.CharField(max_length=50)
 
     def __str__(self):
