@@ -10,6 +10,7 @@ def Main(request):
 def index(request):
     recent_vehicles = (
         Vehicle.objects
+        .filter(is_sold = False, is_rented = False)
         .prefetch_related('images')
         .order_by('-id')[:4]
     )
