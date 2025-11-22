@@ -1,3 +1,70 @@
+/*By Bukreedan Humaa Id:2412290*/
+
+/* Global reset to avoid browser inconsistencies */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Top navigation bar */
+nav {
+    width: 100%;
+    background: rgba(0, 0, 0);
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo section with icon and text */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-container img {
+    height: 40px;
+    width: auto;
+}
+
+.logo-container span {
+    font-size: 22px;
+    font-weight: bold;
+    color: orange;
+}
+
+/* Navigation menu list */
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    gap: 20px;
+}
+
+nav li {
+    margin: 0;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+/* Main page header with gradient background */
 header {
     background: linear-gradient(135deg, #1e3c72, #3498db);
     color: white;
@@ -18,16 +85,15 @@ header p {
     margin: 0 auto;
 }
 
+/* Introduction box below header */
 .intro-section {
     background: white;
     padding: 40px;
     border-radius: 10px;
-    margin: 30px 0;
+    margin: 30px auto;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     text-align: center;
     max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .intro-section h2 {
@@ -41,6 +107,7 @@ header p {
     color: #555;
 }
 
+/* Featured car display - horizontal layout */
 .featured-recommendation {
     display: flex;
     align-items: center;
@@ -71,12 +138,14 @@ header p {
     font-size: 1.6rem;
 }
 
+/* Price styling in red */
 .currency {
     font-weight: bold;
     color: #e74c3c;
     font-size: 1.3rem;
 }
 
+/* Section headings with underline effect */
 .section-title {
     text-align: center;
     margin: 50px 0 30px;
@@ -86,6 +155,7 @@ header p {
     padding-bottom: 15px;
 }
 
+/* Blue line under section titles */
 .section-title:after {
     content: '';
     position: absolute;
@@ -98,6 +168,7 @@ header p {
     border-radius: 2px;
 }
 
+/* Grid layout for car recommendation cards */
 .recommendations-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -106,6 +177,7 @@ header p {
     max-width: 1100px;
 }
 
+/* Individual recommendation card */
 .recommendation-card {
     background: white;
     border-radius: 10px;
@@ -116,6 +188,7 @@ header p {
     margin: 0 auto;
 }
 
+/* Lift effect when hovering over cards */
 .recommendation-card:hover {
     transform: translateY(-10px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
@@ -127,6 +200,7 @@ header p {
     object-fit: cover;
 }
 
+/* Card text content area */
 .card-content {
     padding: 20px;
 }
@@ -142,6 +216,7 @@ header p {
     margin-bottom: 15px;
 }
 
+/* Badge labels like "Popular" or "New" */
 .badge {
     position: absolute;
     top: 15px;
@@ -154,6 +229,7 @@ header p {
     font-size: 0.9rem;
 }
 
+/* Budget-friendly options grid */
 .budget-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -162,6 +238,7 @@ header p {
     max-width: 1100px;
 }
 
+/* Budget card styling */
 .budget-card {
     background: white;
     border-radius: 10px;
@@ -178,6 +255,7 @@ header p {
     object-fit: cover;
 }
 
+/* Content inside budget cards */
 .budget-content {
     padding: 20px;
     flex: 1;
@@ -197,11 +275,12 @@ header p {
     flex: 1;
 }
 
+/* Blue banner showcasing features */
 .why-choose-us {
     background: #3498db;
     color: white;
     padding: 50px 0;
-    margin: 50px 0 0;
+    margin-top: 50px;
 }
 
 .why-choose-us h2 {
@@ -210,6 +289,7 @@ header p {
     font-size: 2.2rem;
 }
 
+/* Features displayed in grid */
 .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -234,11 +314,12 @@ header p {
     font-size: 1.4rem;
 }
 
-/* Centered Footer Styles for recommendations */
+/* Dark footer at bottom of page */
 .recommendations-footer {
     background: #0d1b3a;
     color: white;
     padding: 40px 0 20px;
+    margin: 0;
 }
 
 .footer-content {
@@ -249,6 +330,7 @@ header p {
     flex-wrap: wrap;
 }
 
+/* Footer column sections */
 .footer-column {
     text-align: center;
     max-width: 300px;
@@ -278,6 +360,7 @@ header p {
     color: #ffd700;
 }
 
+/* Copyright notice at very bottom */
 .copyright {
     text-align: center;
     padding-top: 20px;
@@ -289,25 +372,15 @@ header p {
     margin-right: auto;
 }
 
+/* Mobile adjustments for smaller screens */
 @media (max-width: 768px) {
-    .featured-recommendation {
-        flex-direction: column;
-        text-align: center;
+    nav {
+        padding: 15px 20px;
     }
     
-    .featured-recommendation img {
-        width: 100%;
-        max-width: 400px;
-    }
-    
-    .recommendations-grid, .budget-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .footer-content {
-        flex-direction: column;
-        align-items: center;
-        gap: 30px;
+    nav ul {
+        gap: 15px;
+        font-size: 14px;
     }
     
     header h1 {
@@ -318,51 +391,29 @@ header p {
         padding: 30px 20px;
         margin: 20px 10px;
     }
+    
+    /* Stack featured car vertically on mobile */
+    .featured-recommendation {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .featured-recommendation img {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    /* Single column layout for cards */
+    .recommendations-grid,
+    .budget-grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+    
+    /* Stack footer columns vertically */
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
 }
-
-
-        nav {
-            width: 100%;
-            background: rgba(0, 0, 0);
-            padding: 20px 50px;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-container img {
-            height: 40px;
-            width: auto;
-        }
-
-        .logo-container span {
-            font-size: 22px;
-            font-weight: bold;
-            color: orange;
-        }
-
-        ul {
-            list-style: none;
-            display: flex;
-            margin: 0;
-            padding: 0;
-            gap: 20px;
-        }
-
-        li { margin: 0; }
-
-        a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        a:hover { text-decoration: underline; }
-        

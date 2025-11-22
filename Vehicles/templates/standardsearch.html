@@ -18,6 +18,7 @@
         .main-layout {
             display: flex;
             height: 100vh;
+            padding-bottom: 60px;
             overflow: hidden;
         }
 
@@ -28,13 +29,19 @@
         }
 
         #map {
+            z-index: 3;
+            position: absolute;
+            height: 97%;
             width: 40%;
-            height: 100vh;
-            position: sticky;
-            top: 0;
+            padding: 0px;
+            border-width: 0px;
+            margin: 0px;
+            right: 0px;
+            top: 180px;
+            touch-action: pan-x pan-y;
         }
 
-        /* Marker style */
+
         .price-marker {
             background: white;
             color: #000;
@@ -55,7 +62,7 @@
 
         .listings-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
         }
 
@@ -97,12 +104,6 @@
             margin-bottom: 8px;
         }
 
-        .listing-price {
-            font-weight: bold;
-            color: #e74c3c;
-            font-size: 1.1rem;
-        }
-
         .fav-btn {
             position: absolute;
             top: 8px;
@@ -131,10 +132,10 @@
         .header {
             display: flex;
             justify-content: space-between;
-            padding: 12px 20px;
-            background: #f8f9fa;
+            padding: 20px 300px 5px 300px;
+            /* top | right | bottom | left */
             align-items: center;
-            border-bottom: 1px solid #dee2e6;
+            width: 30px
         }
 
         .search-bar {
@@ -142,13 +143,6 @@
             gap: 8px;
         }
 
-        .search-bar input {
-            padding: 8px 12px;
-            width: 200px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
 
         .search-bar button {
             padding: 8px 12px;
@@ -163,25 +157,14 @@
         .filter-container {
             display: none;
             position: absolute;
-            top: 60px;
-            right: 20px;
+            top: 120px;
+            left: 500px;
             width: 300px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             padding: 16px;
             z-index: 1000;
-        }
-
-        .filter-btn {
-            padding: 8px 12px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            text-decoration: none;
-            cursor: pointer;
-            font-size: 14px;
         }
 
         .close-filter {
@@ -234,42 +217,11 @@
             background: #6c757d;
             color: white;
         }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .pagination a,
-        .pagination span {
-            padding: 6px 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            text-decoration: none;
-            color: #007bff;
-            font-size: 14px;
-        }
-
-        .pagination .current {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        .pagination .disabled {
-            color: #aaa;
-            border-color: #ccc;
-            pointer-events: none;
-        }
     </style>
 </head>
 
 <body>
     {% include "nav.html" %}
-
     <div class="header">
         <div class="search-bar">
             <input type="text" id="vehicle-search" placeholder="Search for vehicles...">
@@ -293,6 +245,14 @@
         <div class="filter-group">
             <label for="model">Model</label>
             <input type="text" id="model" placeholder="Any model">
+        </div>
+        <div class="filter-group">
+            <label for="rental-type">Type</label>
+            <select id="rental-type">
+                <option value="">Any</option>
+                <option value="renting">For Renting</option>
+                <option value="selling">For Selling</option>
+            </select>
         </div>
         <div class="filter-group">
             <label for="year-from">Year From</label>
@@ -322,114 +282,109 @@
     <div class="main-layout">
         <div class="container">
             <div class="listings-grid">
-                {% for vehicle in page_obj %}
-                <div class="listing-card" 
-                     data-id="{{ vehicle.id }}" 
-                     data-coords="{{ vehicle.gps_coor|default:'-20.1609,57.5012' }}" 
-                     data-price="{{ vehicle.price }}" 
-                     data-make="{{ vehicle.make|lower }}" 
-                     data-model="{{ vehicle.model|lower }}" 
-                     data-year="{{ vehicle.year }}" 
-                     data-fuel="{{ vehicle.fuel_type|lower }}">
-
+                {% for vehicle in all_vehicles %}
+                <div class="listing-card" data-id="{{ vehicle.id }}"
+                    data-coords="{{ vehicle.gps_coor|default:'-20.1609,57.5012' }}" data-price="{{ vehicle.price }}"
+                    data-make="{{ vehicle.make|lower }}" data-model="{{ vehicle.model|lower }}"
+                    data-year="{{ vehicle.year }}" data-fuel="{{ vehicle.fuel_type|lower }}"
+                    data-is-rental="{{ vehicle.is_rental }}">
                     {% include "includes/savebutton.html" %}
-                    <!-- Vehicle image -->
                     <a href="{% url 'vehicles:detail' vehicle.pk %}">
                         {% with first_image=vehicle.images.first %}
-                            {% if first_image %}
-                                <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
-                            {% else %}
-                                <img src="{% static 'default_vehicle.png' %}" alt="No Image Available">
-                            {% endif %}
+                        {% if first_image %}
+                        <img src="{{ first_image.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                        {% else %}
+                        <img src="{% static 'default_vehicle.png' %}" alt="No Image Available">
+                        {% endif %}
                         {% endwith %}
                     </a>
-
                     <div class="listing-info">
                         <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
                         <div class="listing-details">{{ vehicle.type_of_vehicle }} • Year: {{ vehicle.year }}</div>
-                        <div class="listing-price">Rs {{ vehicle.price }}</div>
+                        <div class="listing-details">
+                            {% if vehicle.is_rental %}
+                            For Renting
+                            {% else %}
+                            For Selling
+                            {% endif %}
+                        </div>
+                        <div class="listing-price" style="color: {% if vehicle.is_rental %}blue{% else %}red{% endif %};">Rs {{ vehicle.price }}</div>
                     </div>
                 </div>
                 {% endfor %}
-            </div>
-
-            <div class="pagination">
-                {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}">« Prev</a>
-                {% else %}
-                <span class="disabled">« Prev</span>
-                {% endif %}
-
-                {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                <span class="current">{{ num }}</span>
-                {% else %}
-                <a href="?page={{ num }}">{{ num }}</a>
-                {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}">Next »</a>
-                {% else %}
-                <span class="disabled">Next »</span>
-                {% endif %}
             </div>
         </div>
         <div id="map"></div>
     </div>
 
     {% include "footer.html" %}
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Format price in k/M with 2 decimals
         function formatPrice(value) {
             if (value >= 1000000) return (value / 1000000).toFixed(2) + 'M';
             if (value >= 1000) return (value / 1000).toFixed(2) + 'k';
             return value.toString();
         }
 
-        // Initialize map
         const map = L.map('map').setView([-20.1609, 57.5012], 10);
-        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { 
-            attribution: '© OpenStreetMap contributors', 
-            maxZoom: 19 
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
         }).addTo(map);
 
         const markers = [];
-        
-        // Initialize markers for each vehicle
-        document.querySelectorAll('.listing-card').forEach(card => {
-            const coords = card.dataset.coords.split(',').map(Number);
+        const cards = document.querySelectorAll('.listing-card');
+
+        // Format listing prices and create map markers
+        cards.forEach(card => {
+            const priceEl = card.querySelector('.listing-price');
             const rawPrice = parseInt(card.dataset.price);
+            priceEl.textContent = 'Rs ' + formatPrice(rawPrice);
+
+            const coords = card.dataset.coords.split(',').map(Number);
             const vehicleId = card.dataset.id;
 
-            // Create marker
+            const isRental = card.dataset.isRental === "True" || card.dataset.isRental === "true";
+            const markerColor = isRental ? 'blue' : 'red';
+
+            // Create a divIcon with a fixed width and auto-adjust text
             const marker = L.marker(coords, {
                 icon: L.divIcon({
                     className: 'price-marker',
-                    html: 'Rs ' + formatPrice(rawPrice),
-                    iconSize: [null, null]
+                    html: `<div class="marker-text" style="color: ${markerColor};font-weight: bold;">${formatPrice(rawPrice)}</div>`,
+                    iconSize: [60, 30], // width x height in pixels
+                    iconAnchor: [30, 30] // anchor in middle bottom
                 })
             }).addTo(map);
 
-            // Redirect to detail page when marker is clicked
-            marker.on('click', () => {
-                window.location.href = '/vehicles/detail/' + vehicleId;
-            });
-
-            markers.push({ 
-                card: card, 
-                marker: marker,
-                make: card.dataset.make,
-                model: card.dataset.model,
-                year: parseInt(card.dataset.year),
-                price: rawPrice,
-                fuel: card.dataset.fuel
-            });
+            marker.on('click', () => { window.location.href = '/vehicles/detail/' + vehicleId; });
+            markers.push({ card, marker, coords });
         });
 
-        // Filter function
+        // Distance between two points
+        function distance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function updateCardsByMapCenter() {
+            const center = map.getCenter();
+            const visibleMarkers = markers.filter(({ card }) => card.style.display !== 'none');
+            visibleMarkers.sort((a, b) => {
+                const d1 = distance(center.lat, center.lng, a.coords[0], a.coords[1]);
+                const d2 = distance(center.lat, center.lng, b.coords[0], b.coords[1]);
+                return d1 - d2;
+            });
+            const grid = document.querySelector('.listings-grid');
+            visibleMarkers.forEach(({ card }) => grid.appendChild(card));
+        }
+
+        map.on('moveend', updateCardsByMapCenter);
+        map.on('zoomend', updateCardsByMapCenter);
+
         function updateVisibility() {
             const searchValue = document.getElementById('vehicle-search').value.toLowerCase();
             const makeFilter = document.getElementById('make').value.toLowerCase();
@@ -438,53 +393,49 @@
             const yearTo = parseInt(document.getElementById('year-to').value) || Infinity;
             const maxPrice = parseInt(document.getElementById('max-price').value) || Infinity;
             const fuel = document.getElementById('fuel-type').value.toLowerCase();
+            const rentalType = document.getElementById('rental-type').value;
 
-            markers.forEach(({ card, marker, make, model, year, price, fuelType }) => {
-                const matchesSearch = make.includes(searchValue) || model.includes(searchValue);
-                const matchesMake = !makeFilter || make === makeFilter;
-                const matchesModel = !modelFilter || model.includes(modelFilter);
-                const matchesYear = year >= yearFrom && year <= yearTo;
-                const matchesPrice = price <= maxPrice;
-                const matchesFuel = !fuel || fuelType === fuel;
+            markers.forEach(({ card, marker }) => {
+                const make = card.dataset.make;
+                const model = card.dataset.model;
+                const year = parseInt(card.dataset.year);
+                const price = parseInt(card.dataset.price);
+                const fuelType = card.dataset.fuel;
+                const isRental = card.dataset.isRental === "True" || card.dataset.isRental === "true";
 
-                const matches = matchesSearch && matchesMake && matchesModel && matchesYear && matchesPrice && matchesFuel;
+                const matches = (make.includes(searchValue) || model.includes(searchValue))
+                    && (!makeFilter || make === makeFilter)
+                    && (!modelFilter || model.includes(modelFilter))
+                    && year >= yearFrom && year <= yearTo
+                    && price <= maxPrice
+                    && (!fuel || fuelType === fuel)
+                    && (!rentalType
+                        || (rentalType === 'renting' && isRental)
+                        || (rentalType === 'selling' && !isRental));
 
                 card.style.display = matches ? 'block' : 'none';
-                if (matches) {
-                    marker.addTo(map);
-                } else {
-                    map.removeLayer(marker);
-                }
+                if (matches) marker.addTo(map); else map.removeLayer(marker);
             });
+
+            updateCardsByMapCenter();
         }
 
-        // Event listeners
         document.getElementById('vehicle-search').addEventListener('input', updateVisibility);
         document.getElementById('apply-filter').addEventListener('click', updateVisibility);
         document.getElementById('clear-filter').addEventListener('click', () => {
-            document.querySelectorAll('#filter-panel select, #filter-panel input').forEach(el => el.value = '');
+            document.querySelectorAll('#filter-panel select,#filter-panel input').forEach(el => el.value = '');
             updateVisibility();
         });
-        document.getElementById('toggle-filter').addEventListener('click', () => { 
-            document.getElementById('filter-panel').style.display = 'block'; 
-        });
-        document.getElementById('close-filter').addEventListener('click', () => { 
-            document.getElementById('filter-panel').style.display = 'none'; 
-        });
-
-        // Close filter when clicking outside
+        document.getElementById('toggle-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'block'; });
+        document.getElementById('close-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'none'; });
         document.addEventListener('click', (e) => {
             const filterPanel = document.getElementById('filter-panel');
             const filterBtn = document.getElementById('toggle-filter');
-            if (filterPanel.style.display === 'block' && 
-                !filterPanel.contains(e.target) && 
-                !filterBtn.contains(e.target)) {
+            if (filterPanel.style.display === 'block' && !filterPanel.contains(e.target) && !filterBtn.contains(e.target))
                 filterPanel.style.display = 'none';
-            }
         });
     </script>
-
     <script src="{% static 'includes/js/savebutton.js' %}"></script>
-
 </body>
+
 </html>
