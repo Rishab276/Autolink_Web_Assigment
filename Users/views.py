@@ -1,3 +1,4 @@
+# bhewa vigneshwar 2411725
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -5,11 +6,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 from Vehicles.models import Vehicle, VehicleImage
+from Profile.models import SavedVehicle
 
 
-# =========================
-# LOGIN / LOGOUT
-# =========================
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('main:home')
@@ -34,15 +33,14 @@ def login_view(request):
     return render(request, 'users/login.html')
 
 
+
 def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out.")
     return redirect('users:login')
 
 
-# =========================
-# REGISTRATION FLOW
-# =========================
+
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('main:home')
@@ -98,6 +96,7 @@ def registerdetails_view(request):
     return render(request, 'users/registerdetails.html')
 
 
+
 def sellerRenterdetails_view(request, role=None):
     """Handles Seller and Renter registration"""
     print(f"DEBUG: Role parameter received: {role}")
@@ -112,7 +111,7 @@ def sellerRenterdetails_view(request, role=None):
         contact_number = request.POST.get('contact_number')
         driver_license = request.POST.get('driverliscence')
         
-        # Get role from POST data or URL parameter
+      
         submitted_role = request.POST.get('user_type')
         final_role = submitted_role if submitted_role else role
 
@@ -140,7 +139,7 @@ def sellerRenterdetails_view(request, role=None):
         )
         UserProfile.objects.create(
             user=user,
-            user_type=final_role,  # Use final_role instead of role
+            user_type=final_role,  
             address=address,
             contact_number=contact_number,
             driver_license=driver_license
@@ -148,7 +147,6 @@ def sellerRenterdetails_view(request, role=None):
 
         messages.success(request, f"{final_role.capitalize()} account created successfully!")
         return redirect('users:login')
-
     return render(request, 'users/sellerRenterdetails.html', {'selected_role': role})
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
@@ -161,7 +159,6 @@ def sellerRenterdetails_view(request, role=None):
         driver_license = request.POST.get('driverliscence')
         submitted_role = request.POST.get('user_type')
         final_role = submitted_role if submitted_role else role
-
         print("DEBUG ROLE VALUE:", role)
 
         if not role:
@@ -197,15 +194,12 @@ def sellerRenterdetails_view(request, role=None):
     return render(request, 'users/sellerRenterdetails.html')
 
 
-# =========================
-# VEHICLE UPLOAD
-# =========================
 @login_required
 def uploadvehicles_view(request):
     profile = UserProfile.objects.get(user=request.user)
 
     if request.method == 'POST':
-        # Collect form data
+     
         make = request.POST.get('make')
         model_name = request.POST.get('model')
         year = request.POST.get('year')
@@ -216,12 +210,11 @@ def uploadvehicles_view(request):
         price = request.POST.get('price')
         gps_coordinates = request.POST.get('gps_coordinates')
         description = request.POST.get('description')
-        contact = request.POST.get('contact')  # optional field from form
+        contact = request.POST.get('contact')  
 
         # Determine if it's for rent or sale
-        is_rental = True if vehicle_type and vehicle_type.lower() == 'rent' else False
+        is_rental = True if profile.user_type == "renter" else False
 
-        # Create Vehicle (Salwan’s model)
         vehicle = Vehicle.objects.create(
             uploader=request.user,
             make=make,
@@ -232,12 +225,13 @@ def uploadvehicles_view(request):
             fuel_type=fuel_type.capitalize() if fuel_type else 'Other',
             type_of_vehicle=vehicle_type.capitalize() if vehicle_type else 'Car',
             price=price,
+            contact=contact,
             gps_coor=gps_coordinates,
             is_rental=is_rental,
             desc=description,
         )
 
-        # Handle multiple images
+       
         images = request.FILES.getlist('images')
         for img in images:
             VehicleImage.objects.create(vehicle=vehicle, image=img)
@@ -250,10 +244,6 @@ def uploadvehicles_view(request):
     })
 
 
-
-# =========================
-# PROFILE VIEW (Unified)
-# =========================
 @login_required
 def profile_view(request):
     """Display unified profile for all roles"""
