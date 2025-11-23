@@ -11,6 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.urls import reverse_lazy
 
+# Display the user's profile page
 @login_required
 def profile_view(request):
     user_profile = get_object_or_404(UserProfile, user=request.user)
@@ -41,11 +42,9 @@ def profile_view(request):
     }
     return render(request, 'profile.html', context)
 
+# Seller/Renter removes an uploaded vehicle
 @login_required
 def remove_uploaded_vehicle(request, vehicle_id):
-    """
-    Allow sellers/renters to remove a vehicle they uploaded.
-    """
     try:
         vehicle = Vehicle.objects.get(id=vehicle_id, uploader=request.user)
         vehicle.delete()
@@ -55,40 +54,38 @@ def remove_uploaded_vehicle(request, vehicle_id):
     
     return redirect('profile:profile')
 
-
+# Buyer saves a vehicle
 @login_required
 def save_vehicle(request, vehicle_id):
-    """
-    Save a vehicle to the user's saved list (buyer only).
-    """
     vehicle = get_object_or_404(Vehicle, id=vehicle_id)
     SavedVehicle.objects.get_or_create(user=request.user, vehicle=vehicle)
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
-
+# Buyer unsaves a vehicle
 @login_required
 def remove_saved_vehicle(request, vehicle_id):
-    """
-    Remove a vehicle from the user's saved list (buyer only).
-    """
     saved = get_object_or_404(SavedVehicle, user=request.user, vehicle__id=vehicle_id)
     saved.delete()
     return redirect('profile:profile')
 
+# Toggle saving/unsaving a vehicle
 @login_required
 def toggle_save(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id)
     
     try:
+        # If vehicle is already saved, unsave it
         saved_vehicle = SavedVehicle.objects.get(user=request.user, vehicle=vehicle)
         saved_vehicle.delete()
         print(f"DEBUG: Vehicle {vehicle_id} UNSAVED")
     except SavedVehicle.DoesNotExist:
-        SavedVehicle.objects.create(user=request.user, vehicle=vehicle)  # Save
+        # Otherwise, save it
+        SavedVehicle.objects.create(user=request.user, vehicle=vehicle)
         print(f"DEBUG: Vehicle {vehicle_id} SAVED")
     
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
+# Seller marks a vehicle as sold
 @login_required
 def mark_as_sold(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
@@ -97,6 +94,7 @@ def mark_as_sold(request, vehicle_id):
     messages.success(request, "Vehicle marked as sold.")
     return redirect('profile:profile')
 
+# Seller marks a vehicle as available again
 @login_required
 def unmark_as_sold(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
@@ -105,6 +103,7 @@ def unmark_as_sold(request, vehicle_id):
     messages.success(request, "Vehicle is now available again.")
     return redirect('profile:profile')
 
+# Renter marks a vehicle as rented
 @login_required
 def mark_as_rented(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
@@ -113,6 +112,7 @@ def mark_as_rented(request, vehicle_id):
     messages.success(request, "Vehicle marked as rented.")
     return redirect('profile:profile')
 
+# Renter marks a vehicle as available again
 @login_required
 def unmark_as_rented(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
@@ -121,6 +121,7 @@ def unmark_as_rented(request, vehicle_id):
     messages.success(request, "Vehicle is now available again.")
     return redirect('profile:profile')
 
+# Custom simple password change form
 class SimplePasswordChangeForm(forms.Form):
     old_password = forms.CharField(
         label="Current Password",
@@ -158,6 +159,7 @@ class SimplePasswordChangeForm(forms.Form):
         self.user.save()
         return self.user
 
+# View to handle password change using the custom form
 class CustomPasswordChangeView(LoginRequiredMixin, FormView):
     template_name = 'passwordchangeform.html'
     form_class = SimplePasswordChangeForm

@@ -29,6 +29,7 @@ body {
     text-align: center; 
 }
 
+/* Vehicle Cards */
 .vehicle-card { 
     transition: transform 0.3s ease, box-shadow 0.3s ease; 
     border: 1px solid #dee2e6; 
@@ -47,6 +48,7 @@ body {
     object-fit: cover; 
 }
 
+/* Empty State */
 .empty-msg { 
     display: flex; 
     justify-content: center; 
@@ -82,6 +84,7 @@ body {
     display: inline-block;
 }
 
+/* Sold Vehicle Cards */
 .sold-card {
     position: relative;
 }
@@ -127,6 +130,7 @@ body {
     filter: none;
 }
 
+/* Rented Vehicle Cards */
 .rented-card {
     position: relative;
 }
