@@ -1,6 +1,6 @@
 <!--MAIGHUN-2412258-->
 {% load static %}
-{% load custom_filters %}
+{% load custom_filters %} <!-- For masking of email filter -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,8 +8,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Autolink</title>
+
+    <!--Bootstrap CSS-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!--Bootstrap Icons CSS-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!--Custom CSS Files-->
     <link rel="stylesheet" href="{% static 'profile.css' %}">
     <link rel="stylesheet" href="{% static 'includes/css/savebutton.css' %}">
 </head>
@@ -21,7 +27,9 @@
         <!-- User Info regardless of user type-->
         <div class="profile-header">
             <h2>{{ request.user.get_full_name }}</h2>
-            <p>Email address: {{ request.user.email|mask_email }}</p>   <!--Imported from templatetags-->
+
+            <!--Imported from templatetags - Masked emails-->
+            <p>Email address: {{ request.user.email|mask_email }}</p>   
             <p class="text-muted">
                 Role: <strong>{{ request.user.userprofile.get_user_type_display }}</strong>
             </p>
@@ -31,11 +39,15 @@
             <p class="text-muted">
                 Address: <strong>{{ request.user.userprofile.address }}</strong>
             </p>
+
+            <!--Driver License if required for sellers/renters-->
             {% if request.user.userprofile.driver_license %}
                 <p class="text-muted">
                     Driver License: <strong>{{ request.user.userprofile.driver_license }}</strong>
                 </p>
             {% endif %}
+
+            <!-- Profile Action Buttons -->
             <a href="{% url 'profile:passwordchange' %}" class="btn btn-outline-primary btn-sm mt-2">
                 <i class="bi bi-key"></i> Change Password
             </a>
@@ -52,6 +64,8 @@
                 <div class="row justify-content-center">
                     {% for vehicle in uploaded_vehicles %}
                         <div class="col-md-6 col-lg-4 mb-4">
+
+                        <!--Vehicle Card-->
                         <div class="card vehicle-card h-100 position-relative 
                             {% if vehicle.is_sold %}sold-card
                             {% elif vehicle.is_rented %}rented-card
@@ -64,7 +78,7 @@
                                     🗑️ Delete
                                 </a>
 
-                                <!-- Details Button -->
+                                <!-- Details Button disabled if vehicle is sold or rented -->
                                 {% if vehicle.is_sold or vehicle.is_rented %}
                                     <button class="btn btn-secondary btn-sm position-absolute top-0 end-0 m-2" disabled>
                                         📃 Details
@@ -76,7 +90,7 @@
                                     </a>
                                 {% endif %}
 
-                                <!-- MARK / UNMARK SOLD / RENTED -->
+                                <!-- Mark As Sold/Rented - Mark As Available - All catered in a nested IF statement -->
                                 {% if vehicle.uploader.userprofile.user_type == 'renter' %}
                                     {% if vehicle.is_rented %}
                                         <a href="{% url 'profile:unmark_as_rented' vehicle.id %}"
@@ -116,8 +130,9 @@
                                     </div>
                                 {% endif %}
 
+                                <!--Vehicle Info Summary-->
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</h5>
+                                    <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} - {{ vehicle.year }}</h5>
                                     <p class="card-text">
                                         <strong>Price:</strong> Rs {{ vehicle.price }}<br>
                                         <strong>Mileage:</strong> {{ vehicle.mileage }} km<br>
@@ -130,6 +145,8 @@
                     {% endfor %}
                 </div>
             {% else %}
+                
+                <!--No uploaded vehicles scenario-->
                 <div class="text-center mt-4">
                     <p>No uploaded vehicles yet.</p>
                     <div class="empty-exclamation mb-2">
@@ -177,8 +194,9 @@
                                 </div>
                             {% endif %}
 
+                            <!--Vehicle Info Summary-->
                             <div class="card-body">
-                                <h5 class="card-title">{{ saved_vehicle.vehicle.make }} {{ saved_vehicle.vehicle.model }} ({{ saved_vehicle.vehicle.year }})</h5>
+                                <h5 class="card-title">{{ saved_vehicle.vehicle.make }} {{ saved_vehicle.vehicle.model }} -  {{ saved_vehicle.vehicle.year }}</h5>
                                 <p class="card-text">
                                     <strong>Price:</strong> Rs {{ saved_vehicle.vehicle.price }}<br>
                                     <strong>Mileage:</strong> {{ saved_vehicle.vehicle.mileage }} km<br>
@@ -190,6 +208,8 @@
                     {% endfor %}
                 </div>
             {% else %}
+
+                <!--No saved vehicles scenario-->
                 <div class="text-center mt-4">
                     <div class="empty-heart mb-2">
                         <i class="fa-regular fa-heart text-danger"></i>
@@ -208,6 +228,7 @@
         {% include "footer.html" %}
     </footer>
 
+    <!--Bootstrap JS-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
 </body>
