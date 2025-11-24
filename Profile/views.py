@@ -5,11 +5,11 @@ from Vehicles.models import Vehicle
 from Users.models import UserProfile
 from .models import SavedVehicle
 from django.contrib import messages
-from django import forms
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import FormView
+from django.views.generic import FormView
 from django.urls import reverse_lazy
+from .forms import SimplePasswordChangeForm
 
 # Display the user's profile page
 @login_required
@@ -121,45 +121,7 @@ def unmark_as_rented(request, vehicle_id):
     messages.success(request, "Vehicle is now available again.")
     return redirect('profile:profile')
 
-# Custom simple password change form
-class SimplePasswordChangeForm(forms.Form):
-    old_password = forms.CharField(
-        label="Current Password",
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
-    )
-    new_password1 = forms.CharField(
-        label="New Password",
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
-    )
-    new_password2 = forms.CharField(
-        label="Confirm New Password",
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
-    )
-
-    def __init__(self, user, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user = user
-
-    def clean_old_password(self):
-        old = self.cleaned_data.get("old_password")
-        if not self.user.check_password(old):
-            raise forms.ValidationError("Incorrect current password")
-        return old
-
-    def clean(self):
-        cleaned_data = super().clean()
-        p1 = cleaned_data.get("new_password1")
-        p2 = cleaned_data.get("new_password2")
-        if p1 != p2:
-            raise forms.ValidationError("Passwords do not match!")
-        return cleaned_data
-
-    def save(self):
-        self.user.set_password(self.cleaned_data['new_password1'])
-        self.user.save()
-        return self.user
-
-# View to handle password change using the custom form
+# Password Change View
 class CustomPasswordChangeView(LoginRequiredMixin, FormView):
     template_name = 'passwordchangeform.html'
     form_class = SimplePasswordChangeForm
@@ -167,7 +129,7 @@ class CustomPasswordChangeView(LoginRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['user'] = self.request.user  # Pass the user to the form
         return kwargs
 
     def form_valid(self, form):
