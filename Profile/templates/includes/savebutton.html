@@ -1,7 +1,8 @@
 <!--MAIGHUN-2412258-->
-<!-- Save button with role-based logic -->
+<!-- Save button with role-based logic included in standardsearch.html-->
+
 {% if not request.user.is_authenticated %}
-    <!-- Visitor - not logged in -->
+    <!-- Visitor not logged in cannot save -->
     <a href="{% url 'users:login' %}" class="fav-btn" 
        data-user-type="visitor"
        title="Login to save vehicles">
@@ -10,7 +11,7 @@
 {% else %}
     <!-- Logged in users -->
     {% if request.user.userprofile.user_type == 'buyer' %}
-        <!-- Buyer - can save -->
+        <!-- Buyer can save -->
         <a href="{% url 'profile:toggle_save' vehicle.id %}" class="fav-btn"
            data-user-type="buyer">
             {% if vehicle.id in saved_vehicle_ids %}
@@ -20,7 +21,7 @@
             {% endif %}
         </a>
     {% elif request.user.userprofile.user_type == 'seller' %}
-        <!-- Seller - cannot save -->
+        <!-- Seller cannot save -->
         <span class="fav-btn" 
               style="cursor: default;" 
               data-user-type="seller"
@@ -28,7 +29,7 @@
             🤍
         </span>
     {% elif request.user.userprofile.user_type == 'renter' %}
-        <!-- Renter - cannot save -->
+        <!-- Renter cannot save -->
         <span class="fav-btn" 
               style="cursor: default;" 
               data-user-type="renter"
