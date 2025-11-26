@@ -1,4 +1,5 @@
-{% load static %}
+<!-- Load static files for CSS, images-->
+{% load static %} 
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,222 +7,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Vehicle Marketplace{% endblock %}</title>
+
+    <!-- External CSS files -->
     <link rel="stylesheet" href="{% static 'includes/css/savebutton.css' %}">
     <link rel="stylesheet" href="{% static 'standardsearch.css' %}">
+
+    <!-- Leaflet CSS for interactive map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        .main-layout {
-            display: flex;
-            height: 100vh;
-            padding-bottom: 60px;
-            overflow: hidden;
-        }
-
-        .container {
-            width: 60%;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        #map {
-            z-index: 3;
-            position: absolute;
-            height: 97%;
-            width: 40%;
-            padding: 0px;
-            border-width: 0px;
-            margin: 0px;
-            right: 0px;
-            top: 180px;
-            touch-action: pan-x pan-y;
-        }
-
-
-        .price-marker {
-            background: white;
-            color: #000;
-            border-radius: 20px;
-            padding: 6px 12px;
-            border: 1px solid #ddd;
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            white-space: nowrap;
-        }
-
-        .price-marker:hover {
-            background: #ff5a5f;
-            color: white;
-        }
-
-        .listings-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .listing-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 12px;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .listing-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .listing-card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .listing-info {
-            margin-top: 10px;
-        }
-
-        .listing-title {
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 5px;
-            color: #2c3e50;
-        }
-
-        .listing-details {
-            font-size: 0.85rem;
-            color: #555;
-            margin-bottom: 8px;
-        }
-
-        .fav-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            text-decoration: none;
-            z-index: 10;
-            transition: background-color 0.3s, transform 0.3s;
-        }
-
-        .fav-btn:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: scale(1.1);
-            text-decoration: none !important;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            padding: 20px 300px 5px 300px;
-            /* top | right | bottom | left */
-            align-items: center;
-            width: 30px
-        }
-
-        .search-bar {
-            display: flex;
-            gap: 8px;
-        }
-
-
-        .search-bar button {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            background: #007bff;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .filter-container {
-            display: none;
-            position: absolute;
-            top: 120px;
-            left: 500px;
-            width: 300px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            padding: 16px;
-            z-index: 1000;
-        }
-
-        .close-filter {
-            display: block;
-            text-align: right;
-            cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #6c757d;
-        }
-
-        .filter-group {
-            margin-bottom: 12px;
-        }
-
-        .filter-group label {
-            font-size: 0.85rem;
-            display: block;
-            margin-bottom: 4px;
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .filter-group input,
-        .filter-group select {
-            width: 100%;
-            padding: 6px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-
-        .apply-btn,
-        .clear-btn {
-            width: 48%;
-            padding: 8px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 8px;
-            font-size: 14px;
-        }
-
-        .apply-btn {
-            background: #007bff;
-            color: white;
-        }
-
-        .clear-btn {
-            background: #6c757d;
-            color: white;
-        }
-    </style>
 </head>
 
 <body>
+    <!-- Include navigation bar -->
     {% include "nav.html" %}
+
+    <!-- Header with search bar and filter button -->
     <div class="header">
         <div class="search-bar">
             <input type="text" id="vehicle-search" placeholder="Search for vehicles...">
@@ -230,6 +29,7 @@
         <button class="filter-btn" id="toggle-filter">Filters</button>
     </div>
 
+    <!-- Filter panel (hidden by default) -->
     <div class="filter-container" id="filter-panel">
         <span class="close-filter" id="close-filter">✖</span>
         <div class="filter-group">
@@ -242,10 +42,14 @@
                 <option value="suzuki">Suzuki</option>
             </select>
         </div>
+
+        <!-- Filter: Vehicle Model -->
         <div class="filter-group">
             <label for="model">Model</label>
             <input type="text" id="model" placeholder="Any model">
         </div>
+
+        <!-- Filter: Rental / Selling Type -->
         <div class="filter-group">
             <label for="rental-type">Type</label>
             <select id="rental-type">
@@ -254,6 +58,8 @@
                 <option value="selling">For Selling</option>
             </select>
         </div>
+
+        <!-- Filter: Year Range -->
         <div class="filter-group">
             <label for="year-from">Year From</label>
             <input type="number" id="year-from" min="1990" max="2024" placeholder="1990">
@@ -262,10 +68,14 @@
             <label for="year-to">Year To</label>
             <input type="number" id="year-to" min="1990" max="2024" placeholder="2024">
         </div>
+
+        <!-- Filter: Max Price -->
         <div class="filter-group">
             <label for="max-price">Max Price (Rs)</label>
             <input type="number" id="max-price" placeholder="5000000">
         </div>
+
+        <!-- Filter: Fuel Type -->
         <div class="filter-group">
             <label for="fuel-type">Fuel Type</label>
             <select id="fuel-type">
@@ -275,11 +85,14 @@
                 <option value="electric">Electric</option>
             </select>
         </div>
+
+        <!-- Filter action buttons -->
         <button class="apply-btn" id="apply-filter">Apply</button>
         <button class="clear-btn" id="clear-filter">Clear</button>
     </div>
 
     <div class="main-layout">
+        <!-- Vehicle listing cards -->
         <div class="container">
             <div class="listings-grid">
                 {% for vehicle in all_vehicles %}
@@ -288,7 +101,11 @@
                     data-make="{{ vehicle.make|lower }}" data-model="{{ vehicle.model|lower }}"
                     data-year="{{ vehicle.year }}" data-fuel="{{ vehicle.fuel_type|lower }}"
                     data-is-rental="{{ vehicle.is_rental }}">
+
+                    <!-- Save button include -->
                     {% include "includes/savebutton.html" %}
+
+                    <!-- Vehicle image and link to details -->
                     <a href="{% url 'vehicles:detail' vehicle.pk %}">
                         {% with first_image=vehicle.images.first %}
                         {% if first_image %}
@@ -298,35 +115,50 @@
                         {% endif %}
                         {% endwith %}
                     </a>
+
+                    <!-- Card Information -->
                     <div class="listing-info">
                         <div class="listing-title">{{ vehicle.make }} {{ vehicle.model }}</div>
                         <div class="listing-details">{{ vehicle.type_of_vehicle }} • Year: {{ vehicle.year }}</div>
                         <div class="listing-details">
+                            <!-- Display Renting or Selling based on is_rental boolean -->
                             {% if vehicle.is_rental %}
                             For Renting
                             {% else %}
                             For Selling
                             {% endif %}
                         </div>
-                        <div class="listing-price" style="color: {% if vehicle.is_rental %}blue{% else %}red{% endif %};">Rs {{ vehicle.price }}</div>
+                        <!-- Price display with color based on rental/sale -->
+                        <div class="listing-price" style="color: {% if vehicle.is_rental %}#2c3e50{% else %}red{% endif %};">
+                            Rs {{vehicle.price}}
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
+
+        <!-- Map Section -->
         <div id="map"></div>
     </div>
 
     {% include "footer.html" %}
+
+    <!-- Leaflet map script -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
+        // Converts raw price to display-friendly format (e.g., 1M, 80k)
         function formatPrice(value) {
             if (value >= 1000000) return (value / 1000000).toFixed(2) + 'M';
             if (value >= 1000) return (value / 1000).toFixed(2) + 'k';
             return value.toString();
         }
 
+        // Initialize Leaflet Map
         const map = L.map('map').setView([-20.1609, 57.5012], 10);
+
+        // Load OpenStreetMap Tiles
         L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19
@@ -335,7 +167,7 @@
         const markers = [];
         const cards = document.querySelectorAll('.listing-card');
 
-        // Format listing prices and create map markers
+        // Loop through all vehicle cards and create map markers
         cards.forEach(card => {
             const priceEl = card.querySelector('.listing-price');
             const rawPrice = parseInt(card.dataset.price);
@@ -344,10 +176,11 @@
             const coords = card.dataset.coords.split(',').map(Number);
             const vehicleId = card.dataset.id;
 
+            // Define marker color based on rental or selling
             const isRental = card.dataset.isRental === "True" || card.dataset.isRental === "true";
-            const markerColor = isRental ? 'blue' : 'red';
+            const markerColor = isRental ? '#2c3e50' : 'red';
 
-            // Create a divIcon with a fixed width and auto-adjust text
+            // Generate map marker with price label
             const marker = L.marker(coords, {
                 icon: L.divIcon({
                     className: 'price-marker',
@@ -357,11 +190,12 @@
                 })
             }).addTo(map);
 
+            // Redirect to vehicle detail page on marker click
             marker.on('click', () => { window.location.href = '/vehicles/detail/' + vehicleId; });
             markers.push({ card, marker, coords });
         });
 
-        // Distance between two points
+        // Distance calculation between two geo locations
         function distance(lat1, lon1, lat2, lon2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -370,6 +204,7 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
+        // Reorder cards when map moves or zooms (closest to center first)
         function updateCardsByMapCenter() {
             const center = map.getCenter();
             const visibleMarkers = markers.filter(({ card }) => card.style.display !== 'none');
@@ -382,9 +217,11 @@
             visibleMarkers.forEach(({ card }) => grid.appendChild(card));
         }
 
+        // Call the sorting function when map movement ends
         map.on('moveend', updateCardsByMapCenter);
         map.on('zoomend', updateCardsByMapCenter);
 
+        // Filtering logic based on input fields
         function updateVisibility() {
             const searchValue = document.getElementById('vehicle-search').value.toLowerCase();
             const makeFilter = document.getElementById('make').value.toLowerCase();
@@ -403,6 +240,7 @@
                 const fuelType = card.dataset.fuel;
                 const isRental = card.dataset.isRental === "True" || card.dataset.isRental === "true";
 
+                // Check if vehicle matches all active filters
                 const matches = (make.includes(searchValue) || model.includes(searchValue))
                     && (!makeFilter || make === makeFilter)
                     && (!modelFilter || model.includes(modelFilter))
@@ -413,6 +251,7 @@
                         || (rentalType === 'renting' && isRental)
                         || (rentalType === 'selling' && !isRental));
 
+                // Toggle visibility of cards and markers
                 card.style.display = matches ? 'block' : 'none';
                 if (matches) marker.addTo(map); else map.removeLayer(marker);
             });
@@ -420,14 +259,21 @@
             updateCardsByMapCenter();
         }
 
+        // Attach filter event listeners
         document.getElementById('vehicle-search').addEventListener('input', updateVisibility);
         document.getElementById('apply-filter').addEventListener('click', updateVisibility);
+
+        // Clear all filters
         document.getElementById('clear-filter').addEventListener('click', () => {
             document.querySelectorAll('#filter-panel select,#filter-panel input').forEach(el => el.value = '');
             updateVisibility();
         });
+
+        // Show/Hide filter panel
         document.getElementById('toggle-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'block'; });
         document.getElementById('close-filter').addEventListener('click', () => { document.getElementById('filter-panel').style.display = 'none'; });
+
+        // Close filter when clicking outside
         document.addEventListener('click', (e) => {
             const filterPanel = document.getElementById('filter-panel');
             const filterBtn = document.getElementById('toggle-filter');
@@ -435,7 +281,10 @@
                 filterPanel.style.display = 'none';
         });
     </script>
+
+    <!-- Save button functionality -->
     <script src="{% static 'includes/js/savebutton.js' %}"></script>
+
 </body>
 
 </html>
