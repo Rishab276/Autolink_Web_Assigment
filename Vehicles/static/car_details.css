@@ -1,3 +1,4 @@
+/*  Global Styles */
 body {
     margin: 0;
     padding: 0;
@@ -7,6 +8,7 @@ body {
     min-height: 100vh;
 }
 
+/* Wrapper to push footer to bottom */
 .content-wrapper {
     flex: 1;
     padding: 40px 20px;
@@ -15,6 +17,7 @@ body {
     align-items: center;
 }
 
+/* Main content container */
 .container {
     width: 100%;
     max-width: 1200px;
@@ -24,32 +27,33 @@ body {
     flex-wrap: wrap;
 }
 
+/* ===== Vehicle Image Section (Left Column) ===== */
 .car-image {
     flex: 1;
     min-width: 300px;
     position: relative;
     height: 400px;
-    /* fixed height for consistent image container */
 }
 
+/* Individual vehicle images in carousel */
 .car-image img {
     width: 100%;
     height: 100%;
     border-radius: 8px;
     display: none;
     object-fit: cover;
-    /* fill container without distortion */
     object-position: center;
     position: absolute;
-    /* for carousel stacking */
     top: 0;
     left: 0;
 }
 
+/* Display only active image */
 .car-image img.active {
     display: block;
 }
 
+/* Navigation buttons (Next/Previous) */
 .nav-button {
     position: absolute;
     top: 50%;
@@ -65,18 +69,22 @@ body {
     transition: background-color 0.3s;
 }
 
+/* Hover effect for buttons */
 .nav-button:hover {
     background-color: rgba(255, 253, 253, 0);
 }
 
+/* Position previous button left */
 .prev-button {
     left: 15px;
 }
 
+/* Position next button right */
 .next-button {
     right: 15px;
 }
 
+/* Carousel indicators container */
 .indicators {
     position: absolute;
     bottom: 15px;
@@ -86,6 +94,7 @@ body {
     gap: 8px;
 }
 
+/* Indicator style (carousel dots/boxes) */
 .indicator {
     width: 30px;
     height: 4px;
@@ -94,10 +103,12 @@ body {
     transition: background-color 0.3s;
 }
 
+/* Active image indicator style */
 .indicator.active {
     background-color: white;
 }
 
+/* Vehicle Info Section (Right Column) */
 .car-info {
     flex: 0 0 300px;
     padding: 20px;
@@ -106,11 +117,13 @@ body {
     margin-left: 20px;
 }
 
+/* Title styling */
 .car-info h2 {
     margin-top: 0;
     color: #333;
 }
 
+/* Info label and value container */
 .info-item {
     margin-bottom: 10px;
     display: flex;
@@ -121,6 +134,7 @@ body {
     font-weight: bold;
 }
 
+/* Price style */
 .price {
     font-size: 24px;
     color: #e74c3c;
@@ -129,6 +143,7 @@ body {
     margin-bottom: 20px;
 }
 
+/* Status badge styling */
 .status {
     display: inline-block;
     background-color: #2ecc71;
@@ -138,6 +153,7 @@ body {
     font-size: 14px;
 }
 
+/* Contact Seller button */
 .contact-button {
     width: 100%;
     padding: 12px;
@@ -152,30 +168,36 @@ body {
     transition: background-color 0.3s;
 }
 
+/* Button hover effect */
 .contact-button:hover {
     background-color: #2980b9;
 }
 
+/* Map Section Styling */
 .map-section {
     width: 100%;
     margin-top: 30px;
 }
 
+/* Map title spacing */
 .map-section h3 {
     margin-bottom: 15px;
 }
 
+/* Map container box */
 .map-container {
     width: 100%;
-    height: 200px;
+    height: 300px;
     background-color: #e0e0e0;
-    border-radius: 8px;
+    border-radius: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
     color: #666;
+    margin-top: 10px;
 }
 
+/* User Info (Seller Profile) */
 .user-info {
     width: 100%;
     background-color: rgba(187, 152, 152, 0);
@@ -186,6 +208,7 @@ body {
     margin-top: 20px;
 }
 
+/* Avatar circle */
 .user-avatar {
     width: 50px;
     height: 50px;
@@ -197,24 +220,28 @@ body {
     justify-content: center;
 }
 
+/* Seller name */
 .user-details h4 {
     margin: 0 0 5px 0;
 }
 
+/* Seller description text */
 .user-details p {
     margin: 0;
     color: #666;
 }
 
+/* Left column container */
 .left-column {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 300px;
-    background-color: #cfd4f1;
+    background-color: #65666761;
     border-radius: 20px;
 }
 
+/* Footer spacing */
 footer {
     margin-top: 40px;
 }
