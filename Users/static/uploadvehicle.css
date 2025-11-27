@@ -1,4 +1,5 @@
 /* bhewa vigneshwar 2411725 */
+  /*full page body*/
 body {
   height: 100%;
   margin: 0;
@@ -12,7 +13,7 @@ body {
   font-family: "Poppins", sans-serif;
   color: white;
 }
-
+/*page wrapper for content centering*/
 #page-wrapper {
   flex: 1;
   display: flex;
@@ -20,7 +21,7 @@ body {
   align-items: flex-start; 
   padding: 60px 0;
 }
-
+/*upload container box*/
 .upload-container {
   background: rgba(0, 0, 0, 0.75);
   padding: 40px;
@@ -29,14 +30,14 @@ body {
   width: 90%;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
 }
-
+/*heading*/
 h2 {
   text-align: center;
   color: #ffa500;
   font-weight: 700;
   margin-bottom: 25px;
 }
-
+/*form label*/
 label {
   font-weight: 500;
   margin-top: 10px;
@@ -78,7 +79,7 @@ input, select, textarea {
   margin-top: 10px;
   color: #cccccc;
 }
-
+/*navbar adjustements*/
 nav {
   padding: 8px 40px !important; 
 }

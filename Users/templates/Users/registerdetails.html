@@ -13,7 +13,7 @@
 <body>
 
 {% include 'nav.html' %}
-
+    <!--main registration wrapper-->
     <div class="register-container">
         <h2>Welcome to Autolink</h2>
         <p class="text-center text-secondary mb-4">Buyer Registration</p>
@@ -23,7 +23,7 @@
                 <div class="alert alert-info">{{ message }}</div>
             {% endfor %}
         {% endif %}
-        
+        <!--buyer registration form-->
         <form method="POST" action="{% url 'users:registerdetails' %}">
             {% csrf_token %}
             <input type="text" name="first_name" placeholder="First Name" class="form-control mb-3" required>
