@@ -1,7 +1,7 @@
 /* bhewa vigneshwar 2411725 */
 /* set fully background page  */
 body{
-        background: url("{'BACKGROUND/login.png' }") no-repeat center center fixed;
+        background: url("/static/BACKGROUND/login.png") no-repeat center center fixed;
         background-size: cover;
         font-family: Arial, sans-serif;
         color: white;
