@@ -2,7 +2,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from .models import Vehicle
 from django.core.paginator import Paginator
-from Profile.models import SavedVehicle  # Import from Profile app
+from Profile.models import SavedVehicle 
 
 def standardsearch(request):
     vehicles = Vehicle.objects.filter(is_sold=False, is_rented=False).order_by('id')
@@ -56,9 +56,20 @@ def category_list(request, category):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    saved_vehicle_ids = []
+    if request.user.is_authenticated:
+        saved_vehicle_ids = list(
+            SavedVehicle.objects.filter(
+                user=request.user,
+                vehicle__is_sold=False
+            ).values_list('vehicle_id', flat=True)
+        )
+
     context = {
         'category_label': label,
         'page_obj': page_obj,
+        'all_vehicles': vehicles,        
+        'saved_vehicle_ids': saved_vehicle_ids,
         'count': vehicles.count(),
         
     }

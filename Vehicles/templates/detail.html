@@ -1,3 +1,4 @@
+<!-- Load static files for CSS, images-->
 {% load static %}
 
 <!DOCTYPE html>
@@ -7,51 +8,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ vehicle.make }} {{ vehicle.model }} - Car Details</title>
-    <link rel="stylesheet" href="{% static 'car_details.css' %}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        .map-container {
-            width: 100%;
-            height: 300px;
-            border-radius: 12px;
-            margin-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'car_details.css' %}"> <!--link to Custom Css -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" /> <!-- Leaflet CSS for map -->
 </head>
 
 <body>
+    <!-- Include top navigation bar -->
     {% include 'nav.html' %}
 
     <div class="content-wrapper">
         <div class="container">
+
+            <!-- LEFT COLUMN: Images + Seller Info -->
             <div class="left-column">
+
+                <!-- Vehicle Image Carousel -->
                 <div class="car-image">
                     {% for img in vehicle.images.all %}
-                    <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}"
-                        class="{% if forloop.first %}active{% endif %}">
+                    <!-- Display all images; first image marked active for carousel -->
+                    <img src="{{ img.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}" class="{% if forloop.first %}active{% endif %}">
                     {% endfor %}
 
-                    <!-- Prev/Next buttons -->
+                    <!-- Previous and Next buttons for image navigation -->
                     <button class="nav-button prev-button" onclick="changeImage(-1)">&#60;</button>
                     <button class="nav-button next-button" onclick="changeImage(1)">&#62;</button>
                 </div>
-
+                
+                <!-- Seller (uploader) Information section -->
                 <div class="user-info">
-                    <div class="user-avatar"> <i class="fa-solid fa-user"></i></div>
+                    <!-- icon  -->
+                    <div class="user-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
                     <div class="user-details">
-                        <h4>{{ vehicle.uploader }}</h4>
-                        <p>{{ vehicle.desc }}</p>
+                        <h4>{{ vehicle.uploader }}</h4>  <!-- Seller username -->
+                        <p>{{ vehicle.desc }}</p> <!-- Vehicle description -->
                     </div>
                 </div>
             </div>
 
+            <!-- RIGHT COLUMN: Vehicle Information -->
             <div class="car-info">
                 <h2>{{ vehicle.make }} {{ vehicle.model }}</h2>
+
+                <!-- Show 'Contact Seller' button only if logged-in user is a buyer -->
                 {% if request.user.userprofile.user_type == 'buyer' %}
                 <button class="contact-button" onclick="contactSeller()">Contact Seller</button>
                 {% else %}
-                <button class="contact-button" disabled title="Only buyers can contact sellers">Contact Seller</button>
+                <!-- Disable button when user is not a buyer -->
+                <button class="contact-button" style="background-color: #504f55f7;" disabled title="Only buyers can contact sellers">Contact Seller</button>
                 {% endif %}
+
+                <!-- Vehicle specifications list -->
                 <div class="info-item">
                     <span class="info-label">Year:</span>
                     <span>{{ vehicle.year }}</span>
@@ -68,6 +76,8 @@
                     <span class="info-label">Mileage:</span>
                     <span>{{ vehicle.mileage }} km</span>
                 </div>
+
+                <!-- Conditional display: Renting or Selling -->
                 <div class="info-item">
                     <span class="info-label">For:</span>
                     <span>
@@ -78,9 +88,13 @@
                         {% endif %}
                     </span>
                 </div>
-                <div class="price" id="vehicle-price"
-                    style="color: {% if vehicle.is_rental %}blue{% else %}red{% endif %};">Rs {{ vehicle.price }}</div>
 
+                <!-- Price with conditional color based on renting/selling status -->
+                <div class="price" id="vehicle-price" style="color: {% if vehicle.is_rental %}#2c3e50{% else %}red{% endif %};">
+                    Rs {{ vehicle.price }}
+                </div>
+
+               <!-- Map location section -->
                 <div class="map-section">
                     <h3>Location</h3>
                     <div id="vehicle-map" class="map-container"></div>
@@ -90,11 +104,14 @@
         </div>
     </div>
 
+    <!-- Footer section -->
     <footer>
         {% include "footer.html" %}
     </footer>
 
+    <!-- Leaflet JS for map functionality -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
     <script>
         // Price formatting function
         function formatPrice(value) {
@@ -111,8 +128,8 @@
         // Image carousel functions
         let slideIndex = 1;
 
-        function changeImage(n) { showImage(slideIndex += n); }
-        function currentImage(n) { showImage(slideIndex = n); }
+        function changeImage(n) { showImage(slideIndex += n); }  // Next/Prev control
+        function currentImage(n) { showImage(slideIndex = n); } // Direct image select
 
         function showImage(n) {
             let images = document.getElementsByClassName("car-image")[0].getElementsByTagName("img");
@@ -124,6 +141,7 @@
             images[slideIndex - 1].classList.add("active");
         }
 
+        // Contact Seller via WhatsApp 
         function contactSeller() {
             const phoneNumber = "{{ vehicle.contact|default:'' }}".replace(/\D/g, '');
             if (!phoneNumber) {
@@ -132,17 +150,19 @@
             }
             const message = encodeURIComponent(`Hello, I'm interested in your {{ vehicle.make }} {{ vehicle.model }} listed on Vehicle Marketplace.`);
             const whatsappURL = `https://wa.me/${phoneNumber}?text=${message}`;
-            window.open(whatsappURL, '_blank');
+            window.open(whatsappURL, '_blank'); // Open WhatsApp chat
         }
 
         // Leaflet map for vehicle location
         const coords = "{{ vehicle.gps_coor|default:'-20.1609,57.5012' }}".split(',').map(Number);
         const map = L.map('vehicle-map').setView(coords, 14);
 
+        // Load OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
+        // Add marker for vehicle location
         L.marker(coords).addTo(map)
             .bindPopup("{{ vehicle.make }} {{ vehicle.model }}")
             .openPopup();
