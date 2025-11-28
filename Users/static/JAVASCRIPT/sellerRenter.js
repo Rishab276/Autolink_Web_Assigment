@@ -23,13 +23,13 @@ document.querySelector("form").addEventListener("submit", function(event) {
     //user validation part of the seller or renter form
     if (userType === "seller") {
         alert("Seller registration has been carried out successfully");
-        e.preventDefault();
+        event.preventDefault();
     } else if (userType === "renter") {
         alert("Renter registration has been carried out successfully");
-        e.preventDefault();
+        event.preventDefault();
     } else {
         alert("Registration successful!");
-        e.preventDefault();
+        event.preventDefault();
     }
     this.submit();
 });
