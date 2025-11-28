@@ -13,8 +13,10 @@
   {% include 'nav.html' %}
 
   <div id="page-wrapper">
+    <!--main upload form container-->
     <div class="upload-container">
       <h2>
+        <!--dyanmic heading-->
         {% if user_type == 'seller' %}
           Upload Your Vehicle for Sale
         {% elif user_type == 'renter' %}
@@ -26,7 +28,7 @@
 
       <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-
+        <!--vehicle upload form-->
         <div class="row">
           <div class="col-md-6 mb-3">
             <label for="make">Make</label>
@@ -119,6 +121,7 @@
   <footer>                             <!--global footer-->
     {% include "footer.html" %}
   </footer>
+  <!--javascript validation-->
   <script src="{% static 'JAVASCRIPT/uploadvehicle.js' %}"></script>       <!--link for javascript-->
 
 </body>

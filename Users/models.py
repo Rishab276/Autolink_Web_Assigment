@@ -3,14 +3,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
+#user profile model to extend the default django user
 class UserProfile(models.Model):
     USER_TYPES = (
         ('buyer', 'Buyer'),
         ('seller', 'Seller'),
         ('renter', 'Renter'),
     )
-
+    #link to django user
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=10, choices=USER_TYPES)
     address = models.CharField(max_length=255)
@@ -20,7 +20,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} ({self.user_type})"
 
-
+#vehicle model
 class Vehicle(models.Model):
     """Temporary model to fix imports - will be removed later"""
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
