@@ -1,12 +1,13 @@
   /* bhewa vigneshwar 2411725 */
-  body {
+  /*full backgound page*/
+    body {
         background: url("BACKGROUND/buyer.png") no-repeat center center fixed;
         background-size: cover;
         min-height: 100vh;
         color: white;
         font-family: 'Poppins', sans-serif;
         }
-
+         /*registration form container*/
         .register-container {
             max-width: 450px;
             margin: 60px auto;
@@ -16,21 +17,21 @@
             padding: 30px;
             box-shadow: 0 0 20px rgba(0,0,0,0.4);
         }
-
+         /*header*/
         h2 {
             font-family: 'Bebas Neue', cursive;
             letter-spacing: 2px;
             text-align: center;
             color: #000000;
         }
-
+        /*form input fields*/
          .form-control {
             background-color: rgba(240, 240, 240, 0.9);
             border: 1px solid #ccc;
             color: #000;
         }
         
-
+         /*input field focus styling*/
         .form-control:focus {
             background-color: rgba(240, 240, 240, 1);
             box-shadow: none;
@@ -54,14 +55,14 @@
             font-size: 0.9rem;
             color: #000000d2;
         }
-
+         /*contact-info text*/
         .contact-info {
             font-size: 0.85rem;
             margin-top: 20px;
             color: #000000;
             text-align: center;
         }
-     
+         /*navbar adjustments*/
 
         nav {
         padding: 8px 40px !important; 
