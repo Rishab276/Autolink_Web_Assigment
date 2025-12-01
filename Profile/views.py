@@ -14,6 +14,17 @@ from .forms import SimplePasswordChangeForm
 # Display the user's profile page
 @login_required
 def profile_view(request):
+
+    # Super Admin View
+    if request.user.is_superuser:
+        context = {
+            "is_superadmin": True,
+            "super_name": request.user.get_full_name() or request.user.username,
+            "super_email": request.user.email,
+        }
+        return render(request, "superadmin_profile.html", context)
+
+    # Buyer/Seller/Renter View
     user_profile = get_object_or_404(UserProfile, user=request.user)
 
     uploaded_vehicles = []
@@ -23,22 +34,25 @@ def profile_view(request):
     print(f"DEBUG: User type: {user_profile.user_type}")
 
     if user_profile.user_type in ['seller', 'renter']:
-        uploaded_vehicles = Vehicle.objects.filter(uploader=request.user).order_by('-id')
+        uploaded_vehicles = Vehicle.objects.filter(
+            uploader=request.user
+        ).order_by('-id')
         print(f"DEBUG: Found {len(uploaded_vehicles)} uploaded vehicles")
 
     elif user_profile.user_type == 'buyer':
-        saved_vehicles = SavedVehicle.objects.filter(user=request.user, vehicle__is_sold=False).select_related('vehicle').order_by('-saved_at')
-        print(f"DEBUG: Found {len(saved_vehicles)} saved vehicles")
-        
-        for saved in saved_vehicles:
-            print(f"DEBUG: Saved vehicle - {saved.vehicle.make} {saved.vehicle.model}")
+        saved_vehicles = SavedVehicle.objects.filter(
+            user=request.user,
+            vehicle__is_sold=False
+        ).select_related('vehicle').order_by('-saved_at')
 
+        print(f"DEBUG: Found {len(saved_vehicles)} saved vehicles")
 
     context = {
         'user_profile': user_profile,
         'uploaded_vehicles': uploaded_vehicles,
         'saved_vehicles': saved_vehicles,
         'rented_vehicles': rented_vehicles,
+        "is_superadmin": False,
     }
     return render(request, 'profile.html', context)
 

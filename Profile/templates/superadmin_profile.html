@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Profile</title>
+    <link rel="stylesheet" href="{% static 'superadmin.css' %}">
+</head>
+<body>
+
+<div class="superadmin-container">
+
+    <h1 class="superadmin-title">Super Admin Profile</h1>
+
+    <p><strong>Name:</strong> {{ request.user.username }}</p>
+    <p><strong>Email:</strong> {{ request.user.email }}</p>
+
+    <p class="superadmin-warning">
+        You are logged in as a <strong>Super Admin</strong>.  
+        You have full system permissions, but this profile page is for display only.
+    </p>
+
+    <!-- Go to Admin Panel -->
+    <div class="button-container">
+        <a href="/admin/" class="superadmin-btn">Go to Django Admin</a>
+    </div>
+
+    <!-- Back to Home -->
+    <div class="button-container">
+        <a href="{% url 'main:home' %}" class="superadmin-btn secondary-btn">Back to Home</a>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="button-container">
+        <a href="{% url 'users:logout' %}" class="superadmin-btn logout-btn">Logout</a>
+    </div>
+
+</div>
+
+</body>
+</html>
