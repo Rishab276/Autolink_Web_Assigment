@@ -1,4 +1,3 @@
-# main/forms.py
 from django import forms
 from .models import ContactMessage
 
@@ -110,7 +109,6 @@ class ContactForm(forms.ModelForm):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
         if phone:
-            # Basic phone validation - remove spaces and check if it starts with +
             phone = phone.strip()
             if phone and not phone.startswith('+'):
                 raise forms.ValidationError("Phone number should start with country code (e.g., +230)")
