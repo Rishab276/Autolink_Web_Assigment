@@ -1,15 +1,18 @@
 /* bhewa vigneshwar 2411725 */
+/* set fully background page  */
 body{
-        background: url("{'BACKGROUND/login.png' }") no-repeat center center fixed;
+        background: url("/static/BACKGROUND/login.png") no-repeat center center fixed;
         background-size: cover;
         font-family: Arial, sans-serif;
         color: white;
+        /*  make page content stretch from top to bottom*/
         display: flex;
         flex-direction: column;
         min-height:100vh;
         margin: 0;
         padding: 0;
         }
+        /* main content area */
         main{
             flex:5;
             display:flex;
@@ -21,6 +24,7 @@ body{
             width: 100%;
             margin-top: auto; 
         }
+        /* login form container */
         .login-container {
             display: flex;
             gap: 40px;
@@ -32,6 +36,7 @@ body{
             box-shadow: 0 8px 20px rgba(0,0,0,0.7);
             margin-top: 80px; 
         }
+        /* left side welcome message */
         .welcome {
             flex: 1;
             padding-right: 20px;
@@ -83,6 +88,7 @@ body{
             cursor: pointer;
             border-radius: 5px;
         }
+        /* navigation bar adjustments */
         nav {
             padding: 8px 40px !important; 
         }

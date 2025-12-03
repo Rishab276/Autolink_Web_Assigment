@@ -17,7 +17,7 @@
                 <p>“Back on Autolink? – perfect timing, new rides are waiting for you!”</p>
             </div>
             <div class="login-box">
-                <h2>User Login</h2>
+                <h2>User Login</h2>   <!--login form-->
                 <!-- form action to post to the login view -->
                 <form method="post" action="{% url 'users:login' %}">
                     {% csrf_token %}
@@ -34,6 +34,7 @@
                 </div>
             </div>
         </div>
+        <!--Display only error type django messages-->
          {% if messages %}
     <ul>
         {% for message in messages %}

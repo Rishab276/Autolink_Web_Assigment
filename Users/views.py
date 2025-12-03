@@ -8,7 +8,7 @@ from .models import UserProfile
 from Vehicles.models import Vehicle, VehicleImage
 from Profile.models import SavedVehicle
 
-
+#login view
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('main:home')
@@ -16,7 +16,7 @@ def login_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-
+        # authenticate user by email
         try:
             user_obj = User.objects.get(email=email)
             user = authenticate(request, username=user_obj.username, password=password)
@@ -33,14 +33,14 @@ def login_view(request):
     return render(request, 'users/login.html')
 
 
-
+#logout view
 def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out.")
     return redirect('users:login')
 
 
-
+#role selection
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('main:home')
@@ -56,7 +56,7 @@ def register_view(request):
 
     return render(request, 'users/register.html')
 
-
+#buyer registration
 def registerdetails_view(request):
     """Handles Buyer registration"""
     if request.method == 'POST':
@@ -96,7 +96,7 @@ def registerdetails_view(request):
     return render(request, 'users/registerdetails.html')
 
 
-
+#seller or renter registrattion
 def sellerRenterdetails_view(request, role=None):
     """Handles Seller and Renter registration"""
     print(f"DEBUG: Role parameter received: {role}")
@@ -193,7 +193,7 @@ def sellerRenterdetails_view(request, role=None):
 
     return render(request, 'users/sellerRenterdetails.html')
 
-
+#upload vehicle view
 @login_required
 def uploadvehicles_view(request):
     profile = UserProfile.objects.get(user=request.user)
