@@ -2,7 +2,10 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from .models import Vehicle
 from django.core.paginator import Paginator
-from Profile.models import SavedVehicle 
+from Profile.models import SavedVehicle
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .serializers import VehicleSerializer
 
 def standardsearch(request):
     vehicles = Vehicle.objects.filter(is_sold=False, is_rented=False).order_by('id')
@@ -75,3 +78,11 @@ def category_list(request, category):
     }
 
     return render(request, 'standardsearch.html', context)
+
+
+class VehicleListAPI(APIView):
+    def get(self, request):
+        # Only show vehicles that aren't sold or rented
+        vehicles = Vehicle.objects.filter(is_sold=False, is_rented=False)
+        serializer = VehicleSerializer(vehicles, many=True)
+        return Response(serializer.data)

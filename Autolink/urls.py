@@ -49,6 +49,10 @@ urlpatterns += [
     path('vehicles/', include(('Vehicles.urls','vehicles'), namespace='vehicles')),
 ]
 
+urlpatterns += [
+    path('api/', include(('api.urls', 'api'), namespace='api')),
+]
+
 # Django auth URLs
 urlpatterns += [
     path('users/', include('django.contrib.auth.urls')),
