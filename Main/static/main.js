@@ -1,6 +1,3 @@
-// main.js
-
-// Category Chart Functionality
 function initCategoryChart() {
     const categoryData = {
         labels: [],
