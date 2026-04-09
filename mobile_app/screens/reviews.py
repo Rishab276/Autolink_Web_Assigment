@@ -53,7 +53,7 @@ def _sentiment(text):
 def _rating_bar(reviews):
     if not reviews:
         return ft.Container()
-    total = len(reviews)
+    total  = len(reviews)
     counts = {i: 0 for i in range(1, 6)}
     for r in reviews:
         counts[r.get("rating", 5)] += 1
@@ -103,7 +103,7 @@ def _review_card(r, on_report):
             ft.Icon(ft.Icons.LOCATION_ON, size=12, color=ACCENT),
             ft.Text(r["location_label"], size=11, color=TEXT_LIGHT),
         ], spacing=3)
-    name = r.get("author_name") or "Anonymous"
+    name     = r.get("author_name") or "Anonymous"
     initials = "".join(p[0].upper() for p in name.split()[:2])
     return ft.Card(
         content=ft.Container(
@@ -143,8 +143,7 @@ def reviews_screen(page, go_to):
     summary_box  = ft.Container()
     status_text  = ft.Text("", color=TEXT_LIGHT, text_align=ft.TextAlign.CENTER)
     spinner      = ft.ProgressRing(color=PRIMARY)
-    filter_state = {"value": "all"}
-    star_state   = {"value": 5}
+    star_state   = {"value": 0}
     gps_coords   = {"lat": None, "lng": None, "label": ""}
     photo_path   = {"value": None}
 
@@ -162,19 +161,11 @@ def reviews_screen(page, go_to):
     submit_msg   = ft.Text("", text_align=ft.TextAlign.CENTER)
 
     # ── Star rating with TILT SENSOR + DOUBLE TAP lock ──────────
-    # Tilt right  → stars increase
-    # Tilt left   → stars decrease
-    # Double tap  → lock rating
-    # Stars start empty (white)
-
     import time as _time
 
-    star_state["value"]  = 0
     tilt_state = {
         "locked":   False,
-        "active":   False,
         "last_x":   0.0,
-        "last_tap": 0.0,
     }
 
     star_row  = ft.Row(spacing=2, alignment=ft.MainAxisAlignment.CENTER)
@@ -188,7 +179,7 @@ def reviews_screen(page, go_to):
     lock_indicator = ft.Container(
         content=ft.Row([
             ft.Icon(ft.Icons.LOCK_OPEN, color=TEXT_LIGHT, size=16),
-            ft.Text("Tap twice to lock rating", size=11, color=TEXT_LIGHT),
+            ft.Text("Double tap to lock rating", size=11, color=TEXT_LIGHT),
         ], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
         padding=ft.padding.symmetric(horizontal=10, vertical=4),
         border_radius=20,
@@ -220,7 +211,7 @@ def reviews_screen(page, go_to):
     def update_hint():
         v = int(star_state["value"])
         if tilt_state["locked"]:
-            tilt_hint.value  = f"🔒 Rating locked at {v} star{'s' if v!=1 else ''}"
+            tilt_hint.value  = f"🔒 Rating locked at {v} star{'s' if v != 1 else ''}"
             tilt_hint.color  = SUCCESS
             lock_indicator.content = ft.Row([
                 ft.Icon(ft.Icons.LOCK, color=SUCCESS, size=16),
@@ -228,9 +219,9 @@ def reviews_screen(page, go_to):
             ], spacing=4, alignment=ft.MainAxisAlignment.CENTER)
             lock_indicator.bgcolor = "#e8f5e9"
         else:
-            label, color         = RATING_LABELS.get(v, RATING_LABELS[0])
-            tilt_hint.value      = label
-            tilt_hint.color      = color
+            label, color = RATING_LABELS.get(v, RATING_LABELS[0])
+            tilt_hint.value  = label
+            tilt_hint.color  = color
             lock_indicator.content = ft.Row([
                 ft.Icon(ft.Icons.LOCK_OPEN, color=TEXT_LIGHT, size=16),
                 ft.Text("Double tap to lock rating", size=11, color=TEXT_LIGHT),
@@ -246,37 +237,22 @@ def reviews_screen(page, go_to):
         page.update()
 
     def on_double_tap(e):
-        """Double tap locks/unlocks the current rating."""
         tilt_state["locked"] = not tilt_state["locked"]
         update_hint()
         page.update()
 
-    def toggle_tilt(e):
-        pass  # kept for compat
-
     # ── Tilt via page.on_event (device orientation) ──────────
     def on_page_event(e):
-        """
-        Listens to deviceorientation / accelerometer events
-        sent by Flet from the native layer.
-        gamma = left/right tilt angle
-          gamma > 8  → tilt right → increase stars
-          gamma < -8 → tilt left  → decrease stars
-        """
         if tilt_state["locked"]:
             return
         try:
             import json
-            data = json.loads(e.data) if isinstance(e.data, str) else {}
-            # gamma = left/right tilt (-90 to 90)
+            data  = json.loads(e.data) if isinstance(e.data, str) else {}
             gamma = float(data.get("gamma", data.get("x", 0)))
             now   = _time.time()
-
-            # Throttle updates to every 0.5s
             if now - tilt_state["last_x"] < 0.5:
                 return
             tilt_state["last_x"] = now
-
             current = int(star_state["value"])
             if gamma > 8 and current < 5:
                 set_star(current + 1)
@@ -285,13 +261,11 @@ def reviews_screen(page, go_to):
         except Exception:
             pass
 
-    # Register tilt event listener
     page.on_event = on_page_event
 
     build_stars()
     update_hint()
 
-    # Wrap star row in GestureDetector for double tap
     star_gesture = ft.GestureDetector(
         content=ft.Column([
             star_row,
@@ -299,21 +273,24 @@ def reviews_screen(page, go_to):
         on_double_tap=on_double_tap,
     )
 
+    # ── Render reviews (no filter, show all) ─────────────────
     def render_reviews(reviews):
         reviews_col.controls.clear()
-        fv = filter_state["value"]
-        shown = reviews if fv == "all" else [r for r in reviews if str(r.get("rating")) == fv]
-        if not shown:
+        if not reviews:
             reviews_col.controls.append(
-                ft.Text("No reviews match this filter.", color=TEXT_LIGHT, text_align=ft.TextAlign.CENTER)
+                ft.Text("No reviews yet. Be the first!", color=TEXT_LIGHT,
+                        text_align=ft.TextAlign.CENTER)
             )
-        for r in shown:
+        for r in reviews:
             reviews_col.controls.append(_review_card(r, on_report=lambda rv: (
                 page.session.set("report_target_review", rv), go_to("report_review")
             )))
         page.update()
 
-    def load_reviews():
+    def load_reviews(show_spinner=True):
+        if show_spinner:
+            spinner.visible = True
+            page.update()
         def fetch():
             try:
                 nonlocal all_reviews
@@ -329,7 +306,7 @@ def reviews_screen(page, go_to):
                 page.update()
         threading.Thread(target=fetch).start()
 
-    # Mauritius districts with coordinates
+    # ── Mauritius districts ───────────────────────────────────
     MAURITIUS_LOCATIONS = {
         "Port Louis":    (-20.1654, 57.4896),
         "Curepipe":      (-20.3167, 57.5167),
@@ -350,57 +327,41 @@ def reviews_screen(page, go_to):
         page.update()
         def fetch_loc():
             try:
-                r = requests.get("https://ipapi.co/json/", timeout=8).json()
+                r       = requests.get("https://ipapi.co/json/", timeout=8).json()
                 country = r.get("country_code", "")
                 city    = r.get("city", "")
                 lat     = r.get("latitude",  -20.1654)
                 lng     = r.get("longitude",  57.4896)
-
-                # If in Mauritius, match to nearest known district
                 if country == "MU" or (-21.5 < float(lat) < -19.5 and 56.5 < float(lng) < 63.5):
-                    # Find nearest Mauritius district
                     best_label = city if city else "Port Louis"
                     best_dist  = float("inf")
                     for name, (dlat, dlng) in MAURITIUS_LOCATIONS.items():
-                        dist = ((float(lat)-dlat)**2 + (float(lng)-dlng)**2) ** 0.5
+                        dist = ((float(lat) - dlat) ** 2 + (float(lng) - dlng) ** 2) ** 0.5
                         if dist < best_dist:
                             best_dist  = dist
                             best_label = name
                     label = f"{best_label}, Mauritius 🇲🇺"
                 else:
-                    # Outside Mauritius — use IP location
-                    label = f"{city}, {r.get('country_name','')}" if city else r.get("country_name","Unknown")
-
+                    label = f"{city}, {r.get('country_name', '')}" if city else r.get("country_name", "Unknown")
                 gps_coords.update({"lat": lat, "lng": lng, "label": label})
                 gps_label.value = f"📍 {label}"
             except Exception:
-                # Default to Port Louis if everything fails
                 gps_coords.update({"lat": -20.1654, "lng": 57.4896, "label": "Port Louis, Mauritius 🇲🇺"})
                 gps_label.value = "📍 Port Louis, Mauritius 🇲🇺"
             page.update()
         threading.Thread(target=fetch_loc).start()
 
     def open_camera(e):
-        """
-        Opens file picker for photo.
-        On iOS, camera/gallery access may be restricted —
-        if FilePicker raises PermissionError or returns nothing,
-        we grey out the button and show a helpful message.
-        """
         import sys, platform as _pl
-
-        # Detect iOS
         is_ios = (
             _pl.system() == "Darwin"
             or "iphone" in sys.platform.lower()
             or "ios" in str(getattr(page, "platform", "")).lower()
             or str(getattr(page, "platform", "")).lower() in ("ios", "iphone", "ipad")
         )
-
         if is_ios:
             photo_label.value = "📵 Camera unavailable on iOS — please use a desktop or Android device"
             photo_label.color = ERROR
-            # Grey out the button
             camera_btn.disabled = True
             camera_btn.opacity  = 0.4
             page.update()
@@ -488,13 +449,17 @@ def reviews_screen(page, go_to):
         page.update()
         def post():
             try:
-                label = _sentiment(review_field.value)
+                label   = _sentiment(review_field.value)
                 payload = {
-                    "title": title_field.value, "review_text": review_field.value,
-                    "rating": star_state["value"], "author_name": author_field.value,
-                    "email": email_field.value, "sentiment": label,
+                    "title":          title_field.value,
+                    "review_text":    review_field.value,
+                    "rating":         star_state["value"],
+                    "author_name":    author_field.value,
+                    "email":          email_field.value,
+                    "sentiment":      label,
                     "location_label": gps_coords.get("label", ""),
-                    "latitude": gps_coords.get("lat"), "longitude": gps_coords.get("lng"),
+                    "latitude":       gps_coords.get("lat"),
+                    "longitude":      gps_coords.get("lng"),
                 }
                 if photo_path["value"]:
                     with open(photo_path["value"], "rb") as f:
@@ -504,13 +469,30 @@ def reviews_screen(page, go_to):
                     resp = requests.post(f"{BASE_URL}/reviews/submit/", json=payload, timeout=15)
                 if resp.status_code == 201:
                     submit_msg.color = SUCCESS
-                    submit_msg.value = "✅ Submitted! Awaiting approval."
+                    submit_msg.value = "✅ Submitted!"
+                    # Show review immediately in the list without waiting for server
+                    new_review = {
+                        "title":          payload["title"],
+                        "review_text":    payload["review_text"],
+                        "rating":         payload["rating"],
+                        "author_name":    payload["author_name"],
+                        "sentiment":      payload["sentiment"],
+                        "location_label": payload.get("location_label", ""),
+                        "created_at":     datetime.datetime.now().isoformat(),
+                    }
+                    all_reviews.insert(0, new_review)
+                    summary_box.content = _rating_bar(all_reviews)
+                    render_reviews(all_reviews)
+                    # Clear the form
                     title_field.value = review_field.value = author_field.value = email_field.value = ""
-                    star_state["value"] = 5
+                    star_state["value"] = 0
                     build_stars()
+                    update_hint()
                     gps_coords.update({"lat": None, "lng": None, "label": ""})
                     gps_label.value = photo_label.value = sentiment_result.value = ""
                     photo_path["value"] = None
+                    # Silently refresh from server in the background
+                    load_reviews(show_spinner=False)
                 else:
                     submit_msg.color = ERROR
                     submit_msg.value = str(resp.json())
@@ -524,16 +506,6 @@ def reviews_screen(page, go_to):
 
     submit_btn.on_click = do_submit
 
-    filter_dd = ft.Dropdown(
-        label="Filter", border_color=PRIMARY, border_radius=10, value="all", width=160,
-        options=[ft.dropdown.Option("all", "All ratings")] +
-                [ft.dropdown.Option(str(i), "⭐" * i) for i in range(5, 0, -1)],
-    )
-    def on_filter(e):
-        filter_state["value"] = filter_dd.value
-        render_reviews(all_reviews)
-    filter_dd.on_change = on_filter
-
     nav = ft.NavigationBar(
         destinations=[
             ft.NavigationBarDestination(icon=ft.Icons.HOME,        label="Home"),
@@ -543,7 +515,9 @@ def reviews_screen(page, go_to):
             ft.NavigationBarDestination(icon=ft.Icons.PERSON,      label="Profile"),
         ],
         selected_index=3, bgcolor=CARD_BG,
-        on_change=lambda e: go_to(["home","nearby","saved","reviews","profile"][e.control.selected_index]),
+        on_change=lambda e: go_to(
+            ["home", "nearby", "saved", "reviews", "profile"][e.control.selected_index]
+        ),
     )
 
     load_reviews()
@@ -551,28 +525,40 @@ def reviews_screen(page, go_to):
     return ft.View(
         route="/reviews", bgcolor=BG, scroll=ft.ScrollMode.AUTO,
         appbar=ft.AppBar(
-            title=ft.Row([ft.Icon(ft.Icons.STAR, color=STAR_ON),
-                          ft.Text("Reviews", color="white", weight=ft.FontWeight.BOLD)]),
+            title=ft.Row([
+                ft.Icon(ft.Icons.STAR, color=STAR_ON),
+                ft.Text("Reviews", color="white", weight=ft.FontWeight.BOLD),
+            ]),
             bgcolor=PRIMARY,
-            actions=[ft.IconButton(icon=ft.Icons.FLAG, icon_color="white", tooltip="Report vehicle",
-                                   on_click=lambda e: go_to("report_vehicle"))],
+            actions=[
+                ft.IconButton(
+                    icon=ft.Icons.FLAG, icon_color="white", tooltip="Report vehicle",
+                    on_click=lambda e: go_to("report_vehicle"),
+                )
+            ],
         ),
         navigation_bar=nav,
         controls=[
             ft.Container(
                 content=ft.Column([
+                    # ── Rating summary bar ──────────────────────
                     summary_box,
+
+                    # ── Write a review form ─────────────────────
                     ft.Container(
                         content=ft.Column([
-                            ft.Row([ft.Icon(ft.Icons.EDIT, color=PRIMARY),
-                                    ft.Text("Write a Review", size=18,
-                                            weight=ft.FontWeight.BOLD, color=PRIMARY)], spacing=8),
+                            ft.Row([
+                                ft.Icon(ft.Icons.EDIT, color=PRIMARY),
+                                ft.Text("Write a Review", size=18,
+                                        weight=ft.FontWeight.BOLD, color=PRIMARY),
+                            ], spacing=8),
                             ft.Divider(height=1, color="#e0e0e0"),
                             ft.Text("Your Rating", size=13, color=TEXT_LIGHT),
                             star_gesture,
                             tilt_hint,
                             lock_indicator,
-                            title_field, review_field,
+                            title_field,
+                            review_field,
                             ft.Row([
                                 ft.OutlinedButton(
                                     content=ft.Text("🤖 Sentiment", color=PRIMARY),
@@ -596,31 +582,36 @@ def reviews_screen(page, go_to):
                                 ),
                                 camera_btn,
                             ], spacing=8),
-                            gps_label, photo_label, submit_msg,
-                            ft.Container(content=submit_btn,
-                                         alignment=ft.alignment.Alignment(0, 0)),
+                            gps_label,
+                            photo_label,
+                            submit_msg,
+                            ft.Container(
+                                content=submit_btn,
+                                alignment=ft.alignment.Alignment(0, 0),
+                            ),
                         ], spacing=10),
                         padding=ft.padding.all(16), bgcolor=CARD_BG, border_radius=16,
                         shadow=ft.BoxShadow(blur_radius=8, color="#00000014"),
                     ),
+
                     ft.Container(height=8),
-                    ft.Row([
-                        ft.Text("What People Say", size=18,
-                                weight=ft.FontWeight.BOLD, color=PRIMARY, expand=True),
-                        filter_dd,
-                    ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
-                    spinner, status_text, reviews_col,
+
+                    # ── Reviews list (no heading, no filter) ────
+                    spinner,
+                    status_text,
+                    reviews_col,
+
                 ], spacing=14),
                 padding=ft.padding.all(16),
             )
-        ]
+        ],
     )
 
 
 # ── REPORT REVIEW SCREEN ──────────────────────────────────────
 
 def report_screen_for_review(page, go_to):
-    review = page.session.get("report_target_review") or {}
+    review  = page.session.get("report_target_review") or {}
     reasons = [
         ("spam",       "🚫 Spam / Fake"),
         ("offensive",  "😡 Offensive"),
@@ -651,7 +642,7 @@ def report_screen_for_review(page, go_to):
             def click(e):
                 selected["value"] = k
                 for btn in reason_btns:
-                    active = btn.data == k
+                    active      = btn.data == k
                     btn.bgcolor = PRIMARY if active else CARD_BG
                     btn.content = ft.Text(btn.data_label, color="white" if active else TEXT_DARK)
                 submit_btn.disabled = False
@@ -673,8 +664,8 @@ def report_screen_for_review(page, go_to):
             try:
                 resp = requests.post(f"{BASE_URL}/reviews/report/", json={
                     "review_id": review.get("id"),
-                    "reason": selected["value"],
-                    "details": details.value,
+                    "reason":    selected["value"],
+                    "details":   details.value,
                 }, timeout=10)
                 if resp.status_code in (200, 201):
                     msg.color = SUCCESS
@@ -693,7 +684,7 @@ def report_screen_for_review(page, go_to):
         threading.Thread(target=post).start()
     submit_btn.on_click = do_report
 
-    body = review.get("review_text", "")
+    body    = review.get("review_text", "")
     preview = ft.Container(
         content=ft.Column([
             ft.Text("Reporting:", size=12, color=TEXT_LIGHT),
@@ -701,7 +692,7 @@ def report_screen_for_review(page, go_to):
                 content=ft.Column([
                     ft.Text(review.get("title", ""), weight=ft.FontWeight.BOLD, size=14),
                     ft.Text(body[:100] + "…" if len(body) > 100 else body, size=12, color=TEXT_LIGHT),
-                    ft.Text(f"— {review.get('author_name','')}", size=11, color=ACCENT, italic=True),
+                    ft.Text(f"— {review.get('author_name', '')}", size=11, color=ACCENT, italic=True),
                 ], spacing=4),
                 padding=ft.padding.all(10), bgcolor="#fff8e1", border_radius=8,
             ),
@@ -718,12 +709,14 @@ def report_screen_for_review(page, go_to):
         controls=[
             ft.Container(
                 content=ft.Column([
-                    ft.Row([ft.Icon(ft.Icons.FLAG, color=ERROR, size=26),
-                            ft.Column([
-                                ft.Text("Report Content", size=18,
-                                        weight=ft.FontWeight.BOLD, color=TEXT_DARK),
-                                ft.Text("Help keep AutoLink safe", size=12, color=TEXT_LIGHT),
-                            ], spacing=2)], spacing=10),
+                    ft.Row([
+                        ft.Icon(ft.Icons.FLAG, color=ERROR, size=26),
+                        ft.Column([
+                            ft.Text("Report Content", size=18,
+                                    weight=ft.FontWeight.BOLD, color=TEXT_DARK),
+                            ft.Text("Help keep AutoLink safe", size=12, color=TEXT_LIGHT),
+                        ], spacing=2),
+                    ], spacing=10),
                     preview,
                     ft.Container(
                         content=ft.Column([
@@ -734,21 +727,24 @@ def report_screen_for_review(page, go_to):
                         padding=ft.padding.all(14), bgcolor=CARD_BG, border_radius=12,
                         shadow=ft.BoxShadow(blur_radius=6, color="#00000012"),
                     ),
-                    details, msg,
+                    details,
+                    msg,
                     ft.Container(content=submit_btn, alignment=ft.alignment.Alignment(0, 0)),
                     ft.Container(height=16),
                 ], spacing=12),
                 padding=ft.padding.all(16),
             )
-        ]
+        ],
     )
 
 
 # ── REPORT VEHICLE SCREEN ─────────────────────────────────────
 
 def report_vehicle_screen(page, go_to):
-    vehicle_field = ft.TextField(label="Vehicle ID or Title", prefix_icon=ft.Icons.DIRECTIONS_CAR,
-                                 border_color=PRIMARY, border_radius=10)
+    vehicle_field = ft.TextField(
+        label="Vehicle ID or Title", prefix_icon=ft.Icons.DIRECTIONS_CAR,
+        border_color=PRIMARY, border_radius=10,
+    )
     reasons = [
         ("fraud",       "💸 Fraudulent listing"),
         ("wrong_info",  "📋 Incorrect info"),
@@ -779,7 +775,7 @@ def report_vehicle_screen(page, go_to):
             def click(e):
                 selected["value"] = k
                 for btn in reason_btns:
-                    active = btn.data == k
+                    active      = btn.data == k
                     btn.bgcolor = PRIMARY if active else CARD_BG
                     btn.content = ft.Text(btn.data_label, color="white" if active else TEXT_DARK)
                 submit_btn.disabled = False
@@ -801,8 +797,8 @@ def report_vehicle_screen(page, go_to):
             try:
                 resp = requests.post(f"{BASE_URL}/reviews/report-vehicle/", json={
                     "vehicle_ref": vehicle_field.value,
-                    "reason": selected["value"],
-                    "details": details.value,
+                    "reason":      selected["value"],
+                    "details":     details.value,
                 }, timeout=10)
                 if resp.status_code in (200, 201):
                     msg.color = SUCCESS
@@ -831,12 +827,14 @@ def report_vehicle_screen(page, go_to):
         controls=[
             ft.Container(
                 content=ft.Column([
-                    ft.Row([ft.Icon(ft.Icons.REPORT_PROBLEM, color=ERROR, size=26),
-                            ft.Column([
-                                ft.Text("Report a Vehicle", size=18,
-                                        weight=ft.FontWeight.BOLD, color=TEXT_DARK),
-                                ft.Text("Help remove bad listings", size=12, color=TEXT_LIGHT),
-                            ], spacing=2)], spacing=10),
+                    ft.Row([
+                        ft.Icon(ft.Icons.REPORT_PROBLEM, color=ERROR, size=26),
+                        ft.Column([
+                            ft.Text("Report a Vehicle", size=18,
+                                    weight=ft.FontWeight.BOLD, color=TEXT_DARK),
+                            ft.Text("Help remove bad listings", size=12, color=TEXT_LIGHT),
+                        ], spacing=2),
+                    ], spacing=10),
                     vehicle_field,
                     ft.Container(
                         content=ft.Column([
@@ -847,11 +845,12 @@ def report_vehicle_screen(page, go_to):
                         padding=ft.padding.all(14), bgcolor=CARD_BG, border_radius=12,
                         shadow=ft.BoxShadow(blur_radius=6, color="#00000012"),
                     ),
-                    details, msg,
+                    details,
+                    msg,
                     ft.Container(content=submit_btn, alignment=ft.alignment.Alignment(0, 0)),
                     ft.Container(height=16),
                 ], spacing=12),
                 padding=ft.padding.all(16),
             )
-        ]
+        ],
     )
