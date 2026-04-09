@@ -67,8 +67,24 @@ def profile_screen(page, go_to):
                         tile(ft.Icons.CREDIT_CARD, "Driver License", p.get("driver_license")),
                     ])),
                     ft.Container(height=10),
-                    big_btn("Logout", lambda e: do_logout(), bg=ERROR, width=200),
+                    
                 ]
+
+                if p.get("user_type") in ["seller", "renter"]:
+                    col.controls.append(
+                        big_btn(
+                            "🚗  My Listings",
+                            lambda e: go_to("my_vehicles"),
+                            width=280,
+                        )
+                    )
+                    col.controls.append(ft.Container(height=8))
+
+                col.controls += [
+                    big_btn("Logout", lambda e: do_logout(), bg=ERROR, width=200),
+                    ft.Container(height=20),
+                ]
+
                 page.update()
 
             except Exception as ex:
