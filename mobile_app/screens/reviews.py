@@ -625,7 +625,7 @@ def report_screen_for_review(page, go_to):
                                border_color=PRIMARY, border_radius=10)
     msg         = ft.Text("", text_align=ft.TextAlign.CENTER)
     submit_btn  = ft.ElevatedButton(
-        content=ft.Text("Submit Report", color="white"),
+        content=ft.Text("Submit Report", color=""),
         bgcolor=ERROR, width=260, height=46, disabled=True,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
     )
