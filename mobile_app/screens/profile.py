@@ -1,7 +1,7 @@
 # screens/profile.py
 # ─────────────────────────────────────────────────────────────
 # PROFILE SCREEN
-# Owner: Vigneshwar Bhewa (2411725)
+# Owner: Salwan Maighun (2412258)
 # ─────────────────────────────────────────────────────────────
 
 import flet as ft
