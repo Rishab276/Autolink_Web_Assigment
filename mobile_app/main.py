@@ -13,7 +13,7 @@
 #     nearby.py          ← GPS nearby        (Rishab    2412024)
 #     saved.py           ← Saved vehicles    (Salwan    2412258)
 #     reviews.py         ← Reviews           (Humaa     2412290)
-#     profile.py         ← Profile           (Vigneshwar 2411725)
+#     profile.py         ← Profile           (Salwan    2412258)
 # ─────────────────────────────────────────────────────────────
 
 import flet as ft
