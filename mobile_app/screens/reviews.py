@@ -5,7 +5,7 @@ import time
 import datetime
 
 ANTHROPIC_API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE"
-BASE_URL = "http://192.168.1.78:8000/api"
+BASE_URL = "http://127.0.0.1:8000/"
 
 PRIMARY    = "#1a237e"
 ACCENT     = "#ff6f00"
@@ -17,6 +17,7 @@ SUCCESS    = "#388e3c"
 ERROR      = "#c62828"
 STAR_ON    = "#FFB300"
 STAR_OFF   = "#e0e0e0"
+LOGO_PATH  = "assets/logo copy.png"
 SENTIMENT_COLORS = {"positive": "#2e7d32", "neutral": "#f57c00", "negative": "#c62828"}
 
 
@@ -241,22 +242,33 @@ def reviews_screen(page, go_to):
         update_hint()
         page.update()
 
-    # ── Tilt via page.on_event (device orientation) ──────────
+    # ── FIXED: Tilt sensor with lower threshold + extra axis support ──
     def on_page_event(e):
         if tilt_state["locked"]:
             return
         try:
             import json
-            data  = json.loads(e.data) if isinstance(e.data, str) else {}
-            gamma = float(data.get("gamma", data.get("x", 0)))
-            now   = _time.time()
-            if now - tilt_state["last_x"] < 0.5:
+            if hasattr(e, 'data') and e.data:
+                data = json.loads(e.data) if isinstance(e.data, str) else e.data
+            else:
+                return
+
+            # Support gamma (web/gyroscope), rotationX (some mobile), and x (accelerometer)
+            gamma = float(
+                data.get("gamma",
+                data.get("rotationX",
+                data.get("x", 0)))
+            )
+
+            now = _time.time()
+            if now - tilt_state["last_x"] < 0.3:   # reduced debounce = more responsive
                 return
             tilt_state["last_x"] = now
+
             current = int(star_state["value"])
-            if gamma > 8 and current < 5:
+            if gamma > 6 and current < 5:           # lower threshold = more sensitive
                 set_star(current + 1)
-            elif gamma < -8 and current > 0:
+            elif gamma < -6 and current > 0:
                 set_star(current - 1)
         except Exception:
             pass
@@ -273,7 +285,7 @@ def reviews_screen(page, go_to):
         on_double_tap=on_double_tap,
     )
 
-    # ── Render reviews (no filter, show all) ─────────────────
+    # ── Render reviews ────────────────────────────────────────
     def render_reviews(reviews):
         reviews_col.controls.clear()
         if not reviews:
@@ -322,88 +334,70 @@ def reviews_screen(page, go_to):
         "Ebène":         (-20.2417, 57.4833),
     }
 
+    # ── FIXED: Location with proper timeout handling ──────────
     def get_location(e):
         gps_label.value = "📍 Detecting location…"
         page.update()
         def fetch_loc():
             try:
                 r       = requests.get("https://ipapi.co/json/", timeout=8).json()
-                country = r.get("country_code", "")
-                city    = r.get("city", "")
                 lat     = r.get("latitude",  -20.1654)
                 lng     = r.get("longitude",  57.4896)
+                country = r.get("country_code", "")
+                city    = r.get("city", "")
+
+                best_label = city or "Port Louis"
                 if country == "MU" or (-21.5 < float(lat) < -19.5 and 56.5 < float(lng) < 63.5):
-                    best_label = city if city else "Port Louis"
-                    best_dist  = float("inf")
+                    best_dist = float("inf")
                     for name, (dlat, dlng) in MAURITIUS_LOCATIONS.items():
-                        dist = ((float(lat) - dlat) ** 2 + (float(lng) - dlng) ** 2) ** 0.5
+                        dist = ((float(lat) - dlat)**2 + (float(lng) - dlng)**2)**0.5
                         if dist < best_dist:
                             best_dist  = dist
                             best_label = name
                     label = f"{best_label}, Mauritius 🇲🇺"
                 else:
                     label = f"{city}, {r.get('country_name', '')}" if city else r.get("country_name", "Unknown")
+
                 gps_coords.update({"lat": lat, "lng": lng, "label": label})
                 gps_label.value = f"📍 {label}"
-            except Exception:
+            except requests.exceptions.Timeout:
                 gps_coords.update({"lat": -20.1654, "lng": 57.4896, "label": "Port Louis, Mauritius 🇲🇺"})
-                gps_label.value = "📍 Port Louis, Mauritius 🇲🇺"
+                gps_label.value = "📍 Port Louis, Mauritius 🇲🇺 (fallback)"
+            except Exception as ex:
+                gps_label.value = f"📍 Could not detect: {ex}"
             page.update()
         threading.Thread(target=fetch_loc).start()
 
+    # ── FIXED: Camera using on_result callback ────────────────
     def open_camera(e):
-        import sys, platform as _pl
-        is_ios = (
-            _pl.system() == "Darwin"
-            or "iphone" in sys.platform.lower()
-            or "ios" in str(getattr(page, "platform", "")).lower()
-            or str(getattr(page, "platform", "")).lower() in ("ios", "iphone", "ipad")
-        )
-        if is_ios:
-            photo_label.value = "📵 Camera unavailable on iOS — please use a desktop or Android device"
-            photo_label.color = ERROR
-            camera_btn.disabled = True
-            camera_btn.opacity  = 0.4
-            page.update()
-            return
-
-        def pick():
+        def on_file_result(e: ft.FilePickerResultEvent):
             try:
-                picker = ft.FilePicker()
-                page.overlay.append(picker)
-                page.update()
-                files = picker.pick_files(
-                    allow_multiple=False,
-                    allowed_extensions=["jpg", "jpeg", "png"],
-                )
-                if files:
-                    photo_path["value"] = files[0].path
-                    photo_label.value   = f"📷 {files[0].name}"
+                page.overlay.clear()
+                if e.files and len(e.files) > 0:
+                    photo_path["value"] = e.files[0].path
+                    photo_label.value   = f"📷 {e.files[0].name}"
                     photo_label.color   = TEXT_LIGHT
                 else:
                     photo_label.value = ""
-                try:
-                    page.overlay.remove(picker)
-                except Exception:
-                    pass
-                page.update()
-            except PermissionError:
-                photo_label.value   = "📵 Photo access denied — check your app permissions"
-                photo_label.color   = ERROR
-                camera_btn.disabled = True
-                camera_btn.opacity  = 0.4
-                page.update()
             except Exception as ex:
-                err = str(ex).lower()
-                if "permission" in err or "denied" in err or "restricted" in err:
-                    photo_label.value   = "📵 Photo access denied — check your settings"
-                    photo_label.color   = ERROR
-                    camera_btn.disabled = True
-                    camera_btn.opacity  = 0.4
-                else:
-                    photo_label.value = f"📷 Could not open picker: {ex}"
-                    photo_label.color = ERROR
+                photo_label.value = f"📷 Error: {ex}"
+                photo_label.color = ERROR
+            page.update()
+
+        def pick():
+            try:
+                picker = ft.FilePicker(on_result=on_file_result)
+                page.overlay.append(picker)
                 page.update()
+                picker.pick_files(
+                    allow_multiple=False,
+                    allowed_extensions=["jpg", "jpeg", "png"],
+                )
+            except Exception as ex:
+                photo_label.value = f"📷 Error: {ex}"
+                photo_label.color = ERROR
+                page.update()
+
         threading.Thread(target=pick).start()
 
     def analyse_sentiment(e):
@@ -470,7 +464,6 @@ def reviews_screen(page, go_to):
                 if resp.status_code == 201:
                     submit_msg.color = SUCCESS
                     submit_msg.value = "✅ Submitted!"
-                    # Show review immediately in the list without waiting for server
                     new_review = {
                         "title":          payload["title"],
                         "review_text":    payload["review_text"],
@@ -483,7 +476,6 @@ def reviews_screen(page, go_to):
                     all_reviews.insert(0, new_review)
                     summary_box.content = _rating_bar(all_reviews)
                     render_reviews(all_reviews)
-                    # Clear the form
                     title_field.value = review_field.value = author_field.value = email_field.value = ""
                     star_state["value"] = 0
                     build_stars()
@@ -491,7 +483,6 @@ def reviews_screen(page, go_to):
                     gps_coords.update({"lat": None, "lng": None, "label": ""})
                     gps_label.value = photo_label.value = sentiment_result.value = ""
                     photo_path["value"] = None
-                    # Silently refresh from server in the background
                     load_reviews(show_spinner=False)
                 else:
                     submit_msg.color = ERROR
@@ -544,59 +535,77 @@ def reviews_screen(page, go_to):
                     # ── Rating summary bar ──────────────────────
                     summary_box,
 
-                    # ── Write a review form ─────────────────────
+                    # ── Write a review form with faded logo background ──
                     ft.Container(
-                        content=ft.Column([
-                            ft.Row([
-                                ft.Icon(ft.Icons.EDIT, color=PRIMARY),
-                                ft.Text("Write a Review", size=18,
-                                        weight=ft.FontWeight.BOLD, color=PRIMARY),
-                            ], spacing=8),
-                            ft.Divider(height=1, color="#e0e0e0"),
-                            ft.Text("Your Rating", size=13, color=TEXT_LIGHT),
-                            star_gesture,
-                            tilt_hint,
-                            lock_indicator,
-                            title_field,
-                            review_field,
-                            ft.Row([
-                                ft.OutlinedButton(
-                                    content=ft.Text("🤖 Sentiment", color=PRIMARY),
-                                    on_click=analyse_sentiment,
-                                    style=ft.ButtonStyle(
-                                        side=ft.BorderSide(1, PRIMARY),
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                    ),
-                                ),
-                                sentiment_result,
-                            ], spacing=8),
-                            ft.Row([author_field, email_field], spacing=8),
-                            ft.Row([
-                                ft.OutlinedButton(
-                                    content=ft.Text("📍 Location", color=ACCENT),
-                                    on_click=get_location,
-                                    style=ft.ButtonStyle(
-                                        side=ft.BorderSide(1, ACCENT),
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                    ),
-                                ),
-                                camera_btn,
-                            ], spacing=8),
-                            gps_label,
-                            photo_label,
-                            submit_msg,
+                        content=ft.Stack([
+                            # ── Faded logo background ──
                             ft.Container(
-                                content=submit_btn,
+                                content=ft.Image(
+                                    src=LOGO_PATH,
+                                    width=400,
+                                    height=400,
+                                    fit="fill",
+                                    opacity=0.35,
+                                ),
                                 alignment=ft.alignment.Alignment(0, 0),
+                                expand=True,
                             ),
-                        ], spacing=10),
-                        padding=ft.padding.all(16), bgcolor=CARD_BG, border_radius=16,
+                            # ── Form content on top ──
+                            ft.Container(
+                                content=ft.Column([
+                                    ft.Row([
+                                        ft.Icon(ft.Icons.EDIT, color=PRIMARY),
+                                        ft.Text("Write a Review", size=18,
+                                                weight=ft.FontWeight.BOLD, color=PRIMARY),
+                                    ], spacing=8),
+                                    ft.Divider(height=1, color="#e0e0e0"),
+                                    ft.Text("Your Rating", size=13, color=TEXT_LIGHT),
+                                    star_gesture,
+                                    tilt_hint,
+                                    lock_indicator,
+                                    title_field,
+                                    review_field,
+                                    ft.Row([
+                                        ft.OutlinedButton(
+                                            content=ft.Text("🤖 Sentiment", color=PRIMARY),
+                                            on_click=analyse_sentiment,
+                                            style=ft.ButtonStyle(
+                                                side=ft.BorderSide(1, PRIMARY),
+                                                shape=ft.RoundedRectangleBorder(radius=10),
+                                            ),
+                                        ),
+                                        sentiment_result,
+                                    ], spacing=8),
+                                    ft.Row([author_field,email_field,]),
+                                    ft.Row([
+                                        ft.OutlinedButton(
+                                            content=ft.Text("📍 Location", color=ACCENT),
+                                            on_click=get_location,
+                                            style=ft.ButtonStyle(
+                                                side=ft.BorderSide(1, ACCENT),
+                                                shape=ft.RoundedRectangleBorder(radius=10),
+                                            ),
+                                        ),
+                                        camera_btn,
+                                    ], spacing=8),
+                                    gps_label,
+                                    photo_label,
+                                    submit_msg,
+                                    ft.Container(
+                                        content=submit_btn,
+                                        alignment=ft.alignment.Alignment(0, 0),
+                                    ),
+                                ], spacing=10),
+                                padding=ft.padding.all(16),
+                            ),
+                        ]),
+                        bgcolor=CARD_BG, border_radius=16,
                         shadow=ft.BoxShadow(blur_radius=8, color="#00000014"),
                     ),
 
                     ft.Container(height=8),
 
-                    # ── Reviews list (no heading, no filter) ────
+                    # ── Reviews list ────────────────────────────
                     spinner,
                     status_text,
                     reviews_col,
@@ -625,7 +634,7 @@ def report_screen_for_review(page, go_to):
                                border_color=PRIMARY, border_radius=10)
     msg         = ft.Text("", text_align=ft.TextAlign.CENTER)
     submit_btn  = ft.ElevatedButton(
-        content=ft.Text("Submit Report", color="white"),
+        content=ft.Text("Submit Report", color=""),
         bgcolor=ERROR, width=260, height=46, disabled=True,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
     )
