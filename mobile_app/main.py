@@ -8,6 +8,7 @@
 #   shared.py            ← API, theme, shared components (Salwan)
 #   screens/
 #     login.py           ← Login & Register  (Vigneshwar 2411725)
+#     upload.py          ← upload vehicle for sale or rent  (Vigneshwar 2411725)
 #     home.py            ← Home screen       (Keshni    2412390)
 #     detail.py          ← Vehicle detail    (Rishab    2412024)
 #     nearby.py          ← GPS nearby        (Rishab    2412024)
