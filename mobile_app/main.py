@@ -59,4 +59,4 @@ def main(page: ft.Page):
     go_to("login")
 
 
-ft.app(target=main)
+ft.app(target=main, assets_dir="assets")
