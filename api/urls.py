@@ -41,6 +41,7 @@ urlpatterns = [
     # --- SAVED VEHICLES ---
     # GET  /api/saved/                      → Get user's saved vehicles
     # POST /api/saved/toggle/<vehicle_id>/  → Save or unsave a vehicle
+    path('saved/sorted/', views.SavedVehiclesSortedAPI.as_view(), name='api_saved_sorted'),
     path('saved/', views.SavedVehiclesAPI.as_view(), name='api_saved'),
     path('saved/toggle/<int:vehicle_id>/', views.ToggleSaveAPI.as_view(), name='api_toggle_save'),
 ]

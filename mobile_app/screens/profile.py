@@ -2,18 +2,98 @@
 # ─────────────────────────────────────────────────────────────
 # PROFILE SCREEN
 # Owner: Salwan Maighun (2412258)
+#
+# SENSOR FEATURE: Shake-to-Logout
+#   Uses ft.Accelerometer (raw sensor, includes gravity ~9.8 m/s²).
+#   When the user shakes the phone hard enough (magnitude > SHAKE_THRESHOLD),
+#   a confirmation dialog pops up asking them to confirm logout.
+#   A cooldown (SHAKE_COOLDOWN_S) prevents repeated triggers.
 # ─────────────────────────────────────────────────────────────
 
 import flet as ft
 import threading
+import time
+import math
 from shared import api, big_btn, nav
 from shared import PRIMARY, ACCENT, BG, TEXT_DARK, TEXT_LIGHT, ERROR
 
+# ── SHAKE DETECTION CONSTANTS ────────────────────────────────
+# The accelerometer includes gravity (~9.8 m/s²), so at rest the
+# magnitude is ~9.8.  A hard shake easily exceeds 25 m/s².
+SHAKE_THRESHOLD = 25.0   # m/s² — tune up if too sensitive
+SHAKE_COOLDOWN_S = 2.0   # seconds between shake triggers
 
-def profile_screen(page, go_to):
+
+def profile_screen(page: ft.Page, go_to):
     col  = ft.Column(spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
     spin = ft.ProgressRing(visible=True, color=PRIMARY, width=30, height=30)
 
+    # ── shake state (shared across threads) ──────────────────
+    last_shake_time = [0.0]       # list so inner functions can mutate it
+    dialog_open     = [False]
+    accel_service   = [None]      # hold reference so it isn't garbage-collected
+
+    # ── logout helpers ────────────────────────────────────────
+    def _do_logout():
+        if accel_service[0]:
+            accel_service[0].enabled = False   # stop sensor
+        threading.Thread(target=api.logout).start()
+        go_to("login")
+
+    def _close_dialog(confirmed):
+        dialog_open[0] = False
+        page.close(page.dialog)
+        if confirmed:
+            _do_logout()
+
+    def _show_shake_dialog():
+        dialog_open[0] = True
+        page.dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Shake detected 👋", weight=ft.FontWeight.BOLD),
+            content=ft.Text("Did you want to log out?"),
+            actions=[
+                ft.TextButton(
+                    "Cancel",
+                    on_click=lambda e: _close_dialog(False),
+                    style=ft.ButtonStyle(color=TEXT_LIGHT),
+                ),
+                ft.ElevatedButton(
+                    "Yes, log out",
+                    on_click=lambda e: _close_dialog(True),
+                    bgcolor=ERROR,
+                    color="white",
+                ),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page.open(page.dialog)
+
+    # ── accelerometer reading handler ─────────────────────────
+    def on_accel_reading(e: ft.AccelerometerReadingEvent):
+        # magnitude of the acceleration vector
+        magnitude = math.sqrt(e.x ** 2 + e.y ** 2 + e.z ** 2)
+
+        if magnitude > SHAKE_THRESHOLD:
+            now = time.time()
+            if (now - last_shake_time[0]) > SHAKE_COOLDOWN_S and not dialog_open[0]:
+                last_shake_time[0] = now
+                page.run_task(_async_show_dialog)   # must update UI from main loop
+
+    async def _async_show_dialog():
+        _show_shake_dialog()
+        page.update()
+
+    # ── start accelerometer ───────────────────────────────────
+    def _start_accelerometer():
+        acc = ft.Accelerometer(
+            interval=ft.Duration(milliseconds=100),
+            on_reading=on_accel_reading,
+        )
+        page.services.append(acc)
+        accel_service[0] = acc
+
+    # ── profile data loader ───────────────────────────────────
     def load():
         def fetch():
             try:
@@ -56,7 +136,28 @@ def profile_screen(page, go_to):
                         padding=ft.padding.symmetric(horizontal=12, vertical=4),
                         border_radius=20,
                     ),
-                    ft.Container(height=10),
+                    ft.Container(height=4),
+
+                    # ── shake hint banner ─────────────────────
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Icon(ft.Icons.VIBRATION, color=ACCENT, size=18),
+                                ft.Text(
+                                    "Shake your phone to log out",
+                                    size=13, color=TEXT_LIGHT,
+                                    italic=True,
+                                ),
+                            ],
+                            spacing=6,
+                        ),
+                        padding=ft.padding.symmetric(horizontal=16, vertical=8),
+                        bgcolor="#fff3e0",
+                        border_radius=8,
+                        margin=ft.margin.symmetric(horizontal=16),
+                    ),
+
+                    ft.Container(height=6),
                     ft.Card(elevation=3, content=ft.Column(spacing=0, controls=[
                         tile(ft.Icons.EMAIL,       "Email",          p.get("email")),
                         ft.Divider(height=1),
@@ -67,8 +168,12 @@ def profile_screen(page, go_to):
                         tile(ft.Icons.CREDIT_CARD, "Driver License", p.get("driver_license")),
                     ])),
                     ft.Container(height=10),
-                    big_btn("Logout", lambda e: do_logout(), bg=ERROR, width=200),
+                    big_btn("Logout", lambda e: _do_logout(), bg=ERROR, width=200),
                 ]
+                page.update()
+
+                # start accelerometer only after profile is shown
+                _start_accelerometer()
                 page.update()
 
             except Exception as ex:
@@ -77,10 +182,6 @@ def profile_screen(page, go_to):
                 page.update()
 
         threading.Thread(target=fetch).start()
-
-    def do_logout():
-        threading.Thread(target=api.logout).start()
-        go_to("login")
 
     load()
 
