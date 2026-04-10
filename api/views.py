@@ -521,3 +521,86 @@ class ToggleSaveAPI(APIView):
             return Response({'saved': False, 'message': 'Vehicle removed from saved.'})
 
         return Response({'saved': True, 'message': 'Vehicle saved!'})
+
+
+class SavedVehiclesSortedAPI(APIView):
+    """
+    GET /api/saved/sorted/
+    Header: Authorization: Token <token>
+    Query params: ?lat=<latitude>&lng=<longitude>
+ 
+    Returns saved vehicles sorted by distance (nearest first).
+    Each item has an extra "distance_km" field.
+    Vehicles with no GPS coordinates are appended at the end
+    with distance_km = null.
+    """
+    permission_classes = [IsAuthenticated]
+ 
+    def get(self, request):
+        lat_str = request.GET.get("lat")
+        lng_str = request.GET.get("lng")
+ 
+        if not lat_str or not lng_str:
+            return Response(
+                {"error": "lat and lng query parameters are required."},
+                status=400,
+            )
+ 
+        try:
+            user_lat = float(lat_str)
+            user_lng = float(lng_str)
+        except ValueError:
+            return Response({"error": "Invalid lat/lng values."}, status=400)
+ 
+        saved = (
+            SavedVehicle.objects
+            .filter(user=request.user, vehicle__is_sold=False)
+            .select_related("vehicle")
+            .prefetch_related("vehicle__images")
+            .order_by("-saved_at")
+        )
+ 
+        with_distance    = []
+        without_distance = []
+ 
+        for sv in saved:
+            vehicle   = sv.vehicle
+            gps       = vehicle.gps_coor or ""
+            distance  = None
+ 
+            if gps:
+                try:
+                    parts    = gps.split(",")
+                    v_lat    = float(parts[0].strip())
+                    v_lng    = float(parts[1].strip())
+                    distance = self._haversine(user_lat, user_lng, v_lat, v_lng)
+                except (ValueError, IndexError):
+                    pass
+ 
+            serialized = SavedVehicleSerializer(
+                sv, context={"request": request}
+            ).data
+ 
+            if distance is not None:
+                serialized["distance_km"] = round(distance, 2)
+                with_distance.append((distance, serialized))
+            else:
+                serialized["distance_km"] = None
+                without_distance.append(serialized)
+ 
+        # sort nearest first, then append vehicles with no GPS
+        with_distance.sort(key=lambda x: x[0])
+        ordered = [item for _, item in with_distance] + without_distance
+ 
+        return Response(ordered)
+ 
+    @staticmethod
+    def _haversine(lat1, lon1, lat2, lon2):
+        R    = 6371
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a    = (math.sin(dlat / 2) ** 2
+                + math.cos(math.radians(lat1))
+                * math.cos(math.radians(lat2))
+                * math.sin(dlon / 2) ** 2)
+        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))

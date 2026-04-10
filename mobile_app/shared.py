@@ -69,6 +69,14 @@ class API:
 
     def saved(self):
         return requests.get(f"{BASE_URL}/saved/", headers=self.h(), timeout=10).json()
+    
+    def saved_sorted(self, lat, lng):
+        return requests.get(
+            f"{BASE_URL}/saved/sorted/",
+            params={"lat": lat, "lng": lng},
+            headers=self.h(),
+            timeout=15,
+        ).json()
 
     def toggle_save(self, vid):
         return requests.post(f"{BASE_URL}/saved/toggle/{vid}/", headers=self.h(), timeout=10).json()
