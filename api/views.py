@@ -40,6 +40,7 @@ class LoginAPI(APIView):
         email    = request.data.get('email')
         password = request.data.get('password')
 
+
         from django.contrib.auth.models import User
         try:
             user_obj = User.objects.get(email=email)
@@ -73,6 +74,7 @@ class LoginAPI(APIView):
 
 
 class RegisterAPI(APIView):
+
     """
     POST /api/register/
     Body: { "first_name", "last_name", "email", "password",
@@ -92,6 +94,7 @@ class RegisterAPI(APIView):
 
 
 class LogoutAPI(APIView):
+
     """
     POST /api/logout/
     Header: Authorization: Token <token>
@@ -101,6 +104,146 @@ class LogoutAPI(APIView):
     def post(self, request):
         request.user.auth_token.delete()
         return Response({'message': 'Logged out successfully.'})
+    
+class MyVehiclesAPI(APIView):
+    """
+    GET /api/my-vehicles/
+    Returns all vehicles uploaded by the logged-in seller/renter.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        vehicles = Vehicle.objects.filter(
+            uploader=request.user
+        ).prefetch_related('images').order_by('-id')
+        serializer = VehicleSerializer(vehicles, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class UploadVehicleAPI(APIView):
+    """
+    POST /api/vehicles/upload/
+    Header: Authorization: Token <token>
+    Body (multipart/form-data):
+        make, model, year, mileage, transmission, fuel_type,
+        type_of_vehicle, price, gps_coor, is_rental, desc, contact
+    Creates a new vehicle listing for the logged-in seller/renter.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'User profile not found.'}, status=400)
+
+        if profile.user_type not in ['seller', 'renter']:
+            return Response({'error': 'Only sellers and renters can upload vehicles.'}, status=403)
+
+        # Determine if rental based on user type
+        is_rental = profile.user_type == 'renter'
+
+        try:
+            vehicle = Vehicle.objects.create(
+                uploader=request.user,
+                make=request.data.get('make', ''),
+                model=request.data.get('model', ''),
+                year=int(request.data.get('year', 2000)),
+                mileage=int(request.data.get('mileage', 0)),
+                transmission=request.data.get('transmission', 'Manual'),
+                fuel_type=request.data.get('fuel_type', 'Petrol'),
+                type_of_vehicle=request.data.get('type_of_vehicle', 'Car'),
+                price=float(request.data.get('price', 0)),
+                gps_coor=request.data.get('gps_coor', ''),
+                is_rental=is_rental,
+                desc=request.data.get('desc', ''),
+                contact=request.data.get('contact', ''),
+            )
+            serializer = VehicleSerializer(vehicle, context={'request': request})
+            return Response(serializer.data, status=201)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+
+
+class UpdateVehicleAPI(APIView):
+    """
+    PATCH /api/vehicles/<id>/update/
+    Header: Authorization: Token <token>
+    Body: any vehicle fields to update
+    Only the uploader can update their own vehicle.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            vehicle = Vehicle.objects.get(pk=pk, uploader=request.user)
+        except Vehicle.DoesNotExist:
+            return Response({'error': 'Vehicle not found or not yours.'}, status=404)
+
+        fields = ['make', 'model', 'year', 'mileage', 'transmission',
+                  'fuel_type', 'type_of_vehicle', 'price', 'gps_coor', 'desc', 'contact']
+
+        for field in fields:
+            if field in request.data:
+                val = request.data[field]
+                if field in ['year', 'mileage']:
+                    val = int(val)
+                elif field == 'price':
+                    val = float(val)
+                setattr(vehicle, field, val)
+
+        vehicle.save()
+        serializer = VehicleSerializer(vehicle, context={'request': request})
+        return Response(serializer.data)
+
+class UpdateProfileAPI(APIView):
+    """
+    PATCH /api/profile/update/
+    Header: Authorization: Token <token>
+    Body: { first_name, last_name, contact_number, address, driver_license }
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        user = request.user
+        profile = UserProfile.objects.get(user=user)
+
+        # Update Django User fields
+        if 'first_name' in request.data:
+            user.first_name = request.data['first_name']
+        if 'last_name' in request.data:
+            user.last_name = request.data['last_name']
+        user.save()
+
+        # Update UserProfile fields
+        if 'contact_number' in request.data:
+            profile.contact_number = request.data['contact_number']
+        if 'address' in request.data:
+            profile.address = request.data['address']
+        if 'driver_license' in request.data:
+            profile.driver_license = request.data['driver_license']
+        profile.save()
+
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
+
+class DeleteVehicleAPI(APIView):
+    """
+    DELETE /api/vehicles/<id>/delete/
+    Header: Authorization: Token <token>
+    Only the uploader can delete their own vehicle.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            vehicle = Vehicle.objects.get(pk=pk, uploader=request.user)
+        except Vehicle.DoesNotExist:
+            return Response({'error': 'Vehicle not found or not yours.'}, status=404)
+
+        vehicle.delete()
+        return Response({'message': 'Vehicle deleted successfully.'})
+    
 
 
 class ProfileAPI(APIView):
@@ -378,3 +521,86 @@ class ToggleSaveAPI(APIView):
             return Response({'saved': False, 'message': 'Vehicle removed from saved.'})
 
         return Response({'saved': True, 'message': 'Vehicle saved!'})
+
+
+class SavedVehiclesSortedAPI(APIView):
+    """
+    GET /api/saved/sorted/
+    Header: Authorization: Token <token>
+    Query params: ?lat=<latitude>&lng=<longitude>
+ 
+    Returns saved vehicles sorted by distance (nearest first).
+    Each item has an extra "distance_km" field.
+    Vehicles with no GPS coordinates are appended at the end
+    with distance_km = null.
+    """
+    permission_classes = [IsAuthenticated]
+ 
+    def get(self, request):
+        lat_str = request.GET.get("lat")
+        lng_str = request.GET.get("lng")
+ 
+        if not lat_str or not lng_str:
+            return Response(
+                {"error": "lat and lng query parameters are required."},
+                status=400,
+            )
+ 
+        try:
+            user_lat = float(lat_str)
+            user_lng = float(lng_str)
+        except ValueError:
+            return Response({"error": "Invalid lat/lng values."}, status=400)
+ 
+        saved = (
+            SavedVehicle.objects
+            .filter(user=request.user, vehicle__is_sold=False)
+            .select_related("vehicle")
+            .prefetch_related("vehicle__images")
+            .order_by("-saved_at")
+        )
+ 
+        with_distance    = []
+        without_distance = []
+ 
+        for sv in saved:
+            vehicle   = sv.vehicle
+            gps       = vehicle.gps_coor or ""
+            distance  = None
+ 
+            if gps:
+                try:
+                    parts    = gps.split(",")
+                    v_lat    = float(parts[0].strip())
+                    v_lng    = float(parts[1].strip())
+                    distance = self._haversine(user_lat, user_lng, v_lat, v_lng)
+                except (ValueError, IndexError):
+                    pass
+ 
+            serialized = SavedVehicleSerializer(
+                sv, context={"request": request}
+            ).data
+ 
+            if distance is not None:
+                serialized["distance_km"] = round(distance, 2)
+                with_distance.append((distance, serialized))
+            else:
+                serialized["distance_km"] = None
+                without_distance.append(serialized)
+ 
+        # sort nearest first, then append vehicles with no GPS
+        with_distance.sort(key=lambda x: x[0])
+        ordered = [item for _, item in with_distance] + without_distance
+ 
+        return Response(ordered)
+ 
+    @staticmethod
+    def _haversine(lat1, lon1, lat2, lon2):
+        R    = 6371
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a    = (math.sin(dlat / 2) ** 2
+                + math.cos(math.radians(lat1))
+                * math.cos(math.radians(lat2))
+                * math.sin(dlon / 2) ** 2)
+        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
