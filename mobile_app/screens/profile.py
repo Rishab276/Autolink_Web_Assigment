@@ -108,31 +108,37 @@ def profile_screen(page: ft.Page, go_to):
             cam_container.visible = True
             page.update()
             try:
+                # 1. Fetch the list of physical cameras
                 cameras = await cam.get_available_cameras()
                 if not cameras:
                     page.snack_bar = ft.SnackBar(ft.Text("No camera found."))
                     page.snack_bar.open = True
                     page.update()
                     return
-                # prefer front camera for selfie
+
+                # 2. Filter specifically for the FRONT lens
+                # We use the fc.CameraLensDirection.FRONT enum for accuracy
                 front = next(
-                    (c for c in cameras
-                     if str(getattr(c, "lens_direction", "")).lower() == "front"),
-                    cameras[0],
+                    (c for c in cameras if c.lens_direction == fc.CameraLensDirection.FRONT),
+                    cameras[0] # Fallback to first camera if front isn't detected
                 )
+
+                # 3. Initialize the camera using the 'front' description
                 await cam.initialize(
                     description=front,
                     resolution_preset=fc.ResolutionPreset.MEDIUM,
                 )
+                
                 cam_btn.text = "Snap Selfie!"
                 cam_btn.icon = ft.Icons.CAMERA
                 page.update()
+
             except Exception as err:
                 page.snack_bar = ft.SnackBar(ft.Text(f"Camera init error: {err}"))
                 page.snack_bar.open = True
                 cam_container.visible = False
                 page.update()
-
+                
     cam_btn = ft.ElevatedButton(
         "Change Photo",
         icon=ft.Icons.CAMERA_ALT,
