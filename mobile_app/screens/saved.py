@@ -3,24 +3,97 @@
 # SAVED VEHICLES SCREEN
 # Owner: Salwan Cassam Maighun (2412258)
 #
-# SENSOR FEATURE: Battery-Aware Power Saving Mode (ft.Battery)
+# FEATURE: Live Weather at Vehicle Location
 #
-#   When the screen loads, ft.Battery queries the device battery
-#   level and charging state. If battery is below 20% AND the
-#   phone is not charging, Power Saving Mode activates:
-#     - Vehicle images are hidden to reduce network/CPU load
-#     - A banner explains why with an override option
-#   If battery >= 20% OR the phone is charging, full cards with
-#   images are shown as normal.
+#   Each saved vehicle card shows a natural-language sentence:
+#   "This car is listed in Curepipe, currently 22°C and
+#    raining — maybe visit tomorrow."
+#
+#   Two free REST APIs are called per vehicle (in background):
+#     1. Nominatim (OpenStreetMap) — reverse geocode lat/lng
+#        to get the city name. Free, no API key.
+#     2. Open-Meteo — current temperature + weather code.
+#        Free, no API key.
+#
+#   Vehicles with no gps_coor show a friendly fallback.
 # ─────────────────────────────────────────────────────────────
 
 import flet as ft
 import threading
+import requests
 from shared import api, APP_STATE, nav, section
-from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, TEXT_DARK, SUCCESS, ERROR
+from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, TEXT_DARK, SUCCESS
 
-# threshold for testing — set to 20 before submission
-BATTERY_THRESHOLD = 95
+
+# ── WMO weather code → human description ─────────────────────
+def _weather_desc(code):
+    if code == 0:                return "clear skies ☀️"
+    elif code in (1, 2):         return "partly cloudy 🌤️"
+    elif code == 3:              return "overcast ☁️"
+    elif code in range(45, 50):  return "foggy 🌫️"
+    elif code in range(51, 58):  return "drizzling 🌦️"
+    elif code in range(61, 68):  return "raining 🌧️"
+    elif code in range(71, 78):  return "snowing ❄️"
+    elif code in range(80, 83):  return "rain showers 🌦️"
+    elif code in range(95, 100): return "thunderstorming ⛈️"
+    return "mixed conditions 🌡️"
+
+
+def _maybe_visit(code):
+    if code == 0:                return "great day to visit!"
+    elif code in (1, 2):         return "not a bad day to visit."
+    elif code == 3:              return "maybe bring a jacket."
+    elif code in range(45, 50):  return "drive carefully if you visit."
+    elif code in range(51, 68):  return "maybe visit tomorrow."
+    elif code in range(71, 78):  return "best to wait for better weather."
+    elif code in range(80, 83):  return "maybe visit tomorrow."
+    elif code in range(95, 100): return "best to wait for better weather."
+    return "check before visiting."
+
+
+def _get_city(lat, lng):
+    try:
+        r = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lng, "format": "json"},
+            headers={"User-Agent": "AutoLink-MobileApp/1.0"},
+            timeout=6,
+        )
+        r.raise_for_status()
+        addr = r.json().get("address", {})
+        return (
+            addr.get("city")
+            or addr.get("town")
+            or addr.get("village")
+            or addr.get("suburb")
+            or addr.get("county")
+            or "this area"
+        )
+    except Exception:
+        return None
+
+
+def _get_weather(lat, lng):
+    try:
+        r = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude":      lat,
+                "longitude":     lng,
+                "current":       "temperature_2m,weather_code",
+                "forecast_days": 1,
+            },
+            timeout=8,
+        )
+        r.raise_for_status()
+        data = r.json()
+        return (
+            data["current"]["temperature_2m"],
+            data["current_units"]["temperature_2m"],
+            data["current"]["weather_code"],
+        )
+    except Exception:
+        return None, None, None
 
 
 def saved_screen(page: ft.Page, go_to):
@@ -28,97 +101,46 @@ def saved_screen(page: ft.Page, go_to):
     status = ft.Text("", color=TEXT_LIGHT, text_align=ft.TextAlign.CENTER)
     spin   = ft.ProgressRing(visible=True, color=PRIMARY, width=30, height=30)
 
-    power_saving = [False]
-    saved_items  = [None]
-
-    # ── power saving banner ───────────────────────────────────
-    banner_text = ft.Text("", size=13, color="white", expand=True)
-    power_banner = ft.Container(
-        visible=False,
-        bgcolor=ERROR,
-        border_radius=8,
-        padding=ft.padding.symmetric(horizontal=14, vertical=10),
-        content=ft.Column([
-            ft.Row([
-                ft.Icon(ft.Icons.BATTERY_ALERT, color="white", size=18),
-                banner_text,
-            ], spacing=8),
-            ft.TextButton(
-                "Show images anyway",
-                style=ft.ButtonStyle(color="white"),
-                on_click=lambda e: _disable_power_saving(),
-            ),
-        ], spacing=4),
-    )
-
-    def _disable_power_saving():
-        power_saving[0]      = False
-        power_banner.visible = False
-        page.update()
-        if saved_items[0]:
-            _render_cards(saved_items[0])
-
-    # ── lite card (no image) ──────────────────────────────────
-    def _lite_card(v, on_tap, on_unsave):
-        return ft.GestureDetector(
-            on_tap=on_tap,
-            content=ft.Card(
-                elevation=2,
-                content=ft.Container(
-                    padding=ft.padding.all(14),
-                    content=ft.Column([
-                        ft.Row([
-                            ft.Text(
-                                f"{v['make']} {v['model']}",
-                                size=15, weight=ft.FontWeight.BOLD,
-                                color=TEXT_DARK, expand=True,
-                            ),
-                            ft.Container(
-                                content=ft.Icon(ft.Icons.BOOKMARK, color=ACCENT, size=20),
-                                on_click=on_unsave, padding=4,
-                            ),
-                        ]),
-                        ft.Text(
-                            f"{v['year']}  •  {v['type_of_vehicle']}  •  {v['fuel_type']}",
-                            size=12, color=TEXT_LIGHT,
-                        ),
-                        ft.Text(
-                            f"Rs {int(v['price']):,}{'  /month' if v['is_rental'] else ''}",
-                            size=16, weight=ft.FontWeight.BOLD, color=ACCENT,
-                        ),
-                        ft.Container(
-                            content=ft.Text(
-                                "For Rent" if v["is_rental"] else "For Sale",
-                                size=11, color="white",
-                            ),
-                            bgcolor=PRIMARY if v["is_rental"] else SUCCESS,
-                            padding=ft.padding.symmetric(horizontal=8, vertical=3),
-                            border_radius=10,
-                        ),
-                        ft.Row([
-                            ft.Icon(ft.Icons.BATTERY_ALERT, size=12, color=TEXT_LIGHT),
-                            ft.Text(
-                                "Image hidden — Power Saving Mode",
-                                size=11, color=TEXT_LIGHT, italic=True,
-                            ),
-                        ], spacing=4),
-                    ], spacing=6),
-                ),
-            ),
-        )
-
-    # ── full card (with image) ────────────────────────────────
-    def _full_card(v, on_tap, on_unsave):
+    # ── build one vehicle card ────────────────────────────────
+    def _build_card(v, on_tap, on_unsave):
         images  = v.get("images", [])
         img_url = images[0]["image"] if images else None
+
+        # weather text — wraps freely, no Row wrapper
+        weather_text = ft.Text(
+            "Fetching location weather…",
+            size=12,
+            color=TEXT_LIGHT,
+            italic=True,
+            no_wrap=False,
+        )
+        weather_container = ft.Container(
+            content=weather_text,
+            bgcolor="#f0f4ff",
+            border_radius=6,
+            padding=ft.padding.symmetric(horizontal=10, vertical=6),
+            margin=ft.margin.only(top=4),
+        )
 
         img_box = ft.Container(
             content=ft.Image(src=img_url, fit=ft.BoxFit.COVER) if img_url
                     else ft.Icon(ft.Icons.DIRECTIONS_CAR, size=50, color=TEXT_LIGHT),
-            height=160, bgcolor="#e0e0e0",
+            height=160,
+            bgcolor="#e0e0e0",
             clip_behavior=ft.ClipBehavior.HARD_EDGE,
             alignment=ft.alignment.Alignment(0, 0),
         )
+
+        badge = ft.Container(
+            content=ft.Text(
+                "For Rent" if v["is_rental"] else "For Sale",
+                size=11, color="white",
+            ),
+            bgcolor=PRIMARY if v["is_rental"] else SUCCESS,
+            padding=ft.padding.symmetric(horizontal=8, vertical=3),
+            border_radius=10,
+        )
+
         info = ft.Container(
             content=ft.Column([
                 ft.Row([
@@ -140,19 +162,13 @@ def saved_screen(page: ft.Page, go_to):
                     f"Rs {int(v['price']):,}{'  /month' if v['is_rental'] else ''}",
                     size=17, weight=ft.FontWeight.BOLD, color=ACCENT,
                 ),
-                ft.Container(
-                    content=ft.Text(
-                        "For Rent" if v["is_rental"] else "For Sale",
-                        size=11, color="white",
-                    ),
-                    bgcolor=PRIMARY if v["is_rental"] else SUCCESS,
-                    padding=ft.padding.symmetric(horizontal=8, vertical=3),
-                    border_radius=10,
-                ),
+                badge,
+                weather_container,
             ], spacing=5),
             padding=ft.padding.all(12),
         )
-        return ft.GestureDetector(
+
+        card = ft.GestureDetector(
             on_tap=on_tap,
             content=ft.Card(
                 elevation=3,
@@ -160,70 +176,52 @@ def saved_screen(page: ft.Page, go_to):
             ),
         )
 
-    # ── render cards based on power_saving state ──────────────
-    def _render_cards(items):
-        col.controls.clear()
-        for item in items:
-            v = item["vehicle"]
+        # ── background thread: reverse geocode + weather ──────
+        def _load_weather(gps):
+            if not gps:
+                weather_text.value        = "Location not set for this listing."
+                weather_text.italic       = True
+                weather_container.bgcolor = "#f5f5f5"
+                page.update()
+                return
 
-            def tap_fn(veh):
-                def _tap(e):
-                    APP_STATE["sv"] = veh
-                    go_to("detail")
-                return _tap
+            try:
+                parts = gps.split(",")
+                lat   = float(parts[0].strip())
+                lng   = float(parts[1].strip())
+            except (ValueError, IndexError):
+                weather_text.value = "Invalid coordinates."
+                page.update()
+                return
 
-            def unsave_fn(veh):
-                def _do(e):
-                    def _run():
-                        api.toggle_save(veh["id"])
-                        _load()
-                    threading.Thread(target=_run).start()
-                return _do
+            city             = _get_city(lat, lng) or "this area"
+            temp, unit, code = _get_weather(lat, lng)
 
-            if power_saving[0]:
-                col.controls.append(_lite_card(v, tap_fn(v), unsave_fn(v)))
-            else:
-                col.controls.append(_full_card(v, tap_fn(v), unsave_fn(v)))
-
-        page.update()
-
-    # ── battery check runs in its own thread (no async) ───────
-    def _check_battery(items):
-        try:
-            import asyncio
-            loop = asyncio.new_event_loop()
-
-            async def _query():
-                bat   = ft.Battery()
-                level = await bat.get_battery_level()
-                state = await bat.get_battery_state()
-                return level, state
-
-            level, state = loop.run_until_complete(_query())
-            loop.close()
-
-            is_charging = "charging" in str(state).lower()
-
-            if level >= BATTERY_THRESHOLD or is_charging:
-                power_saving[0]      = False
-                power_banner.visible = False
-            else:
-                power_saving[0]   = True
-                banner_text.value = (
-                    f"⚡ Power Saving Mode — battery at {level}%. "
-                    "Images hidden to save battery."
+            if temp is not None:
+                vehicle_type = v.get("type_of_vehicle", "vehicle").lower()
+                sentence = (
+                    f"This {vehicle_type} is listed in {city}, "
+                    f"currently {temp}{unit} and {_weather_desc(code)} "
+                    f"— {_maybe_visit(code)}"
                 )
-                power_banner.visible = True
+                weather_text.value        = sentence
+                weather_text.italic       = False
+                weather_text.color        = TEXT_DARK
+                weather_container.bgcolor = "#fff3e0" if code >= 61 else "#f0f4ff"
+            else:
+                weather_text.value        = f"Weather unavailable for {city}."
+                weather_text.italic       = True
+                weather_container.bgcolor = "#f5f5f5"
 
-        except Exception as ex:
-            # battery check failed — just show full cards
-            power_saving[0] = False
-            power_banner.visible = False
+            page.update()
 
-        page.update()
-        _render_cards(items)
+        threading.Thread(
+            target=_load_weather, args=(v.get("gps_coor", ""),)
+        ).start()
 
-    # ── main loader ───────────────────────────────────────────
+        return card
+
+    # ── load saved vehicles ───────────────────────────────────
     def _load():
         spin.visible = True
         col.controls.clear()
@@ -247,10 +245,26 @@ def saved_screen(page: ft.Page, go_to):
                     page.update()
                     return
 
-                saved_items[0] = items
+                for item in items:
+                    v = item["vehicle"]
 
-                # run battery check in thread, then render
-                threading.Thread(target=_check_battery, args=(items,)).start()
+                    def tap_fn(veh):
+                        def _tap(e):
+                            APP_STATE["sv"] = veh
+                            go_to("detail")
+                        return _tap
+
+                    def unsave_fn(veh):
+                        def _do(e):
+                            def _run():
+                                api.toggle_save(veh["id"])
+                                _load()
+                            threading.Thread(target=_run).start()
+                        return _do
+
+                    col.controls.append(_build_card(v, tap_fn(v), unsave_fn(v)))
+
+                page.update()
 
             except Exception as ex:
                 spin.visible = False
@@ -273,7 +287,6 @@ def saved_screen(page: ft.Page, go_to):
                 padding=ft.padding.all(16),
                 content=ft.Column(spacing=12, controls=[
                     section("Your Saved Vehicles"),
-                    power_banner,
                     ft.Row([spin], alignment=ft.MainAxisAlignment.CENTER),
                     status,
                     col,
