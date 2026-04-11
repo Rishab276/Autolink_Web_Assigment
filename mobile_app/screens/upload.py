@@ -1,13 +1,14 @@
 import flet as ft
+import flet_camera as fc
 import requests
 import threading
+import os
+
 from shared import (
     api, APP_STATE, big_btn, field, nav,
     PRIMARY, ACCENT, BG, CARD_BG, TEXT_DARK, TEXT_LIGHT,
     SUCCESS, ERROR, CENTER, BASE_URL
 )
-
-
 
 def my_vehicles_screen(page, go_to):
     col    = ft.Column(spacing=12)
@@ -30,6 +31,15 @@ def my_vehicles_screen(page, go_to):
                 for v in vehicles:
                     images  = v.get("images", [])
                     img_url = images[0]["image"] if images else None
+                    if images:
+        # Get the 'image' field from the first dictionary in the list
+                        raw_path = images[0].get("image")
+                        if raw_path:
+                            if raw_path.startswith("http"):
+                                img_url = raw_path
+                            else:
+                # This ensures /media/path becomes http://IP:8000/media/path
+                                img_url = f"{BASE_URL}{raw_path}"
 
                     # Status badge
                     if v['is_sold']:
@@ -175,7 +185,6 @@ def my_vehicles_screen(page, go_to):
         ]
     )
 
-
 def upload_vehicle_screen(page, go_to):
     msg  = ft.Text("", size=13, text_align=ft.TextAlign.CENTER)
     spin = ft.ProgressRing(visible=False, color=PRIMARY, width=30, height=30)
@@ -236,8 +245,17 @@ def upload_vehicle_screen(page, go_to):
 
         def remove(e):
             if len(entries_col.controls) > 1:
+                # 1. Remove the visual block from the UI
                 entries_col.controls.remove(wrapper_ref["ctrl"])
+                
+                # 2. Remove the hidden data from the registry so it doesn't fail validation
+                for item in form_registry:
+                    if item[0] == wrapper_ref["ctrl"]:  # Match by the UI block reference
+                        form_registry.remove(item)
+                        break
+                        
                 page.update()
+            
 
         header = ft.Row(
             controls=[
@@ -253,6 +271,71 @@ def upload_vehicle_screen(page, go_to):
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
 
+        # ── CAMERA IMPLEMENTATION ─────────────────────────────────────────
+        photo_path_ref = {"path": None}
+
+        cam = fc.Camera(expand=True, preview_enabled=True)
+        
+        cam_container = ft.Container(
+            content=cam, 
+            height=250, 
+            visible=False, 
+            border_radius=10, 
+            clip_behavior=ft.ClipBehavior.HARD_EDGE
+        )
+
+        img_preview = ft.Image(
+            src="",
+            width=80, height=80, 
+            border_radius=8, 
+            visible=False, 
+            fit=ft.BoxFit.COVER
+        )
+
+        async def toggle_camera(e):
+            if cam_container.visible:
+                # Capture Photo
+                try:
+                    path = await cam.take_picture()
+                    photo_path_ref["path"] = path
+                    img_preview.src = path
+                    img_preview.visible = True
+                    cam_container.visible = False
+                    cam_btn.text = "Retake Photo"
+                    cam_btn.icon = ft.Icons.REPLAY
+                    page.update()
+                except Exception as err:
+                    print(f"Error taking picture: {err}")
+            else:
+                # Open Viewfinder
+                cam_container.visible = True
+                page.update()  # <-- Must update page first so the camera is actually "on screen"
+                
+                # Wake up the hardware camera
+                try:
+                    # 1. Get a list of available cameras on the device
+                    cameras = await cam.get_available_cameras()
+                    
+                    if not cameras:
+                        print("No cameras found on this device!")
+                        return
+                    
+                    # 2. Initialize with the first camera and a HIGH resolution preset
+                    await cam.initialize(
+                        description=cameras[0],
+                        resolution_preset=fc.ResolutionPreset.HIGH
+                    )
+                    
+                    cam_btn.text = "Snap Photo!"
+                    cam_btn.icon = ft.Icons.CAMERA
+                    page.update()
+                except Exception as err:
+                    print(f"Failed to initialize camera: {err}")
+
+        cam_btn = ft.ElevatedButton("Add Photo", icon=ft.Icons.CAMERA_ALT, on_click=toggle_camera)
+        photo_row = ft.Row([cam_btn, img_preview], alignment=ft.MainAxisAlignment.START)
+        # ──────────────────────────────────────────────────────────────────
+
         block = ft.Container(
             bgcolor=CARD_BG,
             border_radius=16,
@@ -261,6 +344,12 @@ def upload_vehicle_screen(page, go_to):
             content=ft.Column(spacing=12, controls=[
                 header,
                 ft.Divider(height=1, color="#e5e7eb"),
+                
+                label("VEHICLE PHOTO"),
+                photo_row,
+                cam_container,
+                ft.Divider(height=1, color="#e5e7eb"),
+
                 ft.Row([make_f, model_f],   spacing=10),
                 ft.Row([year_f, mile_f],    spacing=10),
                 price_f,
@@ -287,11 +376,20 @@ def upload_vehicle_screen(page, go_to):
                 "desc":            desc_f.value,
                 "contact":         contact_f.value,
                 "gps_coor":        gps_f.value,
+                "photo_path":      photo_path_ref["path"] # Included for file extraction later
             }
 
         def is_valid():
-            return all([make_f.value, model_f.value,
-                        year_f.value, mile_f.value, price_f.value])
+            def has_text(val):
+                return val is not None and str(val).strip() != ""
+            
+            return all([
+                has_text(make_f.value), 
+                has_text(model_f.value),
+                has_text(year_f.value), 
+                has_text(mile_f.value), 
+                has_text(price_f.value)
+            ])
 
         return block, get_data, is_valid
 
@@ -325,21 +423,45 @@ def upload_vehicle_screen(page, go_to):
         def call():
             successes = 0
             errors    = []
+            
+            # Make sure we don't accidentally send 'application/json' if shared.py defines it
+            req_headers = api.h().copy()
+            if "Content-Type" in req_headers and "json" in req_headers["Content-Type"]:
+                del req_headers["Content-Type"]
+            
             for i, (_, get_data, _) in enumerate(form_registry):
+                data = get_data()
+                photo_path = data.pop("photo_path", None)
+                upload_files = {}
                 try:
+                    
+                    if photo_path and os.path.exists(photo_path):
+                        # Use 'image' to match your backend field names if necessary. 
+                        # This opens the physical file stream for upload.
+                        f=open(photo_path,"rb")
+                        upload_files = {"image": f}
+
                     r = requests.post(
                         f"{BASE_URL}/vehicles/upload/",
-                        json=get_data(),
-                        headers=api.h(),
-                        timeout=10,
+                        data=data,          # Text parameters
+                        files=upload_files, # File stream parameters
+                        headers=req_headers,
+                        timeout=20,         # Extra time for image upload
                     )
+                    
                     if r.status_code == 201:
                         successes += 1
                     else:
-                        data = r.json()
-                        errors.append(f"Vehicle {i+1}: {data.get('error', 'failed')}")
+                        
+                       errors.append(f"Vehicle {i+1}: Server returned {r.status_code}")
+                        
                 except Exception as ex:
                     errors.append(f"Vehicle {i+1}: connection error — {ex}")
+                
+                finally:
+                    # Cleanup the open file safely
+                    if upload_files and "image" in upload_files:
+                        upload_files["image"].close()
 
             spin.visible = False
             if errors:
@@ -348,7 +470,6 @@ def upload_vehicle_screen(page, go_to):
             else:
                 msg.color = SUCCESS
                 msg.value = f"✅ {successes} vehicle(s) uploaded successfully!"
-                # Clear all entries and reset to a single blank form
                 form_registry.clear()
                 entries_col.controls.clear()
                 add_entry()
