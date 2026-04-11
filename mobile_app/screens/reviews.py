@@ -150,29 +150,23 @@ def reviews_screen(page, go_to):
 
     gps_label        = ft.Text("", size=12, color=TEXT_LIGHT, italic=True)
     photo_label      = ft.Text("", size=12, color=TEXT_LIGHT, italic=True)
-    sentiment_result = ft.Text("", size=12, italic=True)
 
-    title_field  = ft.TextField(label="Review Title", border_color=PRIMARY, border_radius=10)
+    title_field  = ft.TextField(label="Review Title", border_color=PRIMARY, border_radius=10, width=float("inf"))
     review_field = ft.TextField(label="Share your experience…", multiline=True, min_lines=4,
-                                border_color=PRIMARY, border_radius=10)
+                                border_color=PRIMARY, border_radius=10, width=float("inf"))
     author_field = ft.TextField(label="Your Name", prefix_icon=ft.Icons.PERSON,
-                                border_color=PRIMARY, border_radius=10)
+                                border_color=PRIMARY, border_radius=10, width=float("inf"))
     email_field  = ft.TextField(label="Email", keyboard_type=ft.KeyboardType.EMAIL,
-                                prefix_icon=ft.Icons.EMAIL, border_color=PRIMARY, border_radius=10)
+                                prefix_icon=ft.Icons.EMAIL, border_color=PRIMARY, border_radius=10, width=float("inf"))
     submit_msg   = ft.Text("", text_align=ft.TextAlign.CENTER)
 
-    # ── Star rating with TILT SENSOR + DOUBLE TAP lock ──────────
-    import time as _time
+    # ── Star rating with SWIPE + DOUBLE TAP lock + RESET ────────
+    gesture_state = {"locked": False}
 
-    tilt_state = {
-        "locked":   False,
-        "last_x":   0.0,
-    }
-
-    star_row  = ft.Row(spacing=2, alignment=ft.MainAxisAlignment.CENTER)
+    star_row = ft.Row(spacing=2, alignment=ft.MainAxisAlignment.CENTER)
 
     tilt_hint = ft.Text(
-        "📱 Tilt phone to rate",
+        "👉 Swipe left/right to rate",
         size=12, color=TEXT_LIGHT, italic=True,
         text_align=ft.TextAlign.CENTER,
     )
@@ -188,7 +182,7 @@ def reviews_screen(page, go_to):
     )
 
     RATING_LABELS = {
-        0: ("📱 Tilt phone to rate", TEXT_LIGHT),
+        0: ("👉 Swipe left/right to rate", TEXT_LIGHT),
         1: ("😞  Poor",      "#e53935"),
         2: ("😐  Fair",      "#fb8c00"),
         3: ("🙂  Good",      "#fdd835"),
@@ -211,7 +205,7 @@ def reviews_screen(page, go_to):
 
     def update_hint():
         v = int(star_state["value"])
-        if tilt_state["locked"]:
+        if gesture_state["locked"]:
             tilt_hint.value  = f"🔒 Rating locked at {v} star{'s' if v != 1 else ''}"
             tilt_hint.color  = SUCCESS
             lock_indicator.content = ft.Row([
@@ -230,7 +224,7 @@ def reviews_screen(page, go_to):
             lock_indicator.bgcolor = "#f0f0f0"
 
     def set_star(v):
-        if tilt_state["locked"]:
+        if gesture_state["locked"]:
             return
         star_state["value"] = max(0, min(5, v))
         build_stars()
@@ -238,42 +232,34 @@ def reviews_screen(page, go_to):
         page.update()
 
     def on_double_tap(e):
-        tilt_state["locked"] = not tilt_state["locked"]
+        gesture_state["locked"] = not gesture_state["locked"]
         update_hint()
         page.update()
 
-    # ── FIXED: Tilt sensor with lower threshold + extra axis support ──
-    def on_page_event(e):
-        if tilt_state["locked"]:
+    # ── SWIPE / DRAG to change rating ────────────────────────
+    drag_accum = {"x": 0.0}
+
+    def on_drag_start(e):
+        drag_accum["x"] = 0.0
+
+    def on_drag(e):
+        if gesture_state["locked"]:
             return
-        try:
-            import json
-            if hasattr(e, 'data') and e.data:
-                data = json.loads(e.data) if isinstance(e.data, str) else e.data
-            else:
-                return
+        drag_accum["x"] += e.primary_delta or 0.0
+        if drag_accum["x"] > 30 and star_state["value"] < 5:
+            set_star(star_state["value"] + 1)
+            drag_accum["x"] = 0.0
+        elif drag_accum["x"] < -30 and star_state["value"] > 0:
+            set_star(star_state["value"] - 1)
+            drag_accum["x"] = 0.0
 
-            # Support gamma (web/gyroscope), rotationX (some mobile), and x (accelerometer)
-            gamma = float(
-                data.get("gamma",
-                data.get("rotationX",
-                data.get("x", 0)))
-            )
-
-            now = _time.time()
-            if now - tilt_state["last_x"] < 0.3:   # reduced debounce = more responsive
-                return
-            tilt_state["last_x"] = now
-
-            current = int(star_state["value"])
-            if gamma > 6 and current < 5:           # lower threshold = more sensitive
-                set_star(current + 1)
-            elif gamma < -6 and current > 0:
-                set_star(current - 1)
-        except Exception:
-            pass
-
-    page.on_event = on_page_event
+    # ── RESET (shake simulation) ──────────────────────────────
+    def reset_rating(e=None):
+        star_state["value"] = 0
+        gesture_state["locked"] = False
+        build_stars()
+        update_hint()
+        page.update()
 
     build_stars()
     update_hint()
@@ -281,8 +267,18 @@ def reviews_screen(page, go_to):
     star_gesture = ft.GestureDetector(
         content=ft.Column([
             star_row,
+            ft.OutlinedButton(
+                content=ft.Text("🔄 Reset Rating", color=ACCENT),
+                on_click=reset_rating,
+                style=ft.ButtonStyle(
+                    side=ft.BorderSide(1, ACCENT),
+                    shape=ft.RoundedRectangleBorder(radius=10),
+                ),
+            ),
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
         on_double_tap=on_double_tap,
+        on_horizontal_drag_start=on_drag_start,
+        on_horizontal_drag_update=on_drag,
     )
 
     # ── Render reviews ────────────────────────────────────────
@@ -334,7 +330,6 @@ def reviews_screen(page, go_to):
         "Ebène":         (-20.2417, 57.4833),
     }
 
-    # ── FIXED: Location with proper timeout handling ──────────
     def get_location(e):
         gps_label.value = "📍 Detecting location…"
         page.update()
@@ -368,67 +363,74 @@ def reviews_screen(page, go_to):
             page.update()
         threading.Thread(target=fetch_loc).start()
 
-    # ── FIXED: Camera using on_result callback ────────────────
-    def open_camera(e):
-        def on_file_result(e: ft.FilePickerResultEvent):
-            try:
-                page.overlay.clear()
-                if e.files and len(e.files) > 0:
-                    photo_path["value"] = e.files[0].path
-                    photo_label.value   = f"📷 {e.files[0].name}"
-                    photo_label.color   = TEXT_LIGHT
-                else:
-                    photo_label.value = ""
-            except Exception as ex:
-                photo_label.value = f"📷 Error: {ex}"
-                photo_label.color = ERROR
-            page.update()
+    # ── File picker — async, returns files directly ──────────
+    file_picker = ft.FilePicker()
 
-        def pick():
-            try:
-                picker = ft.FilePicker(on_result=on_file_result)
-                page.overlay.append(picker)
-                page.update()
-                picker.pick_files(
-                    allow_multiple=False,
-                    allowed_extensions=["jpg", "jpeg", "png"],
-                )
-            except Exception as ex:
-                photo_label.value = f"📷 Error: {ex}"
-                photo_label.color = ERROR
-                page.update()
-
-        threading.Thread(target=pick).start()
-
-    def analyse_sentiment(e):
-        text = review_field.value.strip()
-        if not text:
-            sentiment_result.value = "✏️ Write your review first"
-            sentiment_result.color = TEXT_LIGHT
-            page.update()
-            return
-        sentiment_result.value = "🤖 Analysing…"
-        sentiment_result.color = TEXT_LIGHT
+    def _handle_files(files):
+        if files:
+            photo_path["value"] = files[0].path
+            photo_label.value   = f"📷 {files[0].name}"
+            photo_label.color   = SUCCESS
+        else:
+            photo_label.value = "📷 No photo selected"
+            photo_label.color = TEXT_LIGHT
         page.update()
-        def run():
-            label = _sentiment(text)
-            sentiment_result.value = f"{_emoji(label)} {label.capitalize()}"
-            sentiment_result.color = SENTIMENT_COLORS.get(label, TEXT_LIGHT)
-            page.update()
-        threading.Thread(target=run).start()
 
-    camera_btn = ft.OutlinedButton(
-        content=ft.Text("📷 Photo", color=PRIMARY),
-        on_click=open_camera,
-        style=ft.ButtonStyle(
-            side=ft.BorderSide(1, PRIMARY),
-            shape=ft.RoundedRectangleBorder(radius=10),
+    def open_gallery(e):
+        async def _pick():
+            try:
+                files = await file_picker.pick_files(
+                    allow_multiple=False,
+                    file_type=ft.FilePickerFileType.IMAGE,
+                )
+                _handle_files(files)
+            except Exception as ex:
+                photo_label.value = f"📷 Error: {ex}"
+                photo_label.color = ERROR
+                page.update()
+        page.run_task(_pick)
+
+    def open_camera(e):
+        async def _capture():
+            try:
+                files = await file_picker.pick_files(
+                    allow_multiple=False,
+                    file_type=ft.FilePickerFileType.IMAGE,
+                    with_data=False,
+                )
+                _handle_files(files)
+            except Exception as ex:
+                photo_label.value = f"📷 Error: {ex}"
+                photo_label.color = ERROR
+                page.update()
+        page.run_task(_capture)
+
+    camera_btn = ft.Row([
+        ft.ElevatedButton(
+            content=ft.Row([
+                ft.Icon(ft.Icons.PHOTO_LIBRARY, color="white", size=16),
+                ft.Text("Gallery", color="white", size=13),
+            ], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
+            bgcolor=PRIMARY,
+            on_click=open_gallery,
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
+            expand=True,
         ),
-    )
+        ft.ElevatedButton(
+            content=ft.Row([
+                ft.Icon(ft.Icons.CAMERA_ALT, color="white", size=16),
+                ft.Text("Camera", color="white", size=13),
+            ], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
+            bgcolor=ACCENT,
+            on_click=open_camera,
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
+            expand=True,
+        ),
+    ], spacing=8)
 
     submit_btn = ft.ElevatedButton(
         content=ft.Text("Submit Review", color="white"),
-        bgcolor=PRIMARY, width=280, height=46,
+        bgcolor=PRIMARY, width=float("inf"), height=46,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
     )
 
@@ -478,12 +480,15 @@ def reviews_screen(page, go_to):
                     render_reviews(all_reviews)
                     title_field.value = review_field.value = author_field.value = email_field.value = ""
                     star_state["value"] = 0
+                    gesture_state["locked"] = False
                     build_stars()
                     update_hint()
                     gps_coords.update({"lat": None, "lng": None, "label": ""})
-                    gps_label.value = photo_label.value = sentiment_result.value = ""
+                    gps_label.value = photo_label.value = ""
                     photo_path["value"] = None
                     load_reviews(show_spinner=False)
+                    # Scroll to reviews list so user sees their new review
+                    reviews_col.scroll_to(offset=-1, duration=800)
                 else:
                     submit_msg.color = ERROR
                     submit_msg.value = str(resp.json())
@@ -557,38 +562,31 @@ def reviews_screen(page, go_to):
                                         ft.Icon(ft.Icons.EDIT, color=PRIMARY),
                                         ft.Text("Write a Review", size=18,
                                                 weight=ft.FontWeight.BOLD, color=PRIMARY),
-                                    ], spacing=8),
+                                    ], spacing=8, alignment=ft.MainAxisAlignment.CENTER),
                                     ft.Divider(height=1, color="#e0e0e0"),
-                                    ft.Text("Your Rating", size=13, color=TEXT_LIGHT),
+                                    ft.Text("Your Rating", size=13, color=TEXT_LIGHT,
+                                            text_align=ft.TextAlign.CENTER),
                                     star_gesture,
                                     tilt_hint,
                                     lock_indicator,
                                     title_field,
                                     review_field,
-                                    ft.Row([
-                                        ft.OutlinedButton(
-                                            content=ft.Text("🤖 Sentiment", color=PRIMARY),
-                                            on_click=analyse_sentiment,
-                                            style=ft.ButtonStyle(
-                                                side=ft.BorderSide(1, PRIMARY),
-                                                shape=ft.RoundedRectangleBorder(radius=10),
-                                            ),
+                                    author_field,
+                                    email_field,
+                                    ft.ElevatedButton(
+                                        content=ft.Row([
+                                            ft.Icon(ft.Icons.LOCATION_ON, color="white", size=18),
+                                            ft.Text("📍 Detect Location", color="white", size=13),
+                                        ], spacing=6, alignment=ft.MainAxisAlignment.CENTER),
+                                        bgcolor=ACCENT,
+                                        on_click=get_location,
+                                        style=ft.ButtonStyle(
+                                            shape=ft.RoundedRectangleBorder(radius=10),
                                         ),
-                                        sentiment_result,
-                                    ], spacing=8),
-                                    ft.Row([author_field,email_field,]),
-                                    ft.Row([
-                                        ft.OutlinedButton(
-                                            content=ft.Text("📍 Location", color=ACCENT),
-                                            on_click=get_location,
-                                            style=ft.ButtonStyle(
-                                                side=ft.BorderSide(1, ACCENT),
-                                                shape=ft.RoundedRectangleBorder(radius=10),
-                                            ),
-                                        ),
-                                        camera_btn,
-                                    ], spacing=8),
+                                        width=float("inf"),
+                                    ),
                                     gps_label,
+                                    camera_btn,
                                     photo_label,
                                     submit_msg,
                                     ft.Container(
@@ -600,6 +598,7 @@ def reviews_screen(page, go_to):
                             ),
                         ]),
                         bgcolor=CARD_BG, border_radius=16,
+                        expand=True,
                         shadow=ft.BoxShadow(blur_radius=8, color="#00000014"),
                     ),
 
@@ -631,18 +630,19 @@ def report_screen_for_review(page, go_to):
     selected    = {"value": None}
     reason_btns = []
     details     = ft.TextField(label="Details (optional)", multiline=True, min_lines=3,
-                               border_color=PRIMARY, border_radius=10)
+                               border_color=PRIMARY, border_radius=10, width=float("inf"))
     msg         = ft.Text("", text_align=ft.TextAlign.CENTER)
     submit_btn  = ft.ElevatedButton(
-        content=ft.Text("Submit Report", color=""),
-        bgcolor=ERROR, width=260, height=46, disabled=True,
+        content=ft.Text("Submit Report", color="white"),
+        bgcolor=ERROR, width=float("inf"), height=46, disabled=True,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
     )
 
     reason_col = ft.Column(spacing=8)
     for key, lbl in reasons:
         b = ft.ElevatedButton(
-            content=ft.Text(lbl, color=TEXT_DARK), bgcolor=CARD_BG, data=key, width=320,
+            content=ft.Text(lbl, color=TEXT_DARK), bgcolor=CARD_BG, data=key,
+            width=float("inf"),
             style=ft.ButtonStyle(side=ft.BorderSide(1, "#e0e0e0"),
                                  shape=ft.RoundedRectangleBorder(radius=10)),
         )
@@ -725,22 +725,23 @@ def report_screen_for_review(page, go_to):
                                     weight=ft.FontWeight.BOLD, color=TEXT_DARK),
                             ft.Text("Help keep AutoLink safe", size=12, color=TEXT_LIGHT),
                         ], spacing=2),
-                    ], spacing=10),
+                    ], spacing=10, alignment=ft.MainAxisAlignment.CENTER),
                     preview,
                     ft.Container(
                         content=ft.Column([
                             ft.Text("Why are you reporting?", size=14,
-                                    weight=ft.FontWeight.W_600, color=TEXT_DARK),
+                                    weight=ft.FontWeight.W_600, color=TEXT_DARK,
+                                    text_align=ft.TextAlign.CENTER),
                             reason_col,
-                        ], spacing=10),
+                        ], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
                         padding=ft.padding.all(14), bgcolor=CARD_BG, border_radius=12,
                         shadow=ft.BoxShadow(blur_radius=6, color="#00000012"),
                     ),
                     details,
                     msg,
-                    ft.Container(content=submit_btn, alignment=ft.alignment.Alignment(0, 0)),
+                    submit_btn,
                     ft.Container(height=16),
-                ], spacing=12),
+                ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
                 padding=ft.padding.all(16),
             )
         ],
@@ -752,7 +753,7 @@ def report_screen_for_review(page, go_to):
 def report_vehicle_screen(page, go_to):
     vehicle_field = ft.TextField(
         label="Vehicle ID or Title", prefix_icon=ft.Icons.DIRECTIONS_CAR,
-        border_color=PRIMARY, border_radius=10,
+        border_color=PRIMARY, border_radius=10, width=float("inf"),
     )
     reasons = [
         ("fraud",       "💸 Fraudulent listing"),
@@ -764,18 +765,19 @@ def report_vehicle_screen(page, go_to):
     selected    = {"value": None}
     reason_btns = []
     details     = ft.TextField(label="Describe the issue", multiline=True, min_lines=3,
-                               border_color=PRIMARY, border_radius=10)
+                               border_color=PRIMARY, border_radius=10, width=float("inf"))
     msg         = ft.Text("", text_align=ft.TextAlign.CENTER)
     submit_btn  = ft.ElevatedButton(
         content=ft.Text("Submit Report", color="white"),
-        bgcolor=ERROR, width=260, height=46, disabled=True,
+        bgcolor=ERROR, width=float("inf"), height=46, disabled=True,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
     )
 
     reason_col = ft.Column(spacing=8)
     for key, lbl in reasons:
         b = ft.ElevatedButton(
-            content=ft.Text(lbl, color=TEXT_DARK), bgcolor=CARD_BG, data=key, width=320,
+            content=ft.Text(lbl, color=TEXT_DARK), bgcolor=CARD_BG, data=key,
+            width=float("inf"),
             style=ft.ButtonStyle(side=ft.BorderSide(1, "#e0e0e0"),
                                  shape=ft.RoundedRectangleBorder(radius=10)),
         )
@@ -792,8 +794,7 @@ def report_vehicle_screen(page, go_to):
             return click
         b.on_click = make_click(key)
         reason_btns.append(b)
-        reason_col.controls.append(b) 
-        
+        reason_col.controls.append(b)
 
     def do_report(e):
         if not selected["value"]:
@@ -844,22 +845,23 @@ def report_vehicle_screen(page, go_to):
                                     weight=ft.FontWeight.BOLD, color=TEXT_DARK),
                             ft.Text("Help remove bad listings", size=12, color=TEXT_LIGHT),
                         ], spacing=2),
-                    ], spacing=10),
+                    ], spacing=10, alignment=ft.MainAxisAlignment.CENTER),
                     vehicle_field,
                     ft.Container(
                         content=ft.Column([
                             ft.Text("What's the issue?", size=14,
-                                    weight=ft.FontWeight.W_600, color=TEXT_DARK),
+                                    weight=ft.FontWeight.W_600, color=TEXT_DARK,
+                                    text_align=ft.TextAlign.CENTER),
                             reason_col,
-                        ], spacing=10),
+                        ], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
                         padding=ft.padding.all(14), bgcolor=CARD_BG, border_radius=12,
                         shadow=ft.BoxShadow(blur_radius=6, color="#00000012"),
                     ),
                     details,
                     msg,
-                    ft.Container(content=submit_btn, alignment=ft.alignment.Alignment(0, 0)),
+                    submit_btn,
                     ft.Container(height=16),
-                ], spacing=12),
+                ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
                 padding=ft.padding.all(16),
             )
         ],
