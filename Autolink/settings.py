@@ -43,9 +43,14 @@ INSTALLED_APPS = [
     'Reviews.apps.ReviewsConfig',
     'Users.apps.UsersConfig',
     'Vehicles.apps.VehiclesConfig',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -146,3 +151,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/Users/login/'
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+REST_FRAMEWORK = {
+       'DEFAULT_AUTHENTICATION_CLASSES': [
+           'rest_framework.authentication.TokenAuthentication',
+       ],
+       'DEFAULT_PERMISSION_CLASSES': [
+           'rest_framework.permissions.AllowAny',
+       ],
+   }
