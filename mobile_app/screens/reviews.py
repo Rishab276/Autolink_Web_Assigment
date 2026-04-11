@@ -792,7 +792,8 @@ def report_vehicle_screen(page, go_to):
             return click
         b.on_click = make_click(key)
         reason_btns.append(b)
-        reason_col.controls.append(b)
+        reason_col.controls.append(b) 
+        
 
     def do_report(e):
         if not selected["value"]:
