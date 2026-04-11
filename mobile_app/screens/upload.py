@@ -177,271 +177,223 @@ def my_vehicles_screen(page, go_to):
 
 
 def upload_vehicle_screen(page, go_to):
-    import os
-
-    msg = ft.Text("", size=13, text_align=ft.TextAlign.CENTER)
+    msg  = ft.Text("", size=13, text_align=ft.TextAlign.CENTER)
     spin = ft.ProgressRing(visible=False, color=PRIMARY, width=30, height=30)
+    entries_col = ft.Column(spacing=20)
 
-    # ---------------- FIELDS ----------------
-    make_f = field("Make *")
-    model_f = field("Model *")
-    year_f = field("Year *", keyboard=ft.KeyboardType.NUMBER)
-    mile_f = field("Mileage (km) *", keyboard=ft.KeyboardType.NUMBER)
-    price_f = field("Price (Rs) *", keyboard=ft.KeyboardType.NUMBER)
-    contact_f = field("Contact Number", keyboard=ft.KeyboardType.PHONE)
-    gps_f = field("GPS Coordinates")
+    def label(text):
+        return ft.Text(text, size=12, color=TEXT_LIGHT, weight=ft.FontWeight.W_600)
 
-    desc_f = ft.TextField(
-        label="Description",
-        multiline=True,
-        min_lines=3,
-        border_color=PRIMARY,
-        focused_border_color=ACCENT,
-    )
+    def make_entry(index):
+        """Build one full vehicle form block and return (container, get_data_fn, remove_fn)."""
+        make_f    = field("Make *")
+        model_f   = field("Model *")
+        year_f    = field("Year *",        keyboard=ft.KeyboardType.NUMBER)
+        mile_f    = field("Mileage (km) *", keyboard=ft.KeyboardType.NUMBER)
+        price_f   = field("Price (Rs) *",  keyboard=ft.KeyboardType.NUMBER)
+        contact_f = field("Contact Number", keyboard=ft.KeyboardType.PHONE,
+                          icon=ft.Icons.PHONE_OUTLINED)
+        gps_f     = field("GPS Coordinates")
+        desc_f    = ft.TextField(
+            label="Description",
+            multiline=True, min_lines=3,
+            border_color=PRIMARY, focused_border_color=ACCENT,
+        )
 
-    transmission = {"val": "Manual"}
-    fuel_type = {"val": "Petrol"}
-    vehicle_type = {"val": "Car"}
+        trans_ref = {"val": "Manual"}
+        fuel_ref  = {"val": "Petrol"}
+        type_ref  = {"val": "Car"}
 
-    selected_images = []
+        trans_row = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=8)
+        fuel_row  = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=8)
+        type_row  = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=8)
 
-    # ---------------- IMAGE PICKER ----------------
-    preview_row = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=10)
-
-    picker = ft.FilePicker()
-    page.overlay.append(picker)
-    page.update()
-
-    def on_pick(e):
-        if e.files:
-            selected_images.clear()
-            selected_images.extend(e.files)
-
-            preview_row.controls.clear()
-
-            for file in selected_images:
-                preview_row.controls.append(
-                    ft.Stack([
-                        ft.Image(
-                            src=file.path,
-                            width=90,
-                            height=90,
-                            fit=ft.BoxFit.COVER,
-                            border_radius=10,
-                        )
-                    ])
-                )
-
-            page.update()
-
-    picker.on_result = on_pick
-
-    # ---------------- CHIPS ----------------
-    def chip_selector(options, ref):
-        row = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=8)
-
-        def rebuild():
-            row.controls.clear()
-            for opt in options:
-                active = ref["val"] == opt
-
-                def click(e, v=opt):
-                    ref["val"] = v
-                    rebuild()
-                    page.update()
-
-                row.controls.append(
-                    ft.Container(
-                        content=ft.Text(
-                            opt,
-                            color="white" if active else TEXT_DARK,
-                            size=12
-                        ),
+        def chip_row(options, ref, row_ctrl):
+            def build():
+                row_ctrl.controls.clear()
+                for val in options:
+                    active = ref["val"] == val
+                    def click(e, v=val, r=ref, b=build):
+                        r["val"] = v; b(); page.update()
+                    row_ctrl.controls.append(ft.Container(
+                        content=ft.Text(val, size=12, weight=ft.FontWeight.W_500,
+                                        color="white" if active else TEXT_DARK),
                         bgcolor=PRIMARY if active else CARD_BG,
-                        border=ft.border.all(
-                            1.5,
-                            PRIMARY if active else "#d1d5db"
-                        ),
+                        border=ft.border.all(1.5, PRIMARY if active else "#d1d5db"),
                         border_radius=99,
-                        padding=ft.padding.symmetric(
-                            horizontal=14,
-                            vertical=7
-                        ),
-                        on_click=click,
-                        ink=True,
-                    )
-                )
+                        padding=ft.padding.symmetric(horizontal=14, vertical=7),
+                        on_click=click, ink=True,
+                    ))
+                page.update()
+            build()
 
-        rebuild()
-        return row
+        chip_row(["Manual", "Automatic", "CVT", "Other"],          trans_ref, trans_row)
+        chip_row(["Petrol", "Diesel", "Hybrid", "Electric", "Other"], fuel_ref, fuel_row)
+        chip_row(["Car", "SUV", "Motorbike", "Truck", "Van", "Bus"],  type_ref, type_row)
 
-    type_row = chip_selector(
-        ["Car", "SUV", "Motorbike", "Truck", "Van", "Bus"],
-        vehicle_type
-    )
+        # Wrapper ref so we can remove this block from entries_col
+        wrapper_ref = {"ctrl": None}
 
-    trans_row = chip_selector(
-        ["Manual", "Automatic", "CVT", "Other"],
-        transmission
-    )
+        def remove(e):
+            if len(entries_col.controls) > 1:
+                entries_col.controls.remove(wrapper_ref["ctrl"])
+                page.update()
 
-    fuel_row = chip_selector(
-        ["Petrol", "Diesel", "Hybrid", "Electric", "Other"],
-        fuel_type
-    )
+        header = ft.Row(
+            controls=[
+                ft.Text(f"Vehicle {index}", size=15,
+                        weight=ft.FontWeight.BOLD, color=TEXT_DARK),
+                ft.IconButton(
+                    icon=ft.Icons.REMOVE_CIRCLE_OUTLINE,
+                    icon_color=ERROR, tooltip="Remove this entry",
+                    on_click=remove,
+                    visible=(index > 1),   # hide remove on first card
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        )
 
-    # ---------------- UPLOAD ----------------
-    def upload_vehicle(e):
-        if not all([
-            make_f.value,
-            model_f.value,
-            year_f.value,
-            mile_f.value,
-            price_f.value
-        ]):
-            msg.value = "Please fill all required fields."
-            msg.color = ERROR
-            page.update()
-            return
+        block = ft.Container(
+            bgcolor=CARD_BG,
+            border_radius=16,
+            padding=ft.padding.all(16),
+            shadow=ft.BoxShadow(blur_radius=8, color="#12000000", offset=ft.Offset(0, 2)),
+            content=ft.Column(spacing=12, controls=[
+                header,
+                ft.Divider(height=1, color="#e5e7eb"),
+                ft.Row([make_f, model_f],   spacing=10),
+                ft.Row([year_f, mile_f],    spacing=10),
+                price_f,
+                label("VEHICLE TYPE"),  type_row,
+                label("TRANSMISSION"), trans_row,
+                label("FUEL TYPE"),    fuel_row,
+                desc_f,
+                contact_f,
+                gps_f,
+            ]),
+        )
+        wrapper_ref["ctrl"] = block
 
-        if not selected_images:
-            msg.value = "Please add at least one vehicle image."
-            msg.color = ERROR
-            page.update()
-            return
+        def get_data():
+            return {
+                "make":            make_f.value,
+                "model":           model_f.value,
+                "year":            year_f.value,
+                "mileage":         mile_f.value,
+                "price":           price_f.value,
+                "transmission":    trans_ref["val"],
+                "fuel_type":       fuel_ref["val"],
+                "type_of_vehicle": type_ref["val"],
+                "desc":            desc_f.value,
+                "contact":         contact_f.value,
+                "gps_coor":        gps_f.value,
+            }
 
-        spin.visible = True
-        msg.value = ""
+        def is_valid():
+            return all([make_f.value, model_f.value,
+                        year_f.value, mile_f.value, price_f.value])
+
+        return block, get_data, is_valid
+
+    # ── State tracking ────────────────────────────────────────────────
+    form_registry = []   # list of (block, get_data, is_valid)
+
+    def add_entry(e=None):
+        idx = len(form_registry) + 1
+        block, get_data, is_valid = make_entry(idx)
+        form_registry.append((block, get_data, is_valid))
+        entries_col.controls.append(block)
         page.update()
 
-        def run():
-            try:
-                data = {
-                    "make": make_f.value,
-                    "model": model_f.value,
-                    "year": year_f.value,
-                    "mileage": mile_f.value,
-                    "price": price_f.value,
-                    "transmission": transmission["val"],
-                    "fuel_type": fuel_type["val"],
-                    "type_of_vehicle": vehicle_type["val"],
-                    "desc": desc_f.value,
-                    "contact": contact_f.value,
-                    "gps_coor": gps_f.value,
-                }
+    # Add the first entry immediately
+    add_entry()
 
-                files = []
-
-                for img in selected_images:
-                    files.append(
-                        (
-                            "images",
-                            (
-                                os.path.basename(img.path),
-                                open(img.path, "rb"),
-                                "image/jpeg"
-                            )
-                        )
-                    )
-
-                headers = api.h()
-                headers.pop("Content-Type", None)
-
-                r = requests.post(
-                    f"{BASE_URL}/vehicles/upload/",
-                    data=data,
-                    files=files,
-                    headers=headers,
-                    timeout=30,
-                )
-
-                spin.visible = False
-
-                if r.status_code == 201:
-                    msg.value = "✅ Vehicle uploaded successfully!"
-                    msg.color = SUCCESS
-
-                    for f in [
-                        make_f, model_f, year_f, mile_f,
-                        price_f, contact_f, gps_f
-                    ]:
-                        f.value = ""
-
-                    desc_f.value = ""
-                    selected_images.clear()
-                    preview_row.controls.clear()
-
-                else:
-                    msg.value = f"Upload failed: {r.text}"
-                    msg.color = ERROR
-
-            except Exception as ex:
-                spin.visible = False
-                msg.value = f"Error: {ex}"
+    # ── Submit all ────────────────────────────────────────────────────
+    def do_upload_all(e):
+        msg.value = ""
+        # Validate all entries
+        for i, (_, _, is_valid) in enumerate(form_registry):
+            if not is_valid():
                 msg.color = ERROR
+                msg.value = f"Vehicle {i+1}: please fill in all required (*) fields."
+                page.update()
+                return
 
+        spin.visible = True
+        page.update()
+
+        def call():
+            successes = 0
+            errors    = []
+            for i, (_, get_data, _) in enumerate(form_registry):
+                try:
+                    r = requests.post(
+                        f"{BASE_URL}/vehicles/upload/",
+                        json=get_data(),
+                        headers=api.h(),
+                        timeout=10,
+                    )
+                    if r.status_code == 201:
+                        successes += 1
+                    else:
+                        data = r.json()
+                        errors.append(f"Vehicle {i+1}: {data.get('error', 'failed')}")
+                except Exception as ex:
+                    errors.append(f"Vehicle {i+1}: connection error — {ex}")
+
+            spin.visible = False
+            if errors:
+                msg.color = ERROR
+                msg.value = "\n".join(errors)
+            else:
+                msg.color = SUCCESS
+                msg.value = f"✅ {successes} vehicle(s) uploaded successfully!"
+                # Clear all entries and reset to a single blank form
+                form_registry.clear()
+                entries_col.controls.clear()
+                add_entry()
             page.update()
 
-        threading.Thread(target=run).start()
+        threading.Thread(target=call).start()
+
+    # ── "Add Another" button ──────────────────────────────────────────
+    add_btn = ft.Container(
+        content=ft.Row([
+            ft.Icon(ft.Icons.ADD_CIRCLE_OUTLINE, color=PRIMARY, size=18),
+            ft.Text("Add Another Vehicle", color=PRIMARY, size=13,
+                    weight=ft.FontWeight.W_600),
+        ], spacing=8, alignment=ft.MainAxisAlignment.CENTER),
+        on_click=add_entry,
+        padding=ft.padding.symmetric(vertical=14),
+        border=ft.border.all(1.5, PRIMARY),
+        border_radius=12,
+        ink=True,
+    )
 
     return ft.View(
-        route="/upload_vehicle",
-        bgcolor=BG,
-        scroll=ft.ScrollMode.AUTO,
+        route="/upload_vehicle", bgcolor=BG, scroll=ft.ScrollMode.AUTO,
         appbar=ft.AppBar(
-            title=ft.Text("Upload Vehicle", color="white"),
+            title=ft.Text("List Vehicles", color="white"),
             bgcolor=PRIMARY,
             leading=ft.IconButton(
-                icon=ft.Icons.ARROW_BACK,
-                icon_color="white",
+                icon=ft.Icons.ARROW_BACK, icon_color="white",
                 on_click=lambda e: go_to("my_vehicles"),
             ),
         ),
         controls=[
             ft.Container(
-                padding=20,
-                content=ft.Column([
-                    make_f,
-                    model_f,
-                    ft.Row([year_f, mile_f]),
-                    price_f,
-
-                    ft.Text("Vehicle Type"),
-                    type_row,
-
-                    ft.Text("Transmission"),
-                    trans_row,
-
-                    ft.Text("Fuel Type"),
-                    fuel_row,
-
-                    desc_f,
-                    contact_f,
-                    gps_f,
-
-                    ft.Divider(),
-
-                    ft.Text("Vehicle Images", weight=ft.FontWeight.BOLD),
-
-                    ft.Row([
-                        ft.ElevatedButton(
-                            "Choose Images",
-                            icon=ft.Icons.IMAGE,
-                            on_click=lambda e: picker.pick_files(
-                                allow_multiple=True,
-                                allowed_extensions=["jpg", "jpeg", "png"]
-                            )
-                        ),
-                    ]),
-
-                    preview_row,
-
+                padding=ft.padding.all(20),
+                content=ft.Column(spacing=16, controls=[
+                    ft.Text("Vehicle Details", size=18,
+                            weight=ft.FontWeight.BOLD, color=TEXT_DARK),
+                    entries_col,
+                    add_btn,
+                    ft.Container(height=4),
                     msg,
-                    spin,
-
-                    big_btn("Upload Vehicle", upload_vehicle),
+                    ft.Row([spin], alignment=ft.MainAxisAlignment.CENTER),
+                    big_btn("Upload All Vehicles", do_upload_all),
                     ft.Container(height=20),
-                ])
+                ]),
             )
         ]
     )
