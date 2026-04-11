@@ -11,7 +11,7 @@ from django.contrib.auth import authenticate
 from django.db.models import Q
 import math
 
-from Vehicles.models import Vehicle
+from Vehicles.models import Vehicle, VehicleImage
 from Reviews.models import Review, Report
 from Profile.models import SavedVehicle
 from Users.models import UserProfile
@@ -159,6 +159,9 @@ class UploadVehicleAPI(APIView):
                 desc=request.data.get('desc', ''),
                 contact=request.data.get('contact', ''),
             )
+            photo = request.FILES.get('image') 
+            if photo:
+                VehicleImage.objects.create(vehicle=vehicle, image=photo)
             serializer = VehicleSerializer(vehicle, context={'request': request})
             return Response(serializer.data, status=201)
         except Exception as e:
