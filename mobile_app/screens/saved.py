@@ -3,44 +3,24 @@
 # SAVED VEHICLES SCREEN
 # Owner: Salwan Cassam Maighun (2412258)
 #
-# GEOLOCATION FEATURE: Sort Saved Vehicles by Distance
-#   A "Sort by distance" button requests the device's current GPS
-#   coordinates via flet-geolocator, then calls the REST API
-#   endpoint GET /api/saved/?sort_by_distance=true&lat=X&lng=Y
-#   which returns the user's saved vehicles ordered by proximity.
-#   If a vehicle has no GPS coordinates stored, it is shown last.
+# SENSOR FEATURE: Battery-Aware Power Saving Mode (ft.Battery)
 #
-# REQUIRES: pip install flet-geolocator==0.83.1
+#   When the screen loads, ft.Battery queries the device battery
+#   level and charging state. If battery is below 20% AND the
+#   phone is not charging, Power Saving Mode activates:
+#     - Vehicle images are hidden to reduce network/CPU load
+#     - A banner explains why with an override option
+#   If battery >= 20% OR the phone is charging, full cards with
+#   images are shown as normal.
 # ─────────────────────────────────────────────────────────────
 
 import flet as ft
 import threading
-import math
-from shared import api, APP_STATE, nav, v_card, section
-from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, SUCCESS, ERROR, TEXT_DARK
+from shared import api, APP_STATE, nav, section
+from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, TEXT_DARK, SUCCESS, ERROR
 
-# flet-geolocator is a separate package — import carefully
-try:
-    from flet_geolocator import (
-        Geolocator,
-        GeolocatorPositionAccuracy,
-        GeolocatorPermissionStatus,
-    )
-    GEO_AVAILABLE = True
-except ImportError:
-    GEO_AVAILABLE = False
-
-
-# ── local haversine (used client-side for distance labels) ────
-def _haversine(lat1, lon1, lat2, lon2):
-    R = 6371  # km
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    a = (math.sin(dlat / 2) ** 2
-         + math.cos(math.radians(lat1))
-         * math.cos(math.radians(lat2))
-         * math.sin(dlon / 2) ** 2)
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+# threshold for testing — set to 20 before submission
+BATTERY_THRESHOLD = 95
 
 
 def saved_screen(page: ft.Page, go_to):
@@ -48,97 +28,203 @@ def saved_screen(page: ft.Page, go_to):
     status = ft.Text("", color=TEXT_LIGHT, text_align=ft.TextAlign.CENTER)
     spin   = ft.ProgressRing(visible=True, color=PRIMARY, width=30, height=30)
 
-    # geo state
-    geo_ref        = [None]    # holds Geolocator instance
-    user_lat       = [None]
-    user_lng       = [None]
-    sort_active    = [False]   # True when distance sort is on
+    power_saving = [False]
+    saved_items  = [None]
 
-    # ── sort-toggle button (we keep a ref to update its label) ─
-    sort_btn_text = ft.Text("📍 Sort by Distance", size=13, color="white")
-    sort_btn = ft.Container(
-        content=sort_btn_text,
-        bgcolor=PRIMARY,
-        border_radius=20,
-        padding=ft.padding.symmetric(horizontal=16, vertical=8),
-        ink=True,
-        on_click=lambda e: _toggle_sort(),
-        visible=GEO_AVAILABLE,
+    # ── power saving banner ───────────────────────────────────
+    banner_text = ft.Text("", size=13, color="white", expand=True)
+    power_banner = ft.Container(
+        visible=False,
+        bgcolor=ERROR,
+        border_radius=8,
+        padding=ft.padding.symmetric(horizontal=14, vertical=10),
+        content=ft.Column([
+            ft.Row([
+                ft.Icon(ft.Icons.BATTERY_ALERT, color="white", size=18),
+                banner_text,
+            ], spacing=8),
+            ft.TextButton(
+                "Show images anyway",
+                style=ft.ButtonStyle(color="white"),
+                on_click=lambda e: _disable_power_saving(),
+            ),
+        ], spacing=4),
     )
-    geo_status = ft.Text("", size=12, color=TEXT_LIGHT, italic=True)
 
-    # ── geolocator setup ──────────────────────────────────────
-    def _setup_geo():
-        """Append Geolocator to page.overlay once."""
-        if not GEO_AVAILABLE or geo_ref[0] is not None:
-            return
-        g = Geolocator()
-        page.overlay.append(g)
+    def _disable_power_saving():
+        power_saving[0]      = False
+        power_banner.visible = False
         page.update()
-        geo_ref[0] = g
+        if saved_items[0]:
+            _render_cards(saved_items[0])
 
-    def _toggle_sort():
-        if sort_active[0]:
-            # turn off sort
-            sort_active[0] = False
-            sort_btn_text.value = "📍 Sort by Distance"
-            sort_btn.bgcolor = PRIMARY
-            geo_status.value = ""
-            page.update()
-            _load_vehicles()          # reload in default order
-        else:
-            # request location then sort
-            geo_status.value = "Getting your location…"
-            page.update()
-            threading.Thread(target=_fetch_location_then_sort).start()
+    # ── lite card (no image) ──────────────────────────────────
+    def _lite_card(v, on_tap, on_unsave):
+        return ft.GestureDetector(
+            on_tap=on_tap,
+            content=ft.Card(
+                elevation=2,
+                content=ft.Container(
+                    padding=ft.padding.all(14),
+                    content=ft.Column([
+                        ft.Row([
+                            ft.Text(
+                                f"{v['make']} {v['model']}",
+                                size=15, weight=ft.FontWeight.BOLD,
+                                color=TEXT_DARK, expand=True,
+                            ),
+                            ft.Container(
+                                content=ft.Icon(ft.Icons.BOOKMARK, color=ACCENT, size=20),
+                                on_click=on_unsave, padding=4,
+                            ),
+                        ]),
+                        ft.Text(
+                            f"{v['year']}  •  {v['type_of_vehicle']}  •  {v['fuel_type']}",
+                            size=12, color=TEXT_LIGHT,
+                        ),
+                        ft.Text(
+                            f"Rs {int(v['price']):,}{'  /month' if v['is_rental'] else ''}",
+                            size=16, weight=ft.FontWeight.BOLD, color=ACCENT,
+                        ),
+                        ft.Container(
+                            content=ft.Text(
+                                "For Rent" if v["is_rental"] else "For Sale",
+                                size=11, color="white",
+                            ),
+                            bgcolor=PRIMARY if v["is_rental"] else SUCCESS,
+                            padding=ft.padding.symmetric(horizontal=8, vertical=3),
+                            border_radius=10,
+                        ),
+                        ft.Row([
+                            ft.Icon(ft.Icons.BATTERY_ALERT, size=12, color=TEXT_LIGHT),
+                            ft.Text(
+                                "Image hidden — Power Saving Mode",
+                                size=11, color=TEXT_LIGHT, italic=True,
+                            ),
+                        ], spacing=4),
+                    ], spacing=6),
+                ),
+            ),
+        )
 
-    def _fetch_location_then_sort():
-        _setup_geo()
-        g = geo_ref[0]
-        if g is None:
-            geo_status.value = "Geolocation not available."
-            page.update()
-            return
+    # ── full card (with image) ────────────────────────────────
+    def _full_card(v, on_tap, on_unsave):
+        images  = v.get("images", [])
+        img_url = images[0]["image"] if images else None
+
+        img_box = ft.Container(
+            content=ft.Image(src=img_url, fit=ft.BoxFit.COVER) if img_url
+                    else ft.Icon(ft.Icons.DIRECTIONS_CAR, size=50, color=TEXT_LIGHT),
+            height=160, bgcolor="#e0e0e0",
+            clip_behavior=ft.ClipBehavior.HARD_EDGE,
+            alignment=ft.alignment.Alignment(0, 0),
+        )
+        info = ft.Container(
+            content=ft.Column([
+                ft.Row([
+                    ft.Text(
+                        f"{v['make']} {v['model']}",
+                        size=15, weight=ft.FontWeight.BOLD,
+                        color=TEXT_DARK, expand=True,
+                    ),
+                    ft.Container(
+                        content=ft.Icon(ft.Icons.BOOKMARK, color=ACCENT, size=22),
+                        on_click=on_unsave, padding=4,
+                    ),
+                ]),
+                ft.Text(
+                    f"{v['year']}  •  {v['type_of_vehicle']}  •  {v['fuel_type']}",
+                    size=12, color=TEXT_LIGHT,
+                ),
+                ft.Text(
+                    f"Rs {int(v['price']):,}{'  /month' if v['is_rental'] else ''}",
+                    size=17, weight=ft.FontWeight.BOLD, color=ACCENT,
+                ),
+                ft.Container(
+                    content=ft.Text(
+                        "For Rent" if v["is_rental"] else "For Sale",
+                        size=11, color="white",
+                    ),
+                    bgcolor=PRIMARY if v["is_rental"] else SUCCESS,
+                    padding=ft.padding.symmetric(horizontal=8, vertical=3),
+                    border_radius=10,
+                ),
+            ], spacing=5),
+            padding=ft.padding.all(12),
+        )
+        return ft.GestureDetector(
+            on_tap=on_tap,
+            content=ft.Card(
+                elevation=3,
+                content=ft.Column([img_box, info], spacing=0),
+            ),
+        )
+
+    # ── render cards based on power_saving state ──────────────
+    def _render_cards(items):
+        col.controls.clear()
+        for item in items:
+            v = item["vehicle"]
+
+            def tap_fn(veh):
+                def _tap(e):
+                    APP_STATE["sv"] = veh
+                    go_to("detail")
+                return _tap
+
+            def unsave_fn(veh):
+                def _do(e):
+                    def _run():
+                        api.toggle_save(veh["id"])
+                        _load()
+                    threading.Thread(target=_run).start()
+                return _do
+
+            if power_saving[0]:
+                col.controls.append(_lite_card(v, tap_fn(v), unsave_fn(v)))
+            else:
+                col.controls.append(_full_card(v, tap_fn(v), unsave_fn(v)))
+
+        page.update()
+
+    # ── battery check runs in its own thread (no async) ───────
+    def _check_battery(items):
         try:
-            # request permission first
             import asyncio
-
-            async def _get_pos():
-                perm = await g.request_permission(timeout=30)
-                if perm not in (
-                    GeolocatorPermissionStatus.ALWAYS,
-                    GeolocatorPermissionStatus.WHILE_IN_USE,
-                ):
-                    return None
-                pos = await g.get_current_position(
-                    accuracy=GeolocatorPositionAccuracy.BEST
-                )
-                return pos
-
             loop = asyncio.new_event_loop()
-            pos  = loop.run_until_complete(_get_pos())
+
+            async def _query():
+                bat   = ft.Battery()
+                level = await bat.get_battery_level()
+                state = await bat.get_battery_state()
+                return level, state
+
+            level, state = loop.run_until_complete(_query())
             loop.close()
 
-            if pos is None:
-                geo_status.value = "Location permission denied."
-                page.update()
-                return
+            is_charging = "charging" in str(state).lower()
 
-            user_lat[0] = pos.latitude
-            user_lng[0] = pos.longitude
-            sort_active[0] = True
-            sort_btn_text.value = "✕ Clear Distance Sort"
-            sort_btn.bgcolor = ACCENT
-            geo_status.value = f"📍 ({pos.latitude:.4f}, {pos.longitude:.4f})"
-            page.update()
-            _load_vehicles(lat=pos.latitude, lng=pos.longitude)
+            if level >= BATTERY_THRESHOLD or is_charging:
+                power_saving[0]      = False
+                power_banner.visible = False
+            else:
+                power_saving[0]   = True
+                banner_text.value = (
+                    f"⚡ Power Saving Mode — battery at {level}%. "
+                    "Images hidden to save battery."
+                )
+                power_banner.visible = True
 
         except Exception as ex:
-            geo_status.value = f"Location error: {ex}"
-            page.update()
+            # battery check failed — just show full cards
+            power_saving[0] = False
+            power_banner.visible = False
 
-    # ── vehicle loader ────────────────────────────────────────
-    def _load_vehicles(lat=None, lng=None):
+        page.update()
+        _render_cards(items)
+
+    # ── main loader ───────────────────────────────────────────
+    def _load():
         spin.visible = True
         col.controls.clear()
         status.value = ""
@@ -152,71 +238,19 @@ def saved_screen(page: ft.Page, go_to):
                     page.update()
                     return
 
-                # Call the API — pass lat/lng if we have them
-                items = api.saved_sorted(lat=lat, lng=lng) if (lat and lng) else api.saved()
+                items = api.saved()
                 spin.visible = False
+                page.update()
 
                 if not items:
                     status.value = "You haven't saved any vehicles yet."
                     page.update()
                     return
 
-                for item in items:
-                    v        = item["vehicle"]
-                    distance = item.get("distance_km")  # present when sorted by API
+                saved_items[0] = items
 
-                    # fallback: compute distance client-side from gps_coor
-                    if distance is None and lat and lng:
-                        gps = v.get("gps_coor", "")
-                        if gps:
-                            try:
-                                parts    = gps.split(",")
-                                v_lat    = float(parts[0].strip())
-                                v_lng    = float(parts[1].strip())
-                                distance = _haversine(lat, lng, v_lat, v_lng)
-                            except (ValueError, IndexError):
-                                pass
-
-                    # distance badge shown below the card when sort is active
-                    dist_badge = ft.Container()
-                    if distance is not None:
-                        dist_badge = ft.Container(
-                            content=ft.Row(
-                                [
-                                    ft.Icon(ft.Icons.LOCATION_ON, size=14, color=PRIMARY),
-                                    ft.Text(
-                                        f"{distance:.1f} km away",
-                                        size=12, color=PRIMARY,
-                                        weight=ft.FontWeight.W_500,
-                                    ),
-                                ],
-                                spacing=2,
-                            ),
-                            padding=ft.padding.only(left=12, bottom=8),
-                        )
-
-                    def tap_fn(veh):
-                        def tap(e):
-                            APP_STATE["sv"] = veh
-                            go_to("detail")
-                        return tap
-
-                    def unsave_fn(veh):
-                        def do(e):
-                            def run():
-                                api.toggle_save(veh["id"])
-                                _load_vehicles(lat=user_lat[0], lng=user_lng[0])
-                            threading.Thread(target=run).start()
-                        return do
-
-                    col.controls.append(
-                        ft.Column([
-                            v_card(v, on_tap=tap_fn(v), on_save=unsave_fn(v), saved=True),
-                            dist_badge,
-                        ], spacing=0)
-                    )
-
-                page.update()
+                # run battery check in thread, then render
+                threading.Thread(target=_check_battery, args=(items,)).start()
 
             except Exception as ex:
                 spin.visible = False
@@ -225,7 +259,7 @@ def saved_screen(page: ft.Page, go_to):
 
         threading.Thread(target=fetch).start()
 
-    _load_vehicles()   # initial load (no sort)
+    _load()
 
     return ft.View(
         route="/saved", bgcolor=BG, scroll=ft.ScrollMode.AUTO,
@@ -238,16 +272,8 @@ def saved_screen(page: ft.Page, go_to):
             ft.Container(
                 padding=ft.padding.all(16),
                 content=ft.Column(spacing=12, controls=[
-                    # header row: title + sort button
-                    ft.Row(
-                        [
-                            section("Your Saved Vehicles"),
-                            sort_btn,
-                        ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    geo_status,
+                    section("Your Saved Vehicles"),
+                    power_banner,
                     ft.Row([spin], alignment=ft.MainAxisAlignment.CENTER),
                     status,
                     col,
