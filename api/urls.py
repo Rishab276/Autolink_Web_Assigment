@@ -23,6 +23,7 @@ urlpatterns = [
     path('register/', views.RegisterAPI.as_view(), name='api_register'),
     path('logout/', views.LogoutAPI.as_view(), name='api_logout'),
     path('profile/', views.ProfileAPI.as_view(), name='api_profile'),
+    path('profile/update/', views.UpdateProfileAPI.as_view(), name='api_profile_update'),
 
     # --- VEHICLES ---
     # GET /api/vehicles/                → List all vehicles (with optional filters)
@@ -31,6 +32,11 @@ urlpatterns = [
     path('vehicles/', views.VehicleListAPI.as_view(), name='api_vehicles'),
     path('vehicles/nearby/', views.NearbyVehiclesAPI.as_view(), name='api_nearby'),
     path('vehicles/<int:pk>/', views.VehicleDetailAPI.as_view(), name='api_vehicle_detail'),
+    path('my-vehicles/', views.MyVehiclesAPI.as_view(), name='api_my_vehicles'),
+    path('vehicles/upload/', views.UploadVehicleAPI.as_view(), name='api_upload_vehicle'),
+    path('vehicles/<int:pk>/update/', views.UpdateVehicleAPI.as_view(), name='api_update_vehicle'),
+    path('vehicles/<int:pk>/delete/', views.DeleteVehicleAPI.as_view(), name='api_delete_vehicle'),
+
 
     # --- REVIEWS ---
     # GET  /api/reviews/         → List all approved reviews
