@@ -8,12 +8,13 @@
 #   shared.py            ← API, theme, shared components (Salwan)
 #   screens/
 #     login.py           ← Login & Register  (Vigneshwar 2411725)
+#     upload.py          ← upload vehicle for sale or rent  (Vigneshwar 2411725)
 #     home.py            ← Home screen       (Keshni    2412390)
 #     detail.py          ← Vehicle detail    (Rishab    2412024)
 #     nearby.py          ← GPS nearby        (Rishab    2412024)
 #     saved.py           ← Saved vehicles    (Salwan    2412258)
 #     reviews.py         ← Reviews           (Humaa     2412290)
-#     profile.py         ← Profile           (Vigneshwar 2411725)
+#     profile.py         ← Profile           (Salwan    2412258)
 # ─────────────────────────────────────────────────────────────
 
 import flet as ft
@@ -24,9 +25,9 @@ from screens.home    import home_screen
 from screens.detail  import detail_screen
 from screens.nearby  import nearby_screen
 from screens.saved   import saved_screen
-from screens.reviews import reviews_screen
+from screens.reviews import report_vehicle_screen, reviews_screen, report_screen_for_review
 from screens.profile import profile_screen
-
+from screens.upload import upload_vehicle_screen, my_vehicles_screen, edit_vehicle_screen
 
 SCREENS = {
     "login":    login_screen,
@@ -37,6 +38,11 @@ SCREENS = {
     "saved":    saved_screen,
     "reviews":  reviews_screen,
     "profile":  profile_screen,
+    "report_review":  report_screen_for_review,
+    "report_vehicle": report_vehicle_screen,
+    "upload_vehicle":upload_vehicle_screen,
+    "my_vehicles":my_vehicles_screen,
+    "edit_vehicle":edit_vehicle_screen,
 }
 
 
@@ -57,4 +63,4 @@ def main(page: ft.Page):
     go_to("login")
 
 
-ft.app(target=main)
+ft.app(target=main, assets_dir="assets")
