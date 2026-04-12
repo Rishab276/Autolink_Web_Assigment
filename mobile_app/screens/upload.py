@@ -203,6 +203,50 @@ def upload_vehicle_screen(page, go_to):
         contact_f = field("Contact Number", keyboard=ft.KeyboardType.PHONE,
                           icon=ft.Icons.PHONE_OUTLINED)
         gps_f     = field("GPS Coordinates")
+        def get_location_from_ip(e):
+            # Visual feedback that it's working
+            gps_f.hint_text = "Fetching..."
+            gps_f.update()
+
+            def fetch():
+                try:
+                    # Using ipapi.co for quick coordinates
+                    r = requests.get("https://ipapi.co/json/", timeout=5)
+                    data = r.json()
+                    lat = data.get("latitude")
+                    lon = data.get("longitude")
+                    city = data.get("city", "Unknown")
+
+                    if lat and lon:
+                        gps_f.value = f"{lat}, {lon}"
+                        msg.value = f"Location set to: {city}"
+                        msg.color = SUCCESS
+                    else:
+                        msg.value = "Could not detect location via IP."
+                        msg.color = ERROR
+                except Exception as ex:
+                    msg.value = "Network error while fetching location."
+                    msg.color = ERROR
+                
+                gps_f.hint_text = None
+                page.update()
+
+            threading.Thread(target=fetch).start()
+
+        # 3. Create a Row to hold the GPS field and a Location Button
+        gps_row = ft.Row([
+            ft.Container(content=gps_f, expand=True), # Let the field take most space
+            ft.IconButton(
+                icon=ft.Icons.MY_LOCATION,
+                icon_color=PRIMARY,
+                tooltip="Get location from IP",
+                on_click=get_location_from_ip,
+                style=ft.ButtonStyle(
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    bgcolor="#f0f2f5"
+                )
+            )
+        ], spacing=10, vertical_alignment=ft.CrossAxisAlignment.CENTER)
         desc_f    = ft.TextField(
             label="Description",
             multiline=True, min_lines=3,
@@ -358,7 +402,7 @@ def upload_vehicle_screen(page, go_to):
                 label("FUEL TYPE"),    fuel_row,
                 desc_f,
                 contact_f,
-                gps_f,
+                gps_row,
             ]),
         )
         wrapper_ref["ctrl"] = block

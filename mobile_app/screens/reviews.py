@@ -5,7 +5,7 @@ import time
 import datetime
 
 ANTHROPIC_API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE"
-BASE_URL = "http://127.0.0.1:8000/"
+BASE_URL = "http://192.168.1.78:8000/api"
 
 PRIMARY    = "#1a237e"
 ACCENT     = "#ff6f00"
@@ -18,6 +18,27 @@ ERROR      = "#c62828"
 STAR_ON    = "#FFB300"
 STAR_OFF   = "#e0e0e0"
 LOGO_PATH  = "assets/logo copy.png"
+
+# Simple in-memory store to pass data between screens
+_app_store = {}
+
+def _load_logo_base64():
+    import base64, os
+    paths = [
+        "assets/logo copy.png",
+        "assets/logo.png",
+        os.path.join(os.path.dirname(__file__), "..", "assets", "logo copy.png"),
+        os.path.join(os.path.dirname(__file__), "..", "assets", "logo.png"),
+    ]
+    for p in paths:
+        try:
+            with open(p, "rb") as f:
+                return base64.b64encode(f.read()).decode("utf-8")
+        except:
+            continue
+    return None
+
+LOGO_BASE64 = _load_logo_base64()
 SENTIMENT_COLORS = {"positive": "#2e7d32", "neutral": "#f57c00", "negative": "#c62828"}
 
 
@@ -120,7 +141,7 @@ def _review_card(r, on_report):
                     ], spacing=1, expand=True),
                     badge,
                     ft.IconButton(
-                        icon="flag", icon_color=TEXT_LIGHT, icon_size=18,
+                        icon=ft.Icons.FLAG, icon_color=TEXT_LIGHT, icon_size=18,
                         tooltip="Report", on_click=lambda e, rv=r: on_report(rv),
                     ),
                 ], vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
@@ -140,16 +161,16 @@ def _review_card(r, on_report):
 
 def reviews_screen(page, go_to):
     all_reviews  = []
-    reviews_col  = ft.Column(spacing=10)
+    reviews_col  = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO)
     summary_box  = ft.Container()
     status_text  = ft.Text("", color=TEXT_LIGHT, text_align=ft.TextAlign.CENTER)
     spinner      = ft.ProgressRing(color=PRIMARY)
     star_state   = {"value": 0}
     gps_coords   = {"lat": None, "lng": None, "label": ""}
-    photo_path   = {"value": None}
+    photo_files  = []
 
-    gps_label        = ft.Text("", size=12, color=TEXT_LIGHT, italic=True)
-    photo_label      = ft.Text("", size=12, color=TEXT_LIGHT, italic=True)
+    gps_label  = ft.Text("", size=12, color=TEXT_LIGHT, italic=True)
+    submit_msg = ft.Text("", text_align=ft.TextAlign.CENTER)
 
     title_field  = ft.TextField(label="Review Title", border_color=PRIMARY, border_radius=10, width=float("inf"))
     review_field = ft.TextField(label="Share your experience…", multiline=True, min_lines=4,
@@ -158,11 +179,9 @@ def reviews_screen(page, go_to):
                                 border_color=PRIMARY, border_radius=10, width=float("inf"))
     email_field  = ft.TextField(label="Email", keyboard_type=ft.KeyboardType.EMAIL,
                                 prefix_icon=ft.Icons.EMAIL, border_color=PRIMARY, border_radius=10, width=float("inf"))
-    submit_msg   = ft.Text("", text_align=ft.TextAlign.CENTER)
 
-    # ── Star rating with SWIPE + DOUBLE TAP lock + RESET ────────
+    # ── Star rating ──────────────────────────────────────────
     gesture_state = {"locked": False}
-
     star_row = ft.Row(spacing=2, alignment=ft.MainAxisAlignment.CENTER)
 
     tilt_hint = ft.Text(
@@ -183,22 +202,23 @@ def reviews_screen(page, go_to):
 
     RATING_LABELS = {
         0: ("👉 Swipe left/right to rate", TEXT_LIGHT),
-        1: ("😞  Poor",      "#e53935"),
-        2: ("😐  Fair",      "#fb8c00"),
-        3: ("🙂  Good",      "#fdd835"),
-        4: ("😊  Great",     "#7cb342"),
-        5: ("🤩  Excellent!","#2e7d32"),
+        1: ("😞  Poor",       "#e53935"),
+        2: ("😐  Fair",       "#fb8c00"),
+        3: ("🙂  Good",       "#fdd835"),
+        4: ("😊  Great",      "#7cb342"),
+        5: ("🤩  Excellent!", "#2e7d32"),
     }
 
     def build_stars():
         star_row.controls.clear()
         v = int(star_state["value"])
         for i in range(1, 6):
-            filled = i <= v
+            # Stars all empty (border) when value is 0
+            filled = (i <= v) and (v > 0)
             star_row.controls.append(
                 ft.Icon(
                     ft.Icons.STAR if filled else ft.Icons.STAR_BORDER,
-                    color=STAR_ON if filled else "#e0e0e0",
+                    color=STAR_ON if filled else STAR_OFF,
                     size=40,
                 )
             )
@@ -236,7 +256,6 @@ def reviews_screen(page, go_to):
         update_hint()
         page.update()
 
-    # ── SWIPE / DRAG to change rating ────────────────────────
     drag_accum = {"x": 0.0}
 
     def on_drag_start(e):
@@ -253,7 +272,6 @@ def reviews_screen(page, go_to):
             set_star(star_state["value"] - 1)
             drag_accum["x"] = 0.0
 
-    # ── RESET (shake simulation) ──────────────────────────────
     def reset_rating(e=None):
         star_state["value"] = 0
         gesture_state["locked"] = False
@@ -281,6 +299,62 @@ def reviews_screen(page, go_to):
         on_horizontal_drag_update=on_drag,
     )
 
+    # ── Confetti success dialog ───────────────────────────────
+    def show_success_dialog():
+        confetti_items = ["🎉", "⭐", "🎊", "✨", "🌟", "💫", "🎈", "🏆"]
+        dlg = ft.AlertDialog(
+            modal=True,
+            bgcolor=CARD_BG,
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Row(
+                        [ft.Text(c, size=28) for c in confetti_items],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        wrap=True,
+                    ),
+                    ft.Container(height=8),
+                    ft.Text("Review Submitted!", size=22,
+                            weight=ft.FontWeight.BOLD, color=PRIMARY,
+                            text_align=ft.TextAlign.CENTER),
+                    ft.Text("Thank you for sharing\nyour experience! 🙏",
+                            size=14, color=TEXT_LIGHT,
+                            text_align=ft.TextAlign.CENTER),
+                    ft.Container(height=8),
+                    ft.Row(
+                        [ft.Text(c, size=28) for c in ["🎉", "🌟", "🎊", "✨", "🎈"]],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                    ),
+                ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
+                padding=ft.padding.all(20),
+                width=280,
+            ),
+            actions=[
+                ft.TextButton(
+                    "Great! 🎉",
+                    on_click=lambda e: _close_dlg(dlg),
+                    style=ft.ButtonStyle(color=PRIMARY),
+                )
+            ],
+            actions_alignment=ft.MainAxisAlignment.CENTER,
+        )
+        page.overlay.append(dlg)
+        dlg.open = True
+        page.update()
+
+        def auto_close():
+            time.sleep(3)
+            _close_dlg(dlg)
+        threading.Thread(target=auto_close, daemon=True).start()
+
+    def _close_dlg(dlg):
+        try:
+            dlg.open = False
+            if dlg in page.overlay:
+                page.overlay.remove(dlg)
+            page.update()
+        except Exception:
+            pass
+
     # ── Render reviews ────────────────────────────────────────
     def render_reviews(reviews):
         reviews_col.controls.clear()
@@ -290,9 +364,10 @@ def reviews_screen(page, go_to):
                         text_align=ft.TextAlign.CENTER)
             )
         for r in reviews:
-            reviews_col.controls.append(_review_card(r, on_report=lambda rv: (
-                page.session.set("report_target_review", rv), go_to("report_review")
-            )))
+            def on_report(rv):
+                _app_store["report_target_review"] = rv
+                go_to("report_review")
+            reviews_col.controls.append(_review_card(r, on_report=on_report))
         page.update()
 
     def load_reviews(show_spinner=True):
@@ -331,7 +406,7 @@ def reviews_screen(page, go_to):
     }
 
     def get_location(e):
-        gps_label.value = "📍 Detecting location…"
+        gps_label.value = "📍 Detecting…"
         page.update()
         def fetch_loc():
             try:
@@ -340,7 +415,6 @@ def reviews_screen(page, go_to):
                 lng     = r.get("longitude",  57.4896)
                 country = r.get("country_code", "")
                 city    = r.get("city", "")
-
                 best_label = city or "Port Louis"
                 if country == "MU" or (-21.5 < float(lat) < -19.5 and 56.5 < float(lng) < 63.5):
                     best_dist = float("inf")
@@ -349,87 +423,96 @@ def reviews_screen(page, go_to):
                         if dist < best_dist:
                             best_dist  = dist
                             best_label = name
-                    label = f"{best_label}, Mauritius 🇲🇺"
+                    label = best_label
                 else:
-                    label = f"{city}, {r.get('country_name', '')}" if city else r.get("country_name", "Unknown")
-
+                    label = city or r.get("country_name", "Unknown")
                 gps_coords.update({"lat": lat, "lng": lng, "label": label})
                 gps_label.value = f"📍 {label}"
             except requests.exceptions.Timeout:
-                gps_coords.update({"lat": -20.1654, "lng": 57.4896, "label": "Port Louis, Mauritius 🇲🇺"})
-                gps_label.value = "📍 Port Louis, Mauritius 🇲🇺 (fallback)"
-            except Exception as ex:
-                gps_label.value = f"📍 Could not detect: {ex}"
+                gps_coords.update({"lat": -20.1654, "lng": 57.4896, "label": "Port Louis"})
+                gps_label.value = "📍 Port Louis"
+            except Exception:
+                gps_label.value = "📍 Error detecting location"
             page.update()
         threading.Thread(target=fetch_loc).start()
 
-    # ── File picker — async, returns files directly ──────────
+    # ── File picker ───────────────────────────────────────────
     file_picker = ft.FilePicker()
+
+    # ── Photos display ────────────────────────────────────────
+    photos_row = ft.Column(spacing=4)
+
+    def refresh_photos():
+        photos_row.controls.clear()
+        if not photo_files:
+            photos_row.controls.append(
+                ft.Text("No photos selected", size=11, color=TEXT_LIGHT, italic=True)
+            )
+        else:
+            for i, pf in enumerate(photo_files):
+                def make_delete(i):
+                    def delete(e):
+                        photo_files.pop(i)
+                        refresh_photos()
+                        page.update()
+                    return delete
+                photos_row.controls.append(
+                    ft.Row([
+                        ft.Icon(ft.Icons.IMAGE, color=SUCCESS, size=16),
+                        ft.Text(pf["name"], size=11, color=SUCCESS, expand=True,
+                                overflow=ft.TextOverflow.ELLIPSIS),
+                        ft.IconButton(
+                            icon=ft.Icons.DELETE_OUTLINE,
+                            icon_color=ERROR, icon_size=18,
+                            tooltip="Remove",
+                            on_click=make_delete(i),
+                        ),
+                    ], spacing=4, vertical_alignment=ft.CrossAxisAlignment.CENTER)
+                )
+        page.update()
+
+    refresh_photos()
 
     def _handle_files(files):
         if files:
-            photo_path["value"] = files[0].path
-            photo_label.value   = f"📷 {files[0].name}"
-            photo_label.color   = SUCCESS
-        else:
-            photo_label.value = "📷 No photo selected"
-            photo_label.color = TEXT_LIGHT
+            for f in files:
+                photo_files.append({
+                    "name":  f.name,
+                    "bytes": f.bytes,
+                    "path":  f.path,
+                })
+            refresh_photos()
         page.update()
 
     def open_gallery(e):
         async def _pick():
             try:
                 files = await file_picker.pick_files(
-                    allow_multiple=False,
+                    allow_multiple=True,
                     file_type=ft.FilePickerFileType.IMAGE,
+                    with_data=True,
                 )
                 _handle_files(files)
-            except Exception as ex:
-                photo_label.value = f"📷 Error: {ex}"
-                photo_label.color = ERROR
+            except Exception:
                 page.update()
         page.run_task(_pick)
 
-    def open_camera(e):
-        async def _capture():
-            try:
-                files = await file_picker.pick_files(
-                    allow_multiple=False,
-                    file_type=ft.FilePickerFileType.IMAGE,
-                    with_data=False,
-                )
-                _handle_files(files)
-            except Exception as ex:
-                photo_label.value = f"📷 Error: {ex}"
-                photo_label.color = ERROR
-                page.update()
-        page.run_task(_capture)
-
-    camera_btn = ft.Row([
-        ft.ElevatedButton(
-            content=ft.Row([
-                ft.Icon(ft.Icons.PHOTO_LIBRARY, color="white", size=16),
-                ft.Text("Gallery", color="white", size=13),
-            ], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
-            bgcolor=PRIMARY,
-            on_click=open_gallery,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
-            expand=True,
-        ),
-        ft.ElevatedButton(
-            content=ft.Row([
-                ft.Icon(ft.Icons.CAMERA_ALT, color="white", size=16),
-                ft.Text("Camera", color="white", size=13),
-            ], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
-            bgcolor=ACCENT,
-            on_click=open_camera,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
-            expand=True,
-        ),
-    ], spacing=8)
+    camera_btn = ft.ElevatedButton(
+        content=ft.Row([
+            ft.Icon(ft.Icons.PHOTO_LIBRARY, color="white", size=18),
+            ft.Text("Choose Photos", color="white", size=13),
+        ], spacing=6, alignment=ft.MainAxisAlignment.CENTER),
+        bgcolor=PRIMARY,
+        on_click=open_gallery,
+        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
+        width=float("inf"),
+    )
 
     submit_btn = ft.ElevatedButton(
-        content=ft.Text("Submit Review", color="white"),
+        content=ft.Row([
+            ft.Icon(ft.Icons.RATE_REVIEW, color="white", size=18),
+            ft.Text("Submit Review", color="white", size=14),
+        ], spacing=8, alignment=ft.MainAxisAlignment.CENTER),
         bgcolor=PRIMARY, width=float("inf"), height=46,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
     )
@@ -440,7 +523,12 @@ def reviews_screen(page, go_to):
             submit_msg.color = ERROR
             page.update()
             return
+        # Show loading state on button
         submit_btn.disabled = True
+        submit_btn.content = ft.Row([
+            ft.ProgressRing(width=18, height=18, stroke_width=2, color="white"),
+            ft.Text("Submitting…", color="white", size=14),
+        ], spacing=8, alignment=ft.MainAxisAlignment.CENTER)
         submit_msg.value = ""
         page.update()
         def post():
@@ -457,15 +545,21 @@ def reviews_screen(page, go_to):
                     "latitude":       gps_coords.get("lat"),
                     "longitude":      gps_coords.get("lng"),
                 }
-                if photo_path["value"]:
-                    with open(photo_path["value"], "rb") as f:
-                        resp = requests.post(f"{BASE_URL}/reviews/submit/", data=payload,
-                                             files={"photo": f}, timeout=15)
+                if photo_files:
+                    files_payload = [
+                        ("photos", (pf["name"], pf["bytes"], "image/jpeg"))
+                        for pf in photo_files if pf.get("bytes")
+                    ]
+                    resp = requests.post(
+                        f"{BASE_URL}/reviews/submit/", data=payload,
+                        files=files_payload if files_payload else None,
+                        timeout=15,
+                    )
                 else:
                     resp = requests.post(f"{BASE_URL}/reviews/submit/", json=payload, timeout=15)
+
                 if resp.status_code == 201:
-                    submit_msg.color = SUCCESS
-                    submit_msg.value = "✅ Submitted!"
+                    # Add review immediately to list
                     new_review = {
                         "title":          payload["title"],
                         "review_text":    payload["review_text"],
@@ -478,17 +572,33 @@ def reviews_screen(page, go_to):
                     all_reviews.insert(0, new_review)
                     summary_box.content = _rating_bar(all_reviews)
                     render_reviews(all_reviews)
+                    # Reset form
                     title_field.value = review_field.value = author_field.value = email_field.value = ""
                     star_state["value"] = 0
                     gesture_state["locked"] = False
                     build_stars()
                     update_hint()
                     gps_coords.update({"lat": None, "lng": None, "label": ""})
-                    gps_label.value = photo_label.value = ""
-                    photo_path["value"] = None
+                    gps_label.value = ""
+                    photo_files.clear()
+                    refresh_photos()
+                    submit_msg.value = "👇 Scroll down to see your review"
+                    submit_msg.color = SUCCESS
+                    page.update()
+                    # Show confetti
+                    show_success_dialog()
+                    # Reload from server in background
                     load_reviews(show_spinner=False)
-                    # Scroll to reviews list so user sees their new review
-                    reviews_col.scroll_to(offset=-1, duration=800)
+                    # scroll page to reviews list
+                    def do_scroll():
+                        time.sleep(1.5)
+                        status_text.value = "👇 Scroll down to see your review"
+                        status_text.color = SUCCESS
+                        page.update()
+                        time.sleep(3)
+                        status_text.value = ""
+                        page.update()
+                    threading.Thread(target=do_scroll, daemon=True).start()
                 else:
                     submit_msg.color = ERROR
                     submit_msg.value = str(resp.json())
@@ -497,6 +607,10 @@ def reviews_screen(page, go_to):
                 submit_msg.value = f"Error: {ex}"
             finally:
                 submit_btn.disabled = False
+                submit_btn.content = ft.Row([
+                    ft.Icon(ft.Icons.RATE_REVIEW, color="white", size=18),
+                    ft.Text("Submit Review", color="white", size=14),
+                ], spacing=8, alignment=ft.MainAxisAlignment.CENTER)
                 page.update()
         threading.Thread(target=post).start()
 
@@ -537,74 +651,51 @@ def reviews_screen(page, go_to):
         controls=[
             ft.Container(
                 content=ft.Column([
-                    # ── Rating summary bar ──────────────────────
                     summary_box,
 
-                    # ── Write a review form with faded logo background ──
+                    # ── Write a review card ──────────────────
                     ft.Container(
-                        content=ft.Stack([
-                            # ── Faded logo background ──
-                            ft.Container(
-                                content=ft.Image(
-                                    src=LOGO_PATH,
-                                    width=400,
-                                    height=400,
-                                    fit="fill",
-                                    opacity=0.35,
+                        content=ft.Column([
+                            ft.Row([
+                                ft.Icon(ft.Icons.EDIT, color=PRIMARY),
+                                ft.Text("Write a Review", size=18,
+                                        weight=ft.FontWeight.BOLD, color=PRIMARY),
+                            ], spacing=8, alignment=ft.MainAxisAlignment.CENTER),
+                            ft.Divider(height=1, color="#e0e0e0"),
+                            ft.Text("Your Rating", size=13, color=TEXT_LIGHT,
+                                    text_align=ft.TextAlign.CENTER),
+                            star_gesture,
+                            tilt_hint,
+                            lock_indicator,
+                            title_field,
+                            review_field,
+                            author_field,
+                            email_field,
+                            ft.ElevatedButton(
+                                content=ft.Row([
+                                    ft.Icon(ft.Icons.LOCATION_ON, color="white", size=18),
+                                    ft.Text("Detect Location", color="white", size=13),
+                                ], spacing=6, alignment=ft.MainAxisAlignment.CENTER),
+                                bgcolor=ACCENT,
+                                on_click=get_location,
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=10),
                                 ),
-                                alignment=ft.alignment.Alignment(0, 0),
-                                expand=True,
+                                width=float("inf"),
                             ),
-                            # ── Form content on top ──
-                            ft.Container(
-                                content=ft.Column([
-                                    ft.Row([
-                                        ft.Icon(ft.Icons.EDIT, color=PRIMARY),
-                                        ft.Text("Write a Review", size=18,
-                                                weight=ft.FontWeight.BOLD, color=PRIMARY),
-                                    ], spacing=8, alignment=ft.MainAxisAlignment.CENTER),
-                                    ft.Divider(height=1, color="#e0e0e0"),
-                                    ft.Text("Your Rating", size=13, color=TEXT_LIGHT,
-                                            text_align=ft.TextAlign.CENTER),
-                                    star_gesture,
-                                    tilt_hint,
-                                    lock_indicator,
-                                    title_field,
-                                    review_field,
-                                    author_field,
-                                    email_field,
-                                    ft.ElevatedButton(
-                                        content=ft.Row([
-                                            ft.Icon(ft.Icons.LOCATION_ON, color="white", size=18),
-                                            ft.Text("📍 Detect Location", color="white", size=13),
-                                        ], spacing=6, alignment=ft.MainAxisAlignment.CENTER),
-                                        bgcolor=ACCENT,
-                                        on_click=get_location,
-                                        style=ft.ButtonStyle(
-                                            shape=ft.RoundedRectangleBorder(radius=10),
-                                        ),
-                                        width=float("inf"),
-                                    ),
-                                    gps_label,
-                                    camera_btn,
-                                    photo_label,
-                                    submit_msg,
-                                    ft.Container(
-                                        content=submit_btn,
-                                        alignment=ft.alignment.Alignment(0, 0),
-                                    ),
-                                ], spacing=10),
-                                padding=ft.padding.all(16),
-                            ),
-                        ]),
-                        bgcolor=CARD_BG, border_radius=16,
-                        expand=True,
+                            gps_label,
+                            camera_btn,
+                            photos_row,
+                            submit_msg,
+                            submit_btn,
+                        ], spacing=10),
+                        padding=ft.padding.all(16),
+                        bgcolor=CARD_BG,
+                        border_radius=16,
                         shadow=ft.BoxShadow(blur_radius=8, color="#00000014"),
+
                     ),
-
                     ft.Container(height=8),
-
-                    # ── Reviews list ────────────────────────────
                     spinner,
                     status_text,
                     reviews_col,
@@ -619,7 +710,7 @@ def reviews_screen(page, go_to):
 # ── REPORT REVIEW SCREEN ──────────────────────────────────────
 
 def report_screen_for_review(page, go_to):
-    review  = page.session.get("report_target_review") or {}
+    review  = _app_store.get("report_target_review", {})
     reasons = [
         ("spam",       "🚫 Spam / Fake"),
         ("offensive",  "😡 Offensive"),
@@ -663,11 +754,16 @@ def report_screen_for_review(page, go_to):
 
     def do_report(e):
         if not selected["value"]:
-            msg.value = "Select a reason."
+            msg.value = "⚠️ Please select a reason first."
             msg.color = ERROR
             page.update()
             return
         submit_btn.disabled = True
+        submit_btn.content = ft.Row([
+            ft.ProgressRing(width=18, height=18, stroke_width=2, color="white"),
+            ft.Text("Submitting…", color="white", size=14),
+        ], spacing=8, alignment=ft.MainAxisAlignment.CENTER)
+        msg.value = ""
         page.update()
         def post():
             try:
@@ -678,16 +774,22 @@ def report_screen_for_review(page, go_to):
                 }, timeout=10)
                 if resp.status_code in (200, 201):
                     msg.color = SUCCESS
-                    msg.value = "✅ Report submitted. Thank you!"
-                    time.sleep(1.5)
+                    msg.value = "✅ Report submitted! Thank you for helping keep AutoLink safe."
+                    submit_btn.content = ft.Text("Submit Report", color="white")
+                    submit_btn.disabled = False
+                    page.update()
+                    time.sleep(2)
                     go_to("reviews")
                 else:
                     msg.color = ERROR
-                    msg.value = "Could not submit. Try again."
+                    msg.value = f"Could not submit. Status: {resp.status_code}"
+                    submit_btn.content = ft.Text("Submit Report", color="white")
+                    submit_btn.disabled = False
+                    page.update()
             except Exception as ex:
                 msg.color = ERROR
                 msg.value = f"Error: {ex}"
-            finally:
+                submit_btn.content = ft.Text("Submit Report", color="white")
                 submit_btn.disabled = False
                 page.update()
         threading.Thread(target=post).start()
@@ -798,11 +900,17 @@ def report_vehicle_screen(page, go_to):
 
     def do_report(e):
         if not selected["value"]:
-            msg.value = "Select a reason."
+            msg.value = "⚠️ Please select a reason first."
             msg.color = ERROR
             page.update()
             return
+        # Show immediate feedback
         submit_btn.disabled = True
+        submit_btn.content = ft.Row([
+            ft.ProgressRing(width=18, height=18, stroke_width=2, color="white"),
+            ft.Text("Submitting…", color="white", size=14),
+        ], spacing=8, alignment=ft.MainAxisAlignment.CENTER)
+        msg.value = ""
         page.update()
         def post():
             try:
@@ -813,16 +921,22 @@ def report_vehicle_screen(page, go_to):
                 }, timeout=10)
                 if resp.status_code in (200, 201):
                     msg.color = SUCCESS
-                    msg.value = "✅ Report submitted. Thank you!"
-                    time.sleep(1.5)
+                    msg.value = "✅ Report submitted! Thank you for helping keep AutoLink safe."
+                    submit_btn.content = ft.Text("Submit Report", color="white")
+                    submit_btn.disabled = False
+                    page.update()
+                    time.sleep(2)
                     go_to("home")
                 else:
                     msg.color = ERROR
-                    msg.value = "Could not submit. Try again."
+                    msg.value = f"Could not submit. Status: {resp.status_code}"
+                    submit_btn.content = ft.Text("Submit Report", color="white")
+                    submit_btn.disabled = False
+                    page.update()
             except Exception as ex:
                 msg.color = ERROR
                 msg.value = f"Error: {ex}"
-            finally:
+                submit_btn.content = ft.Text("Submit Report", color="white")
                 submit_btn.disabled = False
                 page.update()
         threading.Thread(target=post).start()
