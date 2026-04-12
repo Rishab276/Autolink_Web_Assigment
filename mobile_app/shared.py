@@ -99,7 +99,7 @@ class API:
 api = API()
 
 
-# ── REUSABLE UI COMPONENTS ───────────────────────────────────
+# ── REUSABLE UI COMPONENTS ────
 
 def big_btn(label, on_click, bg=None, fg="white", width=300):
     """Standard primary button used across all screens"""
@@ -138,7 +138,7 @@ def section(text):
     return ft.Text(text, size=20, weight=ft.FontWeight.BOLD, color=PRIMARY)
 
 
-# ── NAVIGATION BAR ───────────────────────────────────────────
+# ── NAVIGATION BAR ──────
 ROUTES = ["home", "nearby", "saved", "reviews", "profile"]
 
 def nav(selected, go_to):
@@ -157,7 +157,7 @@ def nav(selected, go_to):
     )
 
 
-# ── VEHICLE CARD ─────────────────────────────────────────────
+# ── VEHICLE CARD ───
 def v_card(v, on_tap, on_save=None, saved=False):
     """Vehicle listing card — used in home, nearby and saved screens"""
     images  = v.get("images", [])
@@ -212,3 +212,6 @@ def v_card(v, on_tap, on_save=None, saved=False):
         ),
         on_tap=on_tap,
     )
+LOCAL_IMAGES = {}
+
+
