@@ -1,22 +1,3 @@
-# screens/profile.py
-# ─────────────────────────────────────────────────────────────
-# PROFILE SCREEN
-# Owner: Salwan Maighun (2412258)
-#
-# SENSOR FEATURES:
-#   1. ft.Battery — queries device battery level + charging
-#      state on load. Shows a coloured banner:
-#        🔴 < 20% not charging → critical warning
-#        🟠 < 50% not charging → low warning
-#        🟢 charging or > 50%  → all good
-#
-#   2. flet_camera (fc.Camera) — front camera selfie for
-#      profile picture. User taps "Change Photo", camera
-#      opens, they snap a selfie, it shows as their avatar.
-#      "Delete Photo" reverts to initials avatar.
-#      Camera is a hardware sensor unique to mobile devices.
-# ─────────────────────────────────────────────────────────────
-
 import flet as ft
 import flet_camera as fc
 import threading
@@ -28,11 +9,9 @@ def profile_screen(page: ft.Page, go_to):
     col  = ft.Column(spacing=10, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
     spin = ft.ProgressRing(visible=True, color=PRIMARY, width=30, height=30)
 
-    # ── profile photo state ───────────────────────────────────
-    photo_path   = [None]   # holds captured image path
-    user_initial = ["U"]    # fallback initial letter
+    photo_path   = [None]
+    user_initial = ["U"]
 
-    # ── avatar display (switches between photo and initials) ──
     avatar_image = ft.Image(
         src="", fit=ft.BoxFit.COVER,
         width=90, height=90,
@@ -78,7 +57,6 @@ def profile_screen(page: ft.Page, go_to):
         cam_btn.icon            = ft.Icons.CAMERA_ALT
         page.update()
 
-    # ── camera ────────────────────────────────────────────────
     cam = fc.Camera(expand=True, preview_enabled=True)
     cam_container = ft.Container(
         content=cam,
@@ -91,7 +69,6 @@ def profile_screen(page: ft.Page, go_to):
 
     async def _toggle_camera(e):
         if cam_container.visible:
-            # snap photo
             try:
                 path = await cam.take_picture()
                 _show_photo(path)
@@ -104,11 +81,9 @@ def profile_screen(page: ft.Page, go_to):
                 page.snack_bar.open = True
                 page.update()
         else:
-            # open camera
             cam_container.visible = True
             page.update()
             try:
-                # 1. Fetch the list of physical cameras
                 cameras = await cam.get_available_cameras()
                 if not cameras:
                     page.snack_bar = ft.SnackBar(ft.Text("No camera found."))
@@ -116,14 +91,11 @@ def profile_screen(page: ft.Page, go_to):
                     page.update()
                     return
 
-                # 2. Filter specifically for the FRONT lens
-                # We use the fc.CameraLensDirection.FRONT enum for accuracy
                 front = next(
                     (c for c in cameras if c.lens_direction == fc.CameraLensDirection.FRONT),
-                    cameras[0] # Fallback to first camera if front isn't detected
+                    cameras[0]
                 )
 
-                # 3. Initialize the camera using the 'front' description
                 await cam.initialize(
                     description=front,
                     resolution_preset=fc.ResolutionPreset.MEDIUM,
@@ -154,7 +126,6 @@ def profile_screen(page: ft.Page, go_to):
         visible=False,
     )
 
-    # ── battery banner ────────────────────────────────────────
     battery_text = ft.Text(
         "", size=13, italic=True, no_wrap=False,
     )
@@ -167,35 +138,36 @@ def profile_screen(page: ft.Page, go_to):
 
     async def _check_battery():
         try:
-            bat         = ft.Battery()
-            level       = await bat.get_battery_level()
-            state       = await bat.get_battery_state()
-            is_charging = "charging" in str(state).lower()
+            bat = ft.Battery()
+            level = await bat.get_battery_level()
+            state = await bat.get_battery_state()
+            
+            is_charging = state == ft.BatteryState.CHARGING or state == ft.BatteryState.FULL
 
             if is_charging or level >= 50:
-                battery_banner.bgcolor  = "#e8f5e9"
-                battery_text.value      = f"🟢 Battery: {level}% {'(charging)' if is_charging else '— all good!'}"
-                battery_text.color      = "#2e7d32"
+                battery_banner.bgcolor = "#e8f5e9"
+                status_msg = "(charging)" if is_charging else "— all good!"
+                battery_text.value = f"🟢 Battery: {level}% {status_msg}"
+                battery_text.color = "#2e7d32"
             elif level >= 20:
-                battery_banner.bgcolor  = "#fff3e0"
-                battery_text.value      = f"🟠 Battery low: {level}% — consider charging soon."
-                battery_text.color      = "#e65100"
+                battery_banner.bgcolor = "#fff3e0"
+                battery_text.value = f"🟠 Battery low: {level}% — consider charging soon."
+                battery_text.color = "#e65100"
             else:
-                battery_banner.bgcolor  = "#ffebee"
-                battery_text.value      = f"🔴 Battery critical: {level}% — plug in now!"
-                battery_text.color      = ERROR
+                battery_banner.bgcolor = "#ffebee"
+                battery_text.value = f"🔴 Battery critical: {level}% — plug in now!"
+                battery_text.color = ERROR
 
             battery_banner.visible = True
-        except Exception:
+        except Exception as e:
+            print(f"Battery Check Error: {e}") # Debugging
             pass
         page.update()
 
-    # ── logout ────────────────────────────────────────────────
     def do_logout():
         threading.Thread(target=api.logout).start()
         go_to("login")
 
-    # ── profile loader ────────────────────────────────────────
     def load():
         def fetch():
             try:
@@ -212,7 +184,6 @@ def profile_screen(page: ft.Page, go_to):
                 p = api.profile()
                 spin.visible = False
 
-                # set initial letter
                 initial = (p.get("first_name") or "U")[0].upper()
                 user_initial[0] = initial
                 avatar_initials.content = ft.Text(initial, size=36, color="white")
@@ -227,17 +198,14 @@ def profile_screen(page: ft.Page, go_to):
                 col.controls += [
                     ft.Container(height=10),
 
-                    # avatar
                     avatar_stack,
 
-                    # camera controls
                     ft.Row(
                         [cam_btn, delete_btn],
                         alignment=ft.MainAxisAlignment.CENTER,
                         spacing=8,
                     ),
 
-                    # camera viewfinder
                     cam_container,
 
                     ft.Text(
@@ -255,7 +223,6 @@ def profile_screen(page: ft.Page, go_to):
                     ),
                     ft.Container(height=4),
 
-                    # battery banner
                     battery_banner,
 
                     ft.Container(height=6),
@@ -284,7 +251,6 @@ def profile_screen(page: ft.Page, go_to):
 
                 page.update()
 
-                # show delete button only when photo exists
                 def _watch_photo():
                     import time
                     while True:
@@ -293,7 +259,6 @@ def profile_screen(page: ft.Page, go_to):
                         page.update()
                 threading.Thread(target=_watch_photo, daemon=True).start()
 
-                # check battery
                 page.run_task(_check_battery)
 
             except Exception as ex:

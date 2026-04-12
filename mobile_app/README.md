@@ -20,7 +20,7 @@ mobile_app/
     ├── nearby.py        ← Rishab    (2412024) — GPS nearby
     ├── saved.py         ← Salwan    (2412258) — Saved vehicles
     ├── reviews.py       ← Humaa     (2412290) — Reviews
-    └── profile.py       ← Vigneshwar (2411725) — Profile
+    └── profile.py       ← Salwan (2412258) — Profile
 ```
 
 ## Rules for the team
@@ -42,7 +42,7 @@ mobile_app/
 | `"nearby"`  | GPS nearby        | Rishab      |
 | `"saved"`   | Saved vehicles    | Salwan      |
 | `"reviews"` | Reviews           | Humaa       |
-| `"profile"` | Profile page      | Vigneshwar  |
+| `"profile"` | Profile page      | Salwan      |
 
 ## Adding a new screen
 1. Create `screens/yourscreen.py`
