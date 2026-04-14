@@ -1,19 +1,15 @@
-# screens/saved.py
-# ─────────────────────────────────────────────────────────────
-# SAVED VEHICLES SCREEN
-# Owner: Salwan Cassam Maighun (2412258)
-#
-# FEATURE 1: Live Weather at Vehicle Location
-#   Each card shows a natural-language weather sentence using:
-#     - Nominatim (OpenStreetMap) for reverse geocoding
-#     - Open-Meteo for current weather
-#
-# FEATURE 2: Sort by My Location
-#   A button gets the user's approximate location via IP
-#   geolocation (ipapi.co — free, no key, pure requests.get)
-#   then sorts saved vehicles by distance (nearest first)
-#   and shows a distance badge on each card.
-# ─────────────────────────────────────────────────────────────
+''' 
+FEATURE 1: Sort by My Location
+   Uses ipapi.co to get the user's approximate
+   location from their IP address. Sorts saved vehicles by
+   haversine distance (nearest first). Shows orange km badge.
+   Pure requests.get() — no extensions needed.
+
+ FEATURE 2: Live Weather at Vehicle Location
+   Each card shows a natural sentence using:
+     - Nominatim (OpenStreetMap) for city name from gps_coor
+     - Open-Meteo for current temperature + weather code
+'''
 
 import flet as ft
 import threading
@@ -21,10 +17,8 @@ import requests
 import math
 from shared import api, APP_STATE, nav, section
 from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, TEXT_DARK, SUCCESS, ERROR
-from flet_geolocator import Geolocator
 
 
-# ── helpers ───────────────────────────────────────────────────
 def _haversine(lat1, lon1, lat2, lon2):
     R    = 6371
     dlat = math.radians(lat2 - lat1)
@@ -35,17 +29,15 @@ def _haversine(lat1, lon1, lat2, lon2):
             * math.sin(dlon / 2) ** 2)
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-
 def _get_my_location():
-    """Approximate user location via IP geolocation. Returns (lat, lng, city) or None."""
+    """Returns (lat, lng, city) using IP. Falls back to None on error."""
     try:
-        r = requests.get("https://ipapi.co/json/", timeout=6)
+        r = requests.get("https://ipapi.co/json/", timeout=8)
         r.raise_for_status()
         data = r.json()
         return float(data["latitude"]), float(data["longitude"]), data.get("city", "your location")
     except Exception:
         return None, None, None
-
 
 def _weather_desc(code):
     if code == 0:                return "clear skies ☀️"
@@ -59,7 +51,6 @@ def _weather_desc(code):
     elif code in range(95, 100): return "thunderstorming ⛈️"
     return "mixed conditions 🌡️"
 
-
 def _maybe_visit(code):
     if code == 0:                return "great day to visit!"
     elif code in (1, 2):         return "not a bad day to visit."
@@ -70,7 +61,6 @@ def _maybe_visit(code):
     elif code in range(80, 83):  return "maybe visit tomorrow."
     elif code in range(95, 100): return "best to wait for better weather."
     return "check before visiting."
-
 
 def _get_city(lat, lng):
     try:
@@ -87,8 +77,7 @@ def _get_city(lat, lng):
             or addr.get("suburb") or addr.get("county") or "this area"
         )
     except Exception:
-        return None
-
+        return "this area"
 
 def _get_weather(lat, lng):
     try:
@@ -112,27 +101,26 @@ def _get_weather(lat, lng):
     except Exception:
         return None, None, None
 
-
 def saved_screen(page: ft.Page, go_to):
     col    = ft.Column(spacing=12)
     status = ft.Text("", color=TEXT_LIGHT, text_align=ft.TextAlign.CENTER)
     spin   = ft.ProgressRing(visible=True, color=PRIMARY, width=30, height=30)
 
-    saved_items  = [None]
-    sort_active  = [False]
-    user_coords  = [None]   # (lat, lng, city)
+    saved_items = [None]
+    sort_active = [False]
 
-    # ── sort button ───────────────────────────────────────────
     sort_label = ft.Text("📍 Sort by My Location", size=13, color="white")
     sort_spin  = ft.ProgressRing(
         visible=False, color="white", width=14, height=14, stroke_width=2,
     )
     sort_btn = ft.Container(
-        content=ft.Row([sort_spin, sort_label], spacing=6,
-                       alignment=ft.MainAxisAlignment.CENTER),
-        bgcolor=PRIMARY,
-        border_radius=20,
-        padding=ft.padding.symmetric(horizontal=16, vertical=8),
+        content=ft.Row(
+            [sort_spin, sort_label],
+            spacing=6,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        bgcolor=PRIMARY, border_radius=20,
+        padding=ft.Padding(16, 8, 16, 8),
         ink=True,
         on_click=lambda e: threading.Thread(target=_toggle_sort).start(),
     )
@@ -140,33 +128,30 @@ def saved_screen(page: ft.Page, go_to):
 
     def _toggle_sort():
         if sort_active[0]:
-            # clear sort
-            sort_active[0]      = False
-            sort_label.value    = "📍 Sort by My Location"
-            sort_btn.bgcolor    = PRIMARY
+            sort_active[0]        = False
+            sort_label.value      = "📍 Sort by My Location"
+            sort_btn.bgcolor      = PRIMARY
             location_status.value = ""
             page.update()
             _render_cards(saved_items[0], user_lat=None, user_lng=None)
             return
 
-        # show spinner
-        sort_spin.visible   = True
-        sort_label.value    = "Getting location…"
-        sort_btn.bgcolor    = "#455a64"
+        sort_spin.visible     = True
+        sort_label.value      = "Getting location…"
+        sort_btn.bgcolor      = "#455a64"
         location_status.value = ""
         page.update()
 
         lat, lng, city = _get_my_location()
 
         if lat is None:
-            sort_spin.visible  = False
-            sort_label.value   = "📍 Sort by My Location"
-            sort_btn.bgcolor   = PRIMARY
+            sort_spin.visible     = False
+            sort_label.value      = "📍 Sort by My Location"
+            sort_btn.bgcolor      = PRIMARY
             location_status.value = "Could not get location. Check internet."
             page.update()
             return
 
-        user_coords[0]        = (lat, lng, city)
         sort_active[0]        = True
         sort_spin.visible     = False
         sort_label.value      = "✕ Clear Sort"
@@ -176,24 +161,21 @@ def saved_screen(page: ft.Page, go_to):
 
         _render_cards(saved_items[0], user_lat=lat, user_lng=lng)
 
-    # ── build one card ────────────────────────────────────────
     def _build_card(v, on_tap, on_unsave, distance_km=None):
         images  = v.get("images", [])
         img_url = images[0]["image"] if images else None
 
         weather_text = ft.Text(
-            "Fetching location weather…",
+            "Fetching weather…",
             size=12, color=TEXT_LIGHT, italic=True, no_wrap=False,
         )
         weather_container = ft.Container(
             content=weather_text,
-            bgcolor="#f0f4ff",
-            border_radius=6,
-            padding=ft.padding.symmetric(horizontal=10, vertical=6),
-            margin=ft.margin.only(top=4),
+            bgcolor="#f0f4ff", border_radius=6,
+            padding=ft.Padding(10, 6, 10, 6),
+            margin=ft.Margin(0, 4, 0, 0),
         )
 
-        # distance badge — only shown when sort is active
         dist_badge = ft.Container(
             visible=distance_km is not None,
             content=ft.Row([
@@ -203,10 +185,8 @@ def saved_screen(page: ft.Page, go_to):
                     size=12, color="white", weight=ft.FontWeight.W_500,
                 ),
             ], spacing=4),
-            bgcolor=ACCENT,
-            border_radius=10,
-            padding=ft.padding.symmetric(horizontal=10, vertical=3),
-            margin=ft.margin.only(bottom=2),
+            bgcolor=ACCENT, border_radius=10,
+            padding=ft.Padding(10, 3, 10, 3),
         )
 
         img_box = ft.Container(
@@ -223,7 +203,7 @@ def saved_screen(page: ft.Page, go_to):
                 size=11, color="white",
             ),
             bgcolor=PRIMARY if v["is_rental"] else SUCCESS,
-            padding=ft.padding.symmetric(horizontal=8, vertical=3),
+            padding=ft.Padding(8, 3, 8, 3),
             border_radius=10,
         )
 
@@ -237,7 +217,7 @@ def saved_screen(page: ft.Page, go_to):
                     ),
                     ft.Container(
                         content=ft.Icon(ft.Icons.BOOKMARK, color=ACCENT, size=22),
-                        on_click=on_unsave, padding=4,
+                        on_click=on_unsave, padding=ft.Padding(4, 4, 4, 4),
                     ),
                 ]),
                 ft.Text(
@@ -251,7 +231,7 @@ def saved_screen(page: ft.Page, go_to):
                 ft.Row([badge, dist_badge], spacing=6),
                 weather_container,
             ], spacing=5),
-            padding=ft.padding.all(12),
+            padding=ft.Padding(12, 12, 12, 12),
         )
 
         card = ft.GestureDetector(
@@ -262,11 +242,9 @@ def saved_screen(page: ft.Page, go_to):
             ),
         )
 
-        # fetch weather in background
         def _load_weather(gps):
             if not gps:
                 weather_text.value        = "Location not set for this listing."
-                weather_text.italic       = True
                 weather_container.bgcolor = "#f5f5f5"
                 page.update()
                 return
@@ -279,7 +257,7 @@ def saved_screen(page: ft.Page, go_to):
                 page.update()
                 return
 
-            city             = _get_city(lat, lng) or "this area"
+            city             = _get_city(lat, lng)
             temp, unit, code = _get_weather(lat, lng)
 
             if temp is not None:
@@ -295,7 +273,6 @@ def saved_screen(page: ft.Page, go_to):
                 weather_container.bgcolor = "#fff3e0" if code >= 61 else "#f0f4ff"
             else:
                 weather_text.value        = f"Weather unavailable for {city}."
-                weather_text.italic       = True
                 weather_container.bgcolor = "#f5f5f5"
 
             page.update()
@@ -306,32 +283,33 @@ def saved_screen(page: ft.Page, go_to):
 
         return card
 
-    # ── render cards (with optional distance sort) ────────────
     def _render_cards(items, user_lat=None, user_lng=None):
         col.controls.clear()
 
-        # compute distances if we have user location
         annotated = []
         for item in items:
-            v   = item["vehicle"]
-            gps = v.get("gps_coor", "")
+            v    = item["vehicle"]
+            gps  = v.get("gps_coor", "")
             dist = None
             if user_lat is not None and gps:
                 try:
                     parts = gps.split(",")
-                    v_lat = float(parts[0].strip())
-                    v_lng = float(parts[1].strip())
-                    dist  = _haversine(user_lat, user_lng, v_lat, v_lng)
+                    dist  = _haversine(
+                        user_lat, user_lng,
+                        float(parts[0].strip()),
+                        float(parts[1].strip()),
+                    )
                 except (ValueError, IndexError):
                     pass
             annotated.append((dist, v))
 
-        # sort: vehicles with distance first (nearest), no-GPS last
         if user_lat is not None:
-            with_dist    = [(d, v) for d, v in annotated if d is not None]
-            without_dist = [(d, v) for d, v in annotated if d is None]
-            with_dist.sort(key=lambda x: x[0])
-            annotated = with_dist + without_dist
+            with_d    = sorted(
+                [(d, v) for d, v in annotated if d is not None],
+                key=lambda x: x[0],
+            )
+            without_d = [(d, v) for d, v in annotated if d is None]
+            annotated = with_d + without_d
 
         for dist, v in annotated:
             def tap_fn(veh):
@@ -354,7 +332,6 @@ def saved_screen(page: ft.Page, go_to):
 
         page.update()
 
-    # ── main loader ───────────────────────────────────────────
     def _load():
         spin.visible = True
         col.controls.clear()
@@ -399,7 +376,7 @@ def saved_screen(page: ft.Page, go_to):
         navigation_bar=nav("saved", go_to),
         controls=[
             ft.Container(
-                padding=ft.padding.all(16),
+                padding=ft.Padding(16, 16, 16, 16),
                 content=ft.Column(spacing=12, controls=[
                     ft.Row(
                         [section("Your Saved Vehicles"), sort_btn],

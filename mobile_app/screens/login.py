@@ -17,6 +17,7 @@ def login_screen(page, go_to):
     spin    = ft.ProgressRing(visible=False, color=PRIMARY, width=30, height=30)
 
     def do_login(e):
+        
         msg.value = ""
         if not email_f.value or not pass_f.value:
             msg.value = "Please fill in all fields."; page.update(); return
@@ -93,6 +94,7 @@ def register_screen(page, go_to):
         def call():
             try:
                 code, data = api.register({
+
                     "first_name":    fname.value,
                     "last_name":     lname.value,
                     "email":         email.value,
@@ -102,6 +104,7 @@ def register_screen(page, go_to):
                     "contact_number": phone.value,
                     "driver_license": lic.value or "",
                 })
+
                 if code == 201:
                     api.token = data["token"]
                     msg.color = SUCCESS; msg.value = "Account created!"; page.update()
@@ -117,6 +120,7 @@ def register_screen(page, go_to):
         threading.Thread(target=call).start()
 
     return ft.View(
+
         route="/register", bgcolor=BG, scroll=ft.ScrollMode.AUTO,
         appbar=ft.AppBar(
             title=ft.Text("Create Account", color="white"), bgcolor=PRIMARY,
@@ -126,6 +130,7 @@ def register_screen(page, go_to):
             )
         ),
         controls=[
+
             ft.Container(
                 padding=ft.padding.symmetric(horizontal=24, vertical=16),
                 content=ft.Column(
@@ -134,9 +139,17 @@ def register_screen(page, go_to):
                     controls=[
                         ft.Text("Join AutoLink", size=22, weight=ft.FontWeight.BOLD, color=PRIMARY),
                         ft.Text("Create your free account", size=13, color=TEXT_LIGHT),
-                        ft.Row([fname, lname], spacing=10),
-                        email, utype, pwd, pwd2, addr, phone, lic,
-                        msg, spin,
+                        fname,
+                        lname,
+                        email, 
+                        utype, 
+                        pwd, 
+                        pwd2, 
+                        addr, 
+                        phone, 
+                        lic,
+                        msg, 
+                        spin,
                         big_btn("Create Account", do_register),
                         link_btn("Already have an account? Login", lambda e: go_to("login")),
                     ]
