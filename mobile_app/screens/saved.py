@@ -1,4 +1,3 @@
-#2412258
 ''' 
 FEATURE 1: Sort by My Location
    Uses ipapi.co to get the user's approximate
