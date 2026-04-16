@@ -969,7 +969,7 @@ def report_vehicle_screen(page, go_to):
                             reason_col,
                         ], spacing=10, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
                         padding=ft.padding.all(14), bgcolor=CARD_BG, border_radius=12,
-                        shadow=ft.BoxShadow(blur_radius=6, color="#00000012"),
+                        shadow=ft.BoxShadow(blur_radius=6, color="#00000012"),   
                     ),
                     details,
                     msg,
