@@ -1,0 +1,33 @@
+[project]
+name = "my_flet_app"
+version = "0.1.0"
+description = "Cross-platform Flet app with maps and geolocation"
+dependencies = [
+    "flet>=0.83.1",
+    "flet-geolocator",
+    "flet-map",
+    "httpx"
+]
+
+[tool.flet]
+org = "com.mycompany"
+product = "myfletapp"
+company = "My Company"
+copyright = "Copyright (C) 2026"
+permissions = ["location"]
+
+# -----------------------------
+# ANDROID PERMISSIONS
+# -----------------------------
+[tool.flet.android.permission]
+"android.permission.ACCESS_FINE_LOCATION" = true
+"android.permission.ACCESS_COARSE_LOCATION" = true
+"android.permission.ACCESS_BACKGROUND_LOCATION" = true
+"android.permission.FOREGROUND_SERVICE_LOCATION" = true
+
+# -----------------------------
+# iOS PERMISSIONS (IMPORTANT)
+# -----------------------------
+[tool.flet.ios.info]
+NSLocationWhenInUseUsageDescription = "This app uses location to show nearby vehicles."
+NSLocationAlwaysAndWhenInUseUsageDescription = "This app uses location for live tracking of vehicles."
