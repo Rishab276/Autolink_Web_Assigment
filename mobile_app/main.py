@@ -29,6 +29,7 @@ from screens.reviews import report_vehicle_screen, reviews_screen, report_screen
 from screens.profile import profile_screen
 from screens.upload import upload_vehicle_screen, my_vehicles_screen, edit_vehicle_screen
 
+
 SCREENS = {
     "login":    login_screen,
     "register": register_screen,

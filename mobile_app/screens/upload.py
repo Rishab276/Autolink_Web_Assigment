@@ -1,3 +1,14 @@
+''' 
+use of geolocation
+   instead of user has to input the location 
+   manually, this a click on the icon, the location is loaded.
+
+use of camera sensor
+ user does not need to select photo and just
+ a click from the phone camera and photo is taken
+
+'''
+
 import flet as ft
 import flet_camera as fc
 import requests
@@ -5,7 +16,7 @@ import threading
 import os
 
 from shared import (
-    api, APP_STATE, big_btn, field, nav,
+    LOCAL_IMAGES, api, APP_STATE, big_btn, field, nav,
     PRIMARY, ACCENT, BG, CARD_BG, TEXT_DARK, TEXT_LIGHT,
     SUCCESS, ERROR, CENTER, BASE_URL
 )
@@ -31,17 +42,24 @@ def my_vehicles_screen(page, go_to):
                 for v in vehicles:
                     images  = v.get("images", [])
                     img_url = images[0]["image"] if images else None
+                    v_id=v.get("id")
+                    if v_id in LOCAL_IMAGES:
+                        img_src = LOCAL_IMAGES[v_id]
+                    else:
+
+                        images = v.get("images", [])
+                        img_src = f"{BASE_URL}{images[0]['image']}" if images else None
                     if images:
-        # Get the 'image' field from the first dictionary in the list
+      
                         raw_path = images[0].get("image")
                         if raw_path:
                             if raw_path.startswith("http"):
                                 img_url = raw_path
                             else:
-                # This ensures /media/path becomes http://IP:8000/media/path
+              
                                 img_url = f"{BASE_URL}{raw_path}"
 
-                    # Status badge
+                 
                     if v['is_sold']:
                         badge_text = "Sold"
                         badge_color = TEXT_LIGHT
@@ -81,17 +99,27 @@ def my_vehicles_screen(page, go_to):
                         return do
 
                     card = ft.Container(
+                        
                         content=ft.Row([
-                            # Thumbnail
                             ft.Container(
-                                content=ft.Image(src=img_url, fit=ft.BoxFit.COVER) if img_url
-                                        else ft.Icon(ft.Icons.DIRECTIONS_CAR,
-                                                     color="#c7d2fe", size=28),
-                                width=80, height=80, bgcolor="#eef2ff",
-                                border_radius=12, alignment=CENTER,
+                                content=(
+                                    ft.Image(
+                                        src=img_src, 
+                                        fit=ft.BoxFit.COVER
+                                    ) if img_src else ft.Icon(
+                                        ft.Icons.DIRECTIONS_CAR, 
+                                        color="#c7d2fe", 
+                                        size=28
+                                    )
+                                ),
+                                width=80, height=80, 
+                                bgcolor="#eef2ff",
+                                border_radius=12, 
+                                
                                 clip_behavior=ft.ClipBehavior.HARD_EDGE,
                             ),
-                            # Info
+                        
+                          
                             ft.Column([
                                 ft.Row([
                                     ft.Text(f"{v['make']} {v['model']}", size=14,
@@ -203,16 +231,55 @@ def upload_vehicle_screen(page, go_to):
         contact_f = field("Contact Number", keyboard=ft.KeyboardType.PHONE,
                           icon=ft.Icons.PHONE_OUTLINED)
         gps_f     = field("GPS Coordinates")
+        def get_location_from_ip(e):
+            # Visual feedback that it's working
+            gps_f.hint_text = "Fetching..."
+            gps_f.update()
+
+            def fetch():
+                try:
+               
+                    r = requests.get("https://ipapi.co/json/", timeout=5)
+                    data = r.json()
+                    lat = data.get("latitude")
+                    lon = data.get("longitude")
+                    city = data.get("city", "Unknown")
+
+                    if lat and lon:
+                        gps_f.value = f"{lat}, {lon}"
+                        msg.value = f"Location set to: {city}"
+                        msg.color = SUCCESS
+                    else:
+                        msg.value = "Could not detect location via IP."
+                        msg.color = ERROR
+                except Exception as ex:
+                    msg.value = "Network error while fetching location."
+                    msg.color = ERROR
+                
+                gps_f.hint_text = None
+                page.update()
+            threading.Thread(target=fetch).start()
+        gps_row = ft.Row([
+            ft.Container(content=gps_f, expand=True), # Let the field take most space
+            ft.IconButton(
+                icon=ft.Icons.MY_LOCATION,
+                icon_color=PRIMARY,
+                tooltip="Get location from IP",
+                on_click=get_location_from_ip,
+                style=ft.ButtonStyle(
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    bgcolor="#f0f2f5"
+                )
+            )
+        ], spacing=10, vertical_alignment=ft.CrossAxisAlignment.CENTER)
         desc_f    = ft.TextField(
             label="Description",
             multiline=True, min_lines=3,
             border_color=PRIMARY, focused_border_color=ACCENT,
         )
-
         trans_ref = {"val": "Manual"}
         fuel_ref  = {"val": "Petrol"}
         type_ref  = {"val": "Car"}
-
         trans_row = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=8)
         fuel_row  = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=8)
         type_row  = ft.Row(scroll=ft.ScrollMode.AUTO, spacing=8)
@@ -239,16 +306,14 @@ def upload_vehicle_screen(page, go_to):
         chip_row(["Manual", "Automatic", "CVT", "Other"],          trans_ref, trans_row)
         chip_row(["Petrol", "Diesel", "Hybrid", "Electric", "Other"], fuel_ref, fuel_row)
         chip_row(["Car", "SUV", "Motorbike", "Truck", "Van", "Bus"],  type_ref, type_row)
-
-        # Wrapper ref so we can remove this block from entries_col
         wrapper_ref = {"ctrl": None}
 
         def remove(e):
             if len(entries_col.controls) > 1:
-                # 1. Remove the visual block from the UI
+               
                 entries_col.controls.remove(wrapper_ref["ctrl"])
                 
-                # 2. Remove the hidden data from the registry so it doesn't fail validation
+             
                 for item in form_registry:
                     if item[0] == wrapper_ref["ctrl"]:  # Match by the UI block reference
                         form_registry.remove(item)
@@ -271,11 +336,8 @@ def upload_vehicle_screen(page, go_to):
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
 
-        # ── CAMERA IMPLEMENTATION ─────────────────────────────────────────
         photo_path_ref = {"path": None}
-
         cam = fc.Camera(expand=True, preview_enabled=True)
-        
         cam_container = ft.Container(
             content=cam, 
             height=250, 
@@ -283,7 +345,6 @@ def upload_vehicle_screen(page, go_to):
             border_radius=10, 
             clip_behavior=ft.ClipBehavior.HARD_EDGE
         )
-
         img_preview = ft.Image(
             src="",
             width=80, height=80, 
@@ -291,7 +352,6 @@ def upload_vehicle_screen(page, go_to):
             visible=False, 
             fit=ft.BoxFit.COVER
         )
-
         async def toggle_camera(e):
             if cam_container.visible:
                 # Capture Photo
@@ -311,31 +371,23 @@ def upload_vehicle_screen(page, go_to):
                 cam_container.visible = True
                 page.update()  # <-- Must update page first so the camera is actually "on screen"
                 
-                # Wake up the hardware camera
                 try:
-                    # 1. Get a list of available cameras on the device
+                   
                     cameras = await cam.get_available_cameras()
-                    
                     if not cameras:
                         print("No cameras found on this device!")
                         return
-                    
-                    # 2. Initialize with the first camera and a HIGH resolution preset
                     await cam.initialize(
                         description=cameras[0],
                         resolution_preset=fc.ResolutionPreset.HIGH
                     )
-                    
                     cam_btn.text = "Snap Photo!"
                     cam_btn.icon = ft.Icons.CAMERA
                     page.update()
                 except Exception as err:
                     print(f"Failed to initialize camera: {err}")
-
         cam_btn = ft.ElevatedButton("Add Photo", icon=ft.Icons.CAMERA_ALT, on_click=toggle_camera)
         photo_row = ft.Row([cam_btn, img_preview], alignment=ft.MainAxisAlignment.START)
-        # ──────────────────────────────────────────────────────────────────
-
         block = ft.Container(
             bgcolor=CARD_BG,
             border_radius=16,
@@ -344,12 +396,10 @@ def upload_vehicle_screen(page, go_to):
             content=ft.Column(spacing=12, controls=[
                 header,
                 ft.Divider(height=1, color="#e5e7eb"),
-                
                 label("VEHICLE PHOTO"),
                 photo_row,
                 cam_container,
                 ft.Divider(height=1, color="#e5e7eb"),
-
                 ft.Row([make_f, model_f],   spacing=10),
                 ft.Row([year_f, mile_f],    spacing=10),
                 price_f,
@@ -358,7 +408,7 @@ def upload_vehicle_screen(page, go_to):
                 label("FUEL TYPE"),    fuel_row,
                 desc_f,
                 contact_f,
-                gps_f,
+                gps_row,
             ]),
         )
         wrapper_ref["ctrl"] = block
@@ -376,7 +426,7 @@ def upload_vehicle_screen(page, go_to):
                 "desc":            desc_f.value,
                 "contact":         contact_f.value,
                 "gps_coor":        gps_f.value,
-                "photo_path":      photo_path_ref["path"] # Included for file extraction later
+                "photo_path":      photo_path_ref["path"] 
             }
 
         def is_valid():
@@ -392,8 +442,6 @@ def upload_vehicle_screen(page, go_to):
             ])
 
         return block, get_data, is_valid
-
-    # ── State tracking ────────────────────────────────────────────────
     form_registry = []   # list of (block, get_data, is_valid)
 
     def add_entry(e=None):
@@ -402,14 +450,10 @@ def upload_vehicle_screen(page, go_to):
         form_registry.append((block, get_data, is_valid))
         entries_col.controls.append(block)
         page.update()
-
-    # Add the first entry immediately
     add_entry()
 
-    # ── Submit all ────────────────────────────────────────────────────
     def do_upload_all(e):
         msg.value = ""
-        # Validate all entries
         for i, (_, _, is_valid) in enumerate(form_registry):
             if not is_valid():
                 msg.color = ERROR
@@ -423,8 +467,6 @@ def upload_vehicle_screen(page, go_to):
         def call():
             successes = 0
             errors    = []
-            
-            # Make sure we don't accidentally send 'application/json' if shared.py defines it
             req_headers = api.h().copy()
             if "Content-Type" in req_headers and "json" in req_headers["Content-Type"]:
                 del req_headers["Content-Type"]
@@ -436,21 +478,23 @@ def upload_vehicle_screen(page, go_to):
                 try:
                     
                     if photo_path and os.path.exists(photo_path):
-                        # Use 'image' to match your backend field names if necessary. 
-                        # This opens the physical file stream for upload.
                         f=open(photo_path,"rb")
                         upload_files = {"image": f}
 
                     r = requests.post(
                         f"{BASE_URL}/vehicles/upload/",
-                        data=data,          # Text parameters
-                        files=upload_files, # File stream parameters
+                        data=data,          
+                        files=upload_files,
                         headers=req_headers,
-                        timeout=20,         # Extra time for image upload
+                        timeout=20,        
                     )
                     
                     if r.status_code == 201:
                         successes += 1
+                        new_vehicle = r.json()
+   
+                    if photo_path:
+                        LOCAL_IMAGES[new_vehicle["id"]] = photo_path
                     else:
                         
                        errors.append(f"Vehicle {i+1}: Server returned {r.status_code}")
@@ -477,7 +521,7 @@ def upload_vehicle_screen(page, go_to):
 
         threading.Thread(target=call).start()
 
-    # ── "Add Another" button ──────────────────────────────────────────
+
     add_btn = ft.Container(
         content=ft.Row([
             ft.Icon(ft.Icons.ADD_CIRCLE_OUTLINE, color=PRIMARY, size=18),
@@ -607,3 +651,4 @@ def edit_vehicle_screen(page, go_to):
             )
         ]
     )
+
