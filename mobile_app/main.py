@@ -46,6 +46,9 @@ async def main(page: ft.Page):
             ),
         )
 
+    # Store geo in page.data so any screen can access it via page.data["geo"]
+    # This does NOT affect nearby.py or any other screen — they don't read page.data
+    page.data = {"geo": geo}
 
     def go_to(route):
         page.views.clear()
