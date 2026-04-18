@@ -174,14 +174,14 @@ def _maybe_visit(code):
     return "check before visiting."
 
 @login_required
+@require_POST
 def remove_uploaded_vehicle(request, vehicle_id):
     try:
         vehicle = Vehicle.objects.get(id=vehicle_id, uploader=request.user)
         vehicle.delete()
-        messages.success(request, "Vehicle deleted successfully!")
+        return JsonResponse({'success': True})
     except Vehicle.DoesNotExist:
-        messages.error(request, "Vehicle not found or you don't have permission to delete it.")
-    return redirect('profile:profile')
+        return JsonResponse({'success': False}, status=404)
 
 @login_required
 def save_vehicle(request, vehicle_id):
@@ -206,36 +206,32 @@ def toggle_save(request, vehicle_id):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 @login_required
-def mark_as_sold(request, vehicle_id):
+@require_POST
+def toggle_sold(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
-    vehicle.is_sold = True
+
+    # 🔁 TOGGLE
+    vehicle.is_sold = not vehicle.is_sold
     vehicle.save()
-    messages.success(request, "Vehicle marked as sold.")
-    return redirect('profile:profile')
+
+    if vehicle.is_sold:
+        return JsonResponse({'status': 'sold'})
+    else:
+        return JsonResponse({'status': 'available'})
 
 @login_required
-def unmark_as_sold(request, vehicle_id):
+@require_POST
+def toggle_rented(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
-    vehicle.is_sold = False
-    vehicle.save()
-    messages.success(request, "Vehicle is now available again.")
-    return redirect('profile:profile')
 
-@login_required
-def mark_as_rented(request, vehicle_id):
-    vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
-    vehicle.is_rented = True
+    # 🔁 TOGGLE
+    vehicle.is_rented = not vehicle.is_rented
     vehicle.save()
-    messages.success(request, "Vehicle marked as rented.")
-    return redirect('profile:profile')
 
-@login_required
-def unmark_as_rented(request, vehicle_id):
-    vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
-    vehicle.is_rented = False
-    vehicle.save()
-    messages.success(request, "Vehicle is now available again.")
-    return redirect('profile:profile')
+    if vehicle.is_rented:
+        return JsonResponse({'status': 'rented'})
+    else:
+        return JsonResponse({'status': 'available'})
 
 
 class CustomPasswordChangeView(LoginRequiredMixin, FormView):
