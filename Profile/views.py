@@ -210,7 +210,6 @@ def toggle_save(request, vehicle_id):
 def toggle_sold(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
 
-    # 🔁 TOGGLE
     vehicle.is_sold = not vehicle.is_sold
     vehicle.save()
 
@@ -224,7 +223,6 @@ def toggle_sold(request, vehicle_id):
 def toggle_rented(request, vehicle_id):
     vehicle = get_object_or_404(Vehicle, id=vehicle_id, uploader=request.user)
 
-    # 🔁 TOGGLE
     vehicle.is_rented = not vehicle.is_rented
     vehicle.save()
 
