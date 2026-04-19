@@ -188,10 +188,10 @@ def api_report_vehicle(request):
         return JsonResponse({"error": str(ex)}, status=400)
 
 
-# ── ORIGINAL HTML FORM VIEWS (kept for web use) ──────────────
+# ── ORIGINAL HTML FORM VIEWS — now return JsonResponse for AJAX ──
 
 def submit_review_html(request):
-    """Handle review form submission from HTML page"""
+    """Handle review form submission from HTML page (AJAX)"""
     if request.method == "POST":
         Review.objects.create(
             title=request.POST.get("title"),
@@ -200,13 +200,12 @@ def submit_review_html(request):
             author_name=request.POST.get("author_name"),
             email=request.POST.get("email"),
         )
-        messages.success(request, "Review submitted successfully!")
-        return redirect("/reviews/")
+        return JsonResponse({"success": True, "message": "Review submitted successfully!"})
     return HttpResponse("Use POST method to submit review")
 
 
 def submit_report_html(request):
-    """Handle report form submission from HTML page"""
+    """Handle report form submission from HTML page (AJAX)"""
     if request.method == "POST":
         Report.objects.create(
             reporter_name=request.POST.get("reporter_name"),
@@ -214,5 +213,5 @@ def submit_report_html(request):
             subject=request.POST.get("subject"),
             report_content=request.POST.get("report_content"),
         )
-        return render(request, "Reviews/report.html", {"submitted": True})
+        return JsonResponse({"success": True, "message": "Report submitted successfully!"})
     return render(request, "Reviews/report.html")
