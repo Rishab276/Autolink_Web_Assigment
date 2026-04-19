@@ -1,23 +1,9 @@
-''' 
-FEATURE 1: Sort by My Location
-   Uses ipapi.co to get the user's approximate
-   location from their IP address. Sorts saved vehicles by
-   haversine distance (nearest first). Shows orange km badge.
-   Pure requests.get() — no extensions needed.
-
- FEATURE 2: Live Weather at Vehicle Location
-   Each card shows a natural sentence using:
-     - Nominatim (OpenStreetMap) for city name from gps_coor
-     - Open-Meteo for current temperature + weather code
-'''
-
 import flet as ft
 import threading
 import requests
 import math
 from shared import api, APP_STATE, nav, section
 from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, TEXT_DARK, SUCCESS, ERROR
-
 
 def _haversine(lat1, lon1, lat2, lon2):
     R    = 6371
@@ -29,14 +15,24 @@ def _haversine(lat1, lon1, lat2, lon2):
             * math.sin(dlon / 2) ** 2)
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-def _get_my_location():
-    """Returns (lat, lng, city) using IP. Falls back to None on error."""
+# NEW: Replaced ipapi logic with hardware GPS logic
+async def _get_my_location_geo(geo):
+    """Returns (lat, lng, city) using device GPS. Falls back to None on error."""
     try:
-        r = requests.get("https://ipapi.co/json/", timeout=8)
-        r.raise_for_status()
-        data = r.json()
-        return float(data["latitude"]), float(data["longitude"]), data.get("city", "your location")
-    except Exception:
+        if not geo:
+            return None, None, None
+            
+        pos = await geo.get_current_position()
+
+        if pos:
+            lat = float(pos.latitude)
+            lng = float(pos.longitude)
+        
+        # We still use Nominatim to get the city name from the GPS coords
+            city = _get_city(lat, lng)
+        return lat, lng, city
+    except Exception as e:
+        print("GPS error:", e)
         return None, None, None
 
 def _weather_desc(code):
@@ -101,7 +97,7 @@ def _get_weather(lat, lng):
     except Exception:
         return None, None, None
 
-def saved_screen(page: ft.Page, go_to):
+def saved_screen(page: ft.Page, go_to, geo=None):
     col    = ft.Column(spacing=12)
     status = ft.Text("", color=TEXT_LIGHT, text_align=ft.TextAlign.CENTER)
     spin   = ft.ProgressRing(visible=True, color=PRIMARY, width=30, height=30)
@@ -122,11 +118,11 @@ def saved_screen(page: ft.Page, go_to):
         bgcolor=PRIMARY, border_radius=20,
         padding=ft.Padding(16, 8, 16, 8),
         ink=True,
-        on_click=lambda e: threading.Thread(target=_toggle_sort).start(),
+        on_click=lambda e: page.run_task(_toggle_sort_async),
     )
     location_status = ft.Text("", size=11, color=TEXT_LIGHT, italic=True)
 
-    def _toggle_sort():
+    async def _toggle_sort_async():
         if sort_active[0]:
             sort_active[0]        = False
             sort_label.value      = "📍 Sort by My Location"
@@ -137,18 +133,19 @@ def saved_screen(page: ft.Page, go_to):
             return
 
         sort_spin.visible     = True
-        sort_label.value      = "Getting location…"
+        sort_label.value      = "Accessing GPS…"
         sort_btn.bgcolor      = "#455a64"
         location_status.value = ""
         page.update()
 
-        lat, lng, city = _get_my_location()
+        # UPDATED: Calling the new geo-sensor function
+        lat, lng, city = await _get_my_location_geo(geo)
 
         if lat is None:
             sort_spin.visible     = False
             sort_label.value      = "📍 Sort by My Location"
             sort_btn.bgcolor      = PRIMARY
-            location_status.value = "Could not get location. Check internet."
+            location_status.value = "GPS access denied or unavailable."
             page.update()
             return
 
@@ -285,6 +282,7 @@ def saved_screen(page: ft.Page, go_to):
 
     def _render_cards(items, user_lat=None, user_lng=None):
         col.controls.clear()
+        if items is None: return
 
         annotated = []
         for item in items:
