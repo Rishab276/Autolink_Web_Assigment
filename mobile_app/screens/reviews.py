@@ -19,7 +19,6 @@ STAR_ON    = "#FFB300"
 STAR_OFF   = "#e0e0e0"
 LOGO_PATH  = "assets/logo copy.png"
 
-# Simple in-memory store to pass data between screens
 _app_store = {}
 
 def _load_logo_base64():
@@ -169,6 +168,11 @@ def reviews_screen(page, go_to):
     gps_coords   = {"lat": None, "lng": None, "label": ""}
     photo_files  = []
 
+    # ── Geolocator — read from page.data["geo"] set by main.py ──────
+    # main.py creates one Geolocator and stores it in page.data["geo"].
+    # We just read it here — no duplicate creation, no overlay conflict.
+    _geo = (page.data or {}).get("geo", None)
+
     gps_label  = ft.Text("", size=12, color=TEXT_LIGHT, italic=True)
     submit_msg = ft.Text("", text_align=ft.TextAlign.CENTER)
 
@@ -180,28 +184,23 @@ def reviews_screen(page, go_to):
     email_field  = ft.TextField(label="Email", keyboard_type=ft.KeyboardType.EMAIL,
                                 prefix_icon=ft.Icons.EMAIL, border_color=PRIMARY, border_radius=10, width=float("inf"))
 
-    # ── Star rating ──────────────────────────────────────────
+    # =========================================================
+    # GESTURE FEATURES — all use ft.GestureDetector only
+    # Confirmed working in Flet 0.84 on the QR viewer + web
+    #
+    # FEATURE 1: Horizontal drag  → swipe left/right to rate
+    # FEATURE 2: Double-tap       → lock / unlock rating
+    # FEATURE 3: Long press       → lock / unlock rating
+    # FEATURE 4: Pinch (scale)    → pinch-out +1 star, pinch-in -1 star
+    # FEATURE 5: Vertical drag    → scroll the reviews list
+    # FEATURE 6: Swipe-to-report  → fast left swipe on a review card
+    # =========================================================
+
     gesture_state = {"locked": False}
     star_row = ft.Row(spacing=2, alignment=ft.MainAxisAlignment.CENTER)
 
-    tilt_hint = ft.Text(
-        "👉 Swipe left/right to rate",
-        size=12, color=TEXT_LIGHT, italic=True,
-        text_align=ft.TextAlign.CENTER,
-    )
-
-    lock_indicator = ft.Container(
-        content=ft.Row([
-            ft.Icon(ft.Icons.LOCK_OPEN, color=TEXT_LIGHT, size=16),
-            ft.Text("Double tap to lock rating", size=11, color=TEXT_LIGHT),
-        ], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
-        padding=ft.padding.symmetric(horizontal=10, vertical=4),
-        border_radius=20,
-        bgcolor="#f0f0f0",
-    )
-
     RATING_LABELS = {
-        0: ("👉 Swipe left/right to rate", TEXT_LIGHT),
+        0: ("👉 Swipe ← →  |  Pinch to rate", TEXT_LIGHT),
         1: ("😞  Poor",       "#e53935"),
         2: ("😐  Fair",       "#fb8c00"),
         3: ("🙂  Good",       "#fdd835"),
@@ -209,11 +208,26 @@ def reviews_screen(page, go_to):
         5: ("🤩  Excellent!", "#2e7d32"),
     }
 
+    tilt_hint = ft.Text(
+        "👉 Swipe ← →  |  Pinch to rate",
+        size=12, color=TEXT_LIGHT, italic=True,
+        text_align=ft.TextAlign.CENTER,
+    )
+
+    lock_indicator = ft.Container(
+        content=ft.Row([
+            ft.Icon(ft.Icons.LOCK_OPEN, color=TEXT_LIGHT, size=16),
+            ft.Text("Hold or double-tap stars to lock", size=11, color=TEXT_LIGHT),
+        ], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
+        padding=ft.padding.symmetric(horizontal=10, vertical=4),
+        border_radius=20,
+        bgcolor="#f0f0f0",
+    )
+
     def build_stars():
         star_row.controls.clear()
         v = int(star_state["value"])
         for i in range(1, 6):
-            # Stars all empty (border) when value is 0
             filled = (i <= v) and (v > 0)
             star_row.controls.append(
                 ft.Icon(
@@ -226,11 +240,11 @@ def reviews_screen(page, go_to):
     def update_hint():
         v = int(star_state["value"])
         if gesture_state["locked"]:
-            tilt_hint.value  = f"🔒 Rating locked at {v} star{'s' if v != 1 else ''}"
+            tilt_hint.value  = f"🔒 Locked at {v} star{'s' if v != 1 else ''} — hold/double-tap to unlock"
             tilt_hint.color  = SUCCESS
             lock_indicator.content = ft.Row([
                 ft.Icon(ft.Icons.LOCK, color=SUCCESS, size=16),
-                ft.Text("Double tap to unlock", size=11, color=SUCCESS),
+                ft.Text("Hold or double-tap to unlock", size=11, color=SUCCESS),
             ], spacing=4, alignment=ft.MainAxisAlignment.CENTER)
             lock_indicator.bgcolor = "#e8f5e9"
         else:
@@ -239,7 +253,7 @@ def reviews_screen(page, go_to):
             tilt_hint.color  = color
             lock_indicator.content = ft.Row([
                 ft.Icon(ft.Icons.LOCK_OPEN, color=TEXT_LIGHT, size=16),
-                ft.Text("Double tap to lock rating", size=11, color=TEXT_LIGHT),
+                ft.Text("Hold or double-tap stars to lock", size=11, color=TEXT_LIGHT),
             ], spacing=4, alignment=ft.MainAxisAlignment.CENTER)
             lock_indicator.bgcolor = "#f0f0f0"
 
@@ -251,17 +265,25 @@ def reviews_screen(page, go_to):
         update_hint()
         page.update()
 
-    def on_double_tap(e):
+    def toggle_lock():
         gesture_state["locked"] = not gesture_state["locked"]
         update_hint()
         page.update()
 
+    def reset_rating(e=None):
+        star_state["value"] = 0
+        gesture_state["locked"] = False
+        build_stars()
+        update_hint()
+        page.update()
+
+    # ── FEATURE 1: Horizontal drag → swipe to rate ────────────
     drag_accum = {"x": 0.0}
 
     def on_drag_start(e):
         drag_accum["x"] = 0.0
 
-    def on_drag(e):
+    def on_drag_update(e):
         if gesture_state["locked"]:
             return
         drag_accum["x"] += e.primary_delta or 0.0
@@ -272,17 +294,80 @@ def reviews_screen(page, go_to):
             set_star(star_state["value"] - 1)
             drag_accum["x"] = 0.0
 
-    def reset_rating(e=None):
-        star_state["value"] = 0
-        gesture_state["locked"] = False
-        build_stars()
-        update_hint()
-        page.update()
+    # ── FEATURE 2: Double-tap → toggle lock ───────────────────
+    def on_double_tap(e):
+        toggle_lock()
+
+    # ── FEATURE 3: Long press → toggle lock ───────────────────
+    def on_long_press(e):
+        toggle_lock()
+
+    # ── FEATURE 4: Pinch / Scale → adjust star rating ─────────
+    # ScaleUpdateEvent.scale: >1.0 = spreading fingers, <1.0 = pinching
+    # Spread fingers (pinch out) → +1 star
+    # Pinch in               → -1 star
+    # Threshold 0.15 prevents accidental triggers on tiny movements
+    scale_state = {"last_scale": 1.0, "triggered": False}
+
+    def on_scale_start(e):
+        scale_state["last_scale"] = 1.0
+        scale_state["triggered"] = False
+
+    def on_scale_update(e):
+        if gesture_state["locked"]:
+            return
+        current = e.scale
+        diff = current - scale_state["last_scale"]
+        if not scale_state["triggered"]:
+            if diff > 0.15:              # spreading = more stars
+                set_star(star_state["value"] + 1)
+                scale_state["triggered"] = True
+                scale_state["last_scale"] = current
+            elif diff < -0.15:           # pinching = fewer stars
+                set_star(star_state["value"] - 1)
+                scale_state["triggered"] = True
+                scale_state["last_scale"] = current
+        # Re-arm when fingers return near neutral
+        if abs(current - 1.0) < 0.05:
+            scale_state["triggered"] = False
+            scale_state["last_scale"] = 1.0
+
+    # ── FEATURE 5: Vertical drag on star area → scroll reviews ─
+    # Drag finger UP on star area   → scroll reviews list DOWN
+    # Drag finger DOWN on star area → scroll reviews list UP
+    # primary_delta is negative when dragging up
+    vdrag_accum = {"y": 0.0}
+
+    def on_vdrag_start(e):
+        vdrag_accum["y"] = 0.0
+
+    def on_vdrag_update(e):
+        vdrag_accum["y"] += e.primary_delta or 0.0
+        if vdrag_accum["y"] > 40:
+            try:
+                reviews_col.scroll_to(delta=120, duration=150)
+                page.update()
+            except Exception:
+                pass
+            vdrag_accum["y"] = 0.0
+        elif vdrag_accum["y"] < -40:
+            try:
+                reviews_col.scroll_to(delta=-120, duration=150)
+                page.update()
+            except Exception:
+                pass
+            vdrag_accum["y"] = 0.0
 
     build_stars()
     update_hint()
 
-    star_gesture = ft.GestureDetector(
+    # NESTED GestureDetectors fix Flutter recognizer conflicts:
+    #   scale + drag in one GestureDetector = scale suppresses drag
+    #   long_press + drag in one GestureDetector = drag cancels long press
+    # Fix: INNER = single-finger (drag, double-tap, long-press, vertical drag)
+    #      OUTER = two-finger scale (pinch) only, wraps inner
+
+    inner_gesture = ft.GestureDetector(
         content=ft.Column([
             star_row,
             ft.OutlinedButton(
@@ -294,10 +379,54 @@ def reviews_screen(page, go_to):
                 ),
             ),
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-        on_double_tap=on_double_tap,
         on_horizontal_drag_start=on_drag_start,
-        on_horizontal_drag_update=on_drag,
+        on_horizontal_drag_update=on_drag_update,
+        on_double_tap=on_double_tap,
+        on_long_press_start=on_long_press,
+        on_vertical_drag_start=on_vdrag_start,
+        on_vertical_drag_update=on_vdrag_update,
     )
+
+    star_gesture = ft.GestureDetector(
+        content=inner_gesture,
+        on_scale_start=on_scale_start,
+        on_scale_update=on_scale_update,
+    )
+
+    # ── FEATURE 6: Swipe-to-report on review cards ────────────
+    # Fast left swipe (velocity_x < -800) on any review → report screen
+    # DragEndEvent.velocity_x is confirmed in Flet 0.84
+    def _review_card_swipeable(r, on_report):
+        card = _review_card(r, on_report)
+        hint = ft.Text("", size=11, color=ERROR, italic=True,
+                       text_align=ft.TextAlign.CENTER)
+
+        def on_swipe_update(e):
+            delta = e.primary_delta or 0.0
+            if delta < -8:
+                hint.value = "← Swipe left to report this review"
+                page.update()
+            elif delta > 8:
+                hint.value = ""
+                page.update()
+
+        def on_swipe_end(e):
+            hint.value = ""
+            # -300 threshold is reliable on phone (was -800, too hard to trigger)
+            if (e.velocity_x or 0) < -300:
+                _app_store["report_target_review"] = r
+                go_to("report_review")
+            else:
+                page.update()
+
+        return ft.Column([
+            ft.GestureDetector(
+                content=ft.Container(content=card, width=float("inf")),
+                on_horizontal_drag_update=on_swipe_update,
+                on_horizontal_drag_end=on_swipe_end,
+            ),
+            hint,
+        ], spacing=2)
 
     # ── Confetti success dialog ───────────────────────────────
     def show_success_dialog():
@@ -367,7 +496,9 @@ def reviews_screen(page, go_to):
             def on_report(rv):
                 _app_store["report_target_review"] = rv
                 go_to("report_review")
-            reviews_col.controls.append(_review_card(r, on_report=on_report))
+            reviews_col.controls.append(
+                _review_card_swipeable(r, on_report=on_report)
+            )
         page.update()
 
     def load_reviews(show_spinner=True):
@@ -406,36 +537,70 @@ def reviews_screen(page, go_to):
     }
 
     def get_location(e):
-        gps_label.value = "📍 Detecting…"
+        gps_label.value = "📍 Requesting permission..."
         page.update()
-        def fetch_loc():
-            try:
-                r       = requests.get("https://ipapi.co/json/", timeout=8).json()
-                lat     = r.get("latitude",  -20.1654)
-                lng     = r.get("longitude",  57.4896)
-                country = r.get("country_code", "")
-                city    = r.get("city", "")
-                best_label = city or "Port Louis"
-                if country == "MU" or (-21.5 < float(lat) < -19.5 and 56.5 < float(lng) < 63.5):
-                    best_dist = float("inf")
-                    for name, (dlat, dlng) in MAURITIUS_LOCATIONS.items():
-                        dist = ((float(lat) - dlat)**2 + (float(lng) - dlng)**2)**0.5
-                        if dist < best_dist:
-                            best_dist  = dist
-                            best_label = name
-                    label = best_label
-                else:
-                    label = city or r.get("country_name", "Unknown")
-                gps_coords.update({"lat": lat, "lng": lng, "label": label})
-                gps_label.value = f"📍 {label}"
-            except requests.exceptions.Timeout:
-                gps_coords.update({"lat": -20.1654, "lng": 57.4896, "label": "Port Louis"})
-                gps_label.value = "📍 Port Louis"
-            except Exception:
-                gps_label.value = "📍 Error detecting location"
-            page.update()
-        threading.Thread(target=fetch_loc).start()
 
+        async def _gps():
+            import flet_geolocator as ftg
+            p = await _geo.request_permission()
+            if p not in (
+                ftg.GeolocatorPermissionStatus.ALWAYS,
+                ftg.GeolocatorPermissionStatus.WHILE_IN_USE,
+            ):
+                gps_label.value = "⚠️ Permission denied — check phone settings"
+                page.update()
+                return
+
+            gps_label.value = "📍 Getting position..."
+            page.update()
+
+            pos = await _geo.get_current_position()
+            lat = pos.latitude
+            lng = pos.longitude
+
+            # Snap to nearest Mauritius district
+            best_label = "Unknown"
+            best_dist  = float("inf")
+            for name, (dlat, dlng) in MAURITIUS_LOCATIONS.items():
+                dist = ((lat - dlat) ** 2 + (lng - dlng) ** 2) ** 0.5
+                if dist < best_dist:
+                    best_dist  = dist
+                    best_label = name
+
+            gps_coords.update({"lat": lat, "lng": lng, "label": best_label})
+            gps_label.value = f"📍 {best_label} ({lat:.4f}, {lng:.4f})"
+            page.update()
+
+        if _geo is None:
+            # Web or geolocator unavailable — fall back to IP
+            gps_label.value = "📍 Detecting via IP..."
+            page.update()
+            def _ip():
+                try:
+                    r       = requests.get("https://ipapi.co/json/", timeout=8).json()
+                    lat     = r.get("latitude",  -20.1654)
+                    lng     = r.get("longitude",  57.4896)
+                    country = r.get("country_code", "")
+                    city    = r.get("city", "")
+                    best_label = city or "Port Louis"
+                    if country == "MU" or (-21.5 < float(lat) < -19.5 and 56.5 < float(lng) < 63.5):
+                        best_dist = float("inf")
+                        for name, (dlat, dlng) in MAURITIUS_LOCATIONS.items():
+                            dist = ((float(lat)-dlat)**2 + (float(lng)-dlng)**2)**0.5
+                            if dist < best_dist:
+                                best_dist  = dist
+                                best_label = name
+                        label = best_label
+                    else:
+                        label = city or r.get("country_name", "Unknown")
+                    gps_coords.update({"lat": lat, "lng": lng, "label": label})
+                    gps_label.value = f"📍 {label}"
+                except Exception:
+                    gps_label.value = "📍 Could not detect location"
+                page.update()
+            threading.Thread(target=_ip, daemon=True).start()
+        else:
+            page.run_task(_gps)
     # ── File picker ───────────────────────────────────────────
     file_picker = ft.FilePicker()
 
@@ -497,6 +662,102 @@ def reviews_screen(page, go_to):
                 page.update()
         page.run_task(_pick)
 
+    # ── Camera (only on Android/iOS/Web — not on Windows desktop) ──
+    # fc.Camera crashes on desktop with "only supported on Android, iOS and Web"
+    # Guard: only create it when platform is mobile or web.
+    import flet_camera as fc
+
+    _cam_supported = page.web or page.platform in (
+        ft.PagePlatform.ANDROID,
+        ft.PagePlatform.IOS,
+    )
+
+    cam             = fc.Camera(expand=True, preview_enabled=True) if _cam_supported else None
+    cam_state       = {"open": False}
+    cam_preview_img = ft.Image(src="", width=80, height=80,
+                               border_radius=8, visible=False,
+                               fit=ft.BoxFit.COVER)
+    cam_container   = ft.Container(
+        content=cam,
+        height=250,
+        visible=False,
+        border_radius=10,
+        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+    ) if _cam_supported else ft.Container()
+    cam_status = ft.Text("", size=11, color=TEXT_LIGHT, italic=True)
+
+    async def toggle_camera(e):
+        if not _cam_supported:
+            cam_status.value = "📷 Camera only works on phone — use Choose Photos below"
+            cam_status.color = TEXT_LIGHT
+            page.update()
+            return
+
+        if cam_container.visible:
+            # Camera is open — take the picture
+            try:
+                path = await cam.take_picture()
+                if path:
+                    import os
+                    name = os.path.basename(path)
+                    photo_files.append({"name": name, "bytes": None, "path": path})
+                    cam_preview_img.src     = path
+                    cam_preview_img.visible = True
+                    cam_container.visible   = False
+                    cam_state["open"]       = False
+                    cam_btn.content = ft.Row([
+                        ft.Icon(ft.Icons.REPLAY, color="white", size=18),
+                        ft.Text("Retake Photo", color="white", size=13),
+                    ], spacing=6, alignment=ft.MainAxisAlignment.CENTER)
+                    cam_status.value = "✅ Photo captured"
+                    cam_status.color = SUCCESS
+                    refresh_photos()
+            except Exception as err:
+                cam_status.value = f"Camera error: {err}"
+                cam_status.color = ERROR
+                page.update()
+        else:
+            # Open the viewfinder
+            cam_container.visible = True
+            cam_state["open"]     = True
+            page.update()  # must update BEFORE initialize so camera is on screen
+            try:
+                cameras = await cam.get_available_cameras()
+                if not cameras:
+                    cam_status.value = "No camera found on this device"
+                    cam_status.color = ERROR
+                    cam_container.visible = False
+                    page.update()
+                    return
+                await cam.initialize(
+                    description=cameras[0],
+                    resolution_preset=fc.ResolutionPreset.HIGH,
+                    enable_audio=False,   # no mic permission needed for photo capture
+                )
+                cam_btn.content = ft.Row([
+                    ft.Icon(ft.Icons.CAMERA, color="white", size=18),
+                    ft.Text("Snap Photo!", color="white", size=13),
+                ], spacing=6, alignment=ft.MainAxisAlignment.CENTER)
+                cam_status.value = "📷 Point and tap Snap Photo!"
+                cam_status.color = TEXT_LIGHT
+                page.update()
+            except Exception as err:
+                cam_status.value = f"Could not start camera: {err}"
+                cam_status.color = ERROR
+                cam_container.visible = False
+                page.update()
+
+    cam_btn = ft.ElevatedButton(
+        content=ft.Row([
+            ft.Icon(ft.Icons.CAMERA_ALT, color="white", size=18),
+            ft.Text("Take Photo", color="white", size=13),
+        ], spacing=6, alignment=ft.MainAxisAlignment.CENTER),
+        bgcolor=ACCENT,
+        on_click=lambda e: page.run_task(toggle_camera, e),
+        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
+        width=float("inf"),
+    )
+
     camera_btn = ft.ElevatedButton(
         content=ft.Row([
             ft.Icon(ft.Icons.PHOTO_LIBRARY, color="white", size=18),
@@ -523,7 +784,6 @@ def reviews_screen(page, go_to):
             submit_msg.color = ERROR
             page.update()
             return
-        # Show loading state on button
         submit_btn.disabled = True
         submit_btn.content = ft.Row([
             ft.ProgressRing(width=18, height=18, stroke_width=2, color="white"),
@@ -559,7 +819,6 @@ def reviews_screen(page, go_to):
                     resp = requests.post(f"{BASE_URL}/reviews/submit/", json=payload, timeout=15)
 
                 if resp.status_code == 201:
-                    # Add review immediately to list
                     new_review = {
                         "title":          payload["title"],
                         "review_text":    payload["review_text"],
@@ -572,7 +831,6 @@ def reviews_screen(page, go_to):
                     all_reviews.insert(0, new_review)
                     summary_box.content = _rating_bar(all_reviews)
                     render_reviews(all_reviews)
-                    # Reset form
                     title_field.value = review_field.value = author_field.value = email_field.value = ""
                     star_state["value"] = 0
                     gesture_state["locked"] = False
@@ -585,11 +843,8 @@ def reviews_screen(page, go_to):
                     submit_msg.value = "👇 Scroll down to see your review"
                     submit_msg.color = SUCCESS
                     page.update()
-                    # Show confetti
                     show_success_dialog()
-                    # Reload from server in background
                     load_reviews(show_spinner=False)
-                    # scroll page to reviews list
                     def do_scroll():
                         time.sleep(1.5)
                         status_text.value = "👇 Scroll down to see your review"
@@ -653,7 +908,6 @@ def reviews_screen(page, go_to):
                 content=ft.Column([
                     summary_box,
 
-                    # ── Write a review card ──────────────────
                     ft.Container(
                         content=ft.Column([
                             ft.Row([
@@ -684,6 +938,10 @@ def reviews_screen(page, go_to):
                                 width=float("inf"),
                             ),
                             gps_label,
+                            cam_btn,
+                            cam_container,
+                            cam_preview_img,
+                            cam_status,
                             camera_btn,
                             photos_row,
                             submit_msg,
@@ -693,7 +951,6 @@ def reviews_screen(page, go_to):
                         bgcolor=CARD_BG,
                         border_radius=16,
                         shadow=ft.BoxShadow(blur_radius=8, color="#00000014"),
-
                     ),
                     ft.Container(height=8),
                     spinner,
@@ -904,7 +1161,6 @@ def report_vehicle_screen(page, go_to):
             msg.color = ERROR
             page.update()
             return
-        # Show immediate feedback
         submit_btn.disabled = True
         submit_btn.content = ft.Row([
             ft.ProgressRing(width=18, height=18, stroke_width=2, color="white"),
