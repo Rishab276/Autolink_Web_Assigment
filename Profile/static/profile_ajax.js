@@ -13,22 +13,19 @@
        (JSON: { success: true, sentence: "...", code: 61 })
 */
 
-$(document).ready(function () {
     $(document).on('click', '.ajax-delete-vehicle', function (e) {
         e.preventDefault();
+        e.stopPropagation();
 
         const btn = $(this);
         const card = btn.closest('.vehicle-card');
         const url = btn.attr('href');
 
-        if (!confirm('Delete this vehicle?')) return;
-
         $.ajax({
             url: url,
-            type: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRF()
-            },
+            type: "POST",
+            headers: { 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() },
+
             success: function (res) {
                 if (res.success) {
                     card.fadeOut(300, function () {
@@ -49,14 +46,29 @@ $(document).ready(function () {
 
         $.ajax({
             url: url,
-            type: 'POST',
-            headers: { 'X-CSRFToken': getCSRF() },
+            type: "POST",
+            headers: { 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() },
 
             success: function (res) {
-                if (res.status === 'sold') {
-                    card.addClass('sold-card');
-                } else {
-                    card.removeClass('sold-card');
+
+                // SOLD
+                if (res.status === "sold") {
+                    card.addClass("sold-card");
+
+                    btn
+                        .text("✔️ Mark as Available")
+                        .removeClass("btn-warning")
+                        .addClass("btn-success");
+                }
+
+                // AVAILABLE
+                else if (res.status === "available") {
+                    card.removeClass("sold-card");
+
+                    btn
+                        .text("🔒 Mark as Sold")
+                        .removeClass("btn-success")
+                        .addClass("btn-warning");
                 }
             }
         });
@@ -72,19 +84,33 @@ $(document).ready(function () {
 
         $.ajax({
             url: url,
-            type: 'POST',
-            headers: { 'X-CSRFToken': getCSRF() },
+            type: "POST",
+            headers: { 'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() },
 
             success: function (res) {
-                if (res.status === 'rented') {
-                    card.addClass('rented-card');
-                } else {
-                    card.removeClass('rented-card');
+
+                // RENTED
+                if (res.status === "rented") {
+                    card.addClass("rented-card");
+
+                    btn
+                        .text("✔️ Mark as Available")
+                        .removeClass("btn-warning")
+                        .addClass("btn-success");
+                }
+
+                // AVAILABLE
+                else if (res.status === "available") {
+                    card.removeClass("rented-card");
+
+                    btn
+                        .text("🔒 Mark as Rented")
+                        .removeClass("btn-success")
+                        .addClass("btn-warning");
                 }
             }
         });
     });
-
 
     $(document).on('click', '.ajax-unsave-btn', function (e) {
         e.preventDefault();
@@ -124,5 +150,3 @@ $(document).ready(function () {
     function getCSRF() {
         return $('[name=csrfmiddlewaretoken]').val();
     }
-
-});
