@@ -1,13 +1,13 @@
 import flet as ft
 import flet_map as fm
-import asyncio
+import requests
 
 from shared import api, nav, PRIMARY, BG, APP_STATE
 
 # -----------------------------
 # CONFIG
 # -----------------------------
-DEFAULT_ZOOM = 12
+DEFAULT_ZOOM = 13
 TILE_URL = "https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}"
 
 FALLBACK_LAT = -20.3185
@@ -15,272 +15,278 @@ FALLBACK_LNG = 57.5260
 
 
 # -----------------------------
-# HELPERS
+# FORMAT PRICE
 # -----------------------------
 def format_price(price):
     try:
         val = float(price)
-        if val <= 0:
-            return "0"
-        if val >= 500_000:
-            res = val / 1_000_000
-            return f"{res:.2f}".rstrip("0").rstrip(".") + "M"
+        if val >= 1_000_000:
+            return f"{val/1_000_000:.1f}M"
         if val >= 1_000:
-            res = val / 1_000
-            if res >= 100:
-                return f"{int(res)}k"
-            return f"{res:.2g}".rstrip("0").rstrip(".") + "k"
-        return f"{int(val)}"
-    except Exception:
+            return f"{val/1_000:.1f}k"
+        return str(int(val))
+    except:
         return "?"
+
+
+# -----------------------------
+# ROUTE API (OSRM)
+# -----------------------------
+def get_route(user_lat, user_lng, v_lat, v_lng):
+    url = (
+        f"http://router.project-osrm.org/route/v1/driving/"
+        f"{user_lng},{user_lat};{v_lng},{v_lat}"
+        f"?overview=full&geometries=geojson"
+    )
+
+    res = requests.get(url).json()
+
+    coords = res["routes"][0]["geometry"]["coordinates"]
+
+    # convert to flet_map format
+    return [
+        fm.MapLatitudeLongitude(lat, lng)
+        for lng, lat in coords
+    ]
 
 
 # -----------------------------
 # MAIN SCREEN
 # -----------------------------
 def nearby_screen(page: ft.Page, go_to, geo=None):
-    """
-    geo = ftg.Geolocator added via page.add() in main.py (mobile only).
-    geo = None on web.
-    """
 
     user_location = {"lat": FALLBACK_LAT, "lng": FALLBACK_LNG}
-    state = {"vehicles": []}
 
-    location_status = ft.Text(
-        "📍 Tap button to get your location",
-        size=12,
-        color=ft.Colors.GREY,
-    )
+    state = {
+        "vehicles": [],
+        "selected": None,
+        "route": []
+    }
 
-    map_container = ft.Container(
-        expand=True,
-        alignment=ft.Alignment(0, 0),
-        content=ft.ProgressRing(color=PRIMARY),
+    map_container = ft.Container(expand=True)
+
+    # -----------------------------
+    # ACTION BAR
+    # -----------------------------
+    action_bar = ft.Container(
+        visible=False,
+        bgcolor="white",
+        padding=10,
+        shadow=ft.BoxShadow(blur_radius=15),
+        content=ft.Row(
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            controls=[
+                ft.Text("Vehicle Selected", weight="bold"),
+
+                ft.Row([
+                    ft.ElevatedButton(
+                        "Get Directions",
+                        on_click=lambda e: get_directions()
+                    ),
+                    ft.ElevatedButton(
+                        "View Details",
+                        on_click=lambda e: view_details()
+                    ),
+                ])
+            ],
+        ),
     )
 
     # -----------------------------
-    # MARKERS
+    # MARKER CLICK
     # -----------------------------
     def on_marker_click(vehicle):
-        APP_STATE["sv"] = vehicle
+        state["selected"] = vehicle
+        action_bar.visible = True
+        page.update()
+
+    # -----------------------------
+    # VIEW DETAILS
+    # -----------------------------
+    def view_details():
+        APP_STATE["sv"] = state["selected"]
         go_to("detail")
 
+    # -----------------------------
+    # GET DIRECTIONS
+    # -----------------------------
+    def get_directions():
+        v = state["selected"]
+        if not v:
+            return
+
+        try:
+            gps = v.get("gps_coor")
+            v_lat, v_lng = map(float, gps.split(","))
+
+            state["route"] = get_route(
+                user_location["lat"],
+                user_location["lng"],
+                v_lat,
+                v_lng
+            )
+
+            render_map()
+
+        except Exception as e:
+            print("Route error:", e)
+
+    # -----------------------------
+    # BUILD MARKERS
+    # -----------------------------
     def build_markers():
         markers = []
+
         for v in state["vehicles"]:
             gps = v.get("gps_coor")
             if not gps:
                 continue
+
             try:
-                lat, lng = gps.split(",")
-                lat = float(lat.strip())
-                lng = float(lng.strip())
-                color = ft.Colors.BLUE if v.get("is_rental") else ft.Colors.RED
-                price_label = format_price(v.get("price", 0))
+                lat, lng = map(float, gps.split(","))
+                color = ft.Colors.RED if not v.get("is_rental") else ft.Colors.BLUE
+
                 markers.append(
                     fm.Marker(
                         coordinates=fm.MapLatitudeLongitude(lat, lng),
                         content=ft.Container(
-                            content=ft.Text(price_label, color="white", size=10, weight="bold"),
+                            content=ft.Text(
+                                format_price(v.get("price", 0)),
+                                size=10,
+                                weight="bold",
+                                color="white",
+                            ),
                             bgcolor=color,
-                            padding=ft.Padding(5, 2, 5, 2),
+                            padding=5,
                             border_radius=8,
-                            border=ft.Border.all(1.5, "white"),
                             ink=True,
                             on_click=lambda e, veh=v: on_marker_click(veh),
                         ),
                     )
                 )
-            except Exception as ex:
-                print(f"Marker error: {ex}")
+            except:
                 continue
 
-        # User location marker
+        # USER LOCATION
         markers.append(
             fm.Marker(
                 coordinates=fm.MapLatitudeLongitude(
-                    user_location["lat"], user_location["lng"]
+                    user_location["lat"],
+                    user_location["lng"]
                 ),
-                content=ft.Icon(ft.Icons.MY_LOCATION, color=ft.Colors.BLACK, size=30),
+                content=ft.Icon(ft.Icons.MY_LOCATION),
             )
         )
+
         return markers
 
     # -----------------------------
-    # RENDER MAP
+    # MAP RENDER (FIXED)
     # -----------------------------
     def render_map():
+
+        layers = [
+            fm.TileLayer(url_template=TILE_URL),
+            fm.MarkerLayer(markers=build_markers()),
+        ]
+
+        # -------------------------
+        # ROUTE DRAW (MARKER LINE)
+        # -------------------------
+        if state["route"]:
+            route_markers = [
+                fm.Marker(
+                    coordinates=pt,
+                    content=ft.Container(
+                        width=5,
+                        height=5,
+                        bgcolor=ft.Colors.BLUE,
+                        border_radius=3,
+                    ),
+                )
+                for pt in state["route"]
+            ]
+
+            layers.append(fm.MarkerLayer(markers=route_markers))
+
         map_container.content = fm.Map(
             expand=True,
             initial_center=fm.MapLatitudeLongitude(
-                user_location["lat"], user_location["lng"]
+                user_location["lat"],
+                user_location["lng"]
             ),
             initial_zoom=DEFAULT_ZOOM,
-            layers=[
-                fm.TileLayer(url_template=TILE_URL),
-                fm.MarkerLayer(markers=build_markers()),
-            ],
+            layers=layers,
         )
-        map_container.alignment = None
+
         page.update()
 
     # -----------------------------
-    # FETCH VEHICLES
+    # LOAD DATA
     # -----------------------------
     def fetch_data():
         try:
-            print("Fetching vehicles...")
-            vehicles = api.vehicles()
-            print(f"Loaded: {len(vehicles)}")
-            state["vehicles"] = vehicles
+            state["vehicles"] = api.vehicles()
             render_map()
         except Exception as e:
-            print(f"Fetch error: {e}")
             map_container.content = ft.Text("Failed to load vehicles", color="red")
             page.update()
 
     # -----------------------------
-    # GEOLOCATION
-    # Matches official example exactly:
-    #   await geo.request_permission(timeout=60)
-    #   await geo.get_current_position()
-    #   geo.on_position_change = handler
+    # LIVE LOCATION
     # -----------------------------
-    def handle_position_change(e):
-        """Live tracking — fires when device moves."""
+    def on_position_change(e):
         user_location["lat"] = e.position.latitude
         user_location["lng"] = e.position.longitude
-        location_status.value = f"📍 {e.position.latitude:.5f}, {e.position.longitude:.5f}"
-        if state["vehicles"]:
-            render_map()
-        else:
-            page.update()
+        render_map()
 
-    async def get_location(e):
-        """Called when user taps 'Use My Location'."""
+    def init_location():
         if not geo:
-            location_status.value = "⚠️ Location only works on mobile app"
-            page.update()
             return
 
-        # Attach live tracking handler
-        geo.on_position_change = handle_position_change
-        geo.on_error = lambda err: print(f"Geo error: {err.data}")
+        geo.on_position_change = on_position_change
 
-        # Step 1: request permission — timeout=60 matches official example
-        location_status.value = "Requesting permission..."
-        page.update()
+        async def start():
+            try:
+                await geo.request_permission()
+                pos = await geo.get_current_position()
 
-        import flet_geolocator as ftg
-        p = await geo.request_permission()
-        print(f"Permission: {p}")
+                user_location["lat"] = pos.latitude
+                user_location["lng"] = pos.longitude
 
-        if p not in (
-            ftg.GeolocatorPermissionStatus.ALWAYS,
-            ftg.GeolocatorPermissionStatus.WHILE_IN_USE,
-        ):
-            location_status.value = "⚠️ Permission denied — check phone settings"
-            page.update()
-            return
+                render_map()
 
-        # Step 2: get current position
-        location_status.value = "Getting location..."
-        page.update()
+            except Exception as e:
+                print("GPS error:", e)
 
-        pos = await geo.get_current_position()
-        print(f"Position: {pos.latitude}, {pos.longitude}")
-
-        user_location["lat"] = pos.latitude
-        user_location["lng"] = pos.longitude
-        location_status.value = f"📍 {pos.latitude:.5f}, {pos.longitude:.5f}"
-
-        if state["vehicles"]:
-            render_map()
-        else:
-            page.update()
+        page.run_task(start)
 
     # -----------------------------
-    # REFRESH
-    # -----------------------------
-    def on_refresh(e):
-        map_container.content = ft.ProgressRing(color=PRIMARY)
-        map_container.alignment = ft.Alignment(0, 0)
-        page.update()
-        fetch_data()
-
-    # -----------------------------
-    # LAYOUT
+    # UI
     # -----------------------------
     ui = ft.Column(
         expand=True,
-        spacing=10,
         controls=[
-            ft.Text("Explore Nearby", size=22, weight=ft.FontWeight.BOLD),
-
-            # Legend
-            ft.Row([
-                ft.Container(width=12, height=12, bgcolor=ft.Colors.BLUE, border_radius=3),
-                ft.Text("Rentals", size=13),
-                ft.Container(width=10),
-                ft.Container(width=12, height=12, bgcolor=ft.Colors.RED, border_radius=3),
-                ft.Text("For Sale", size=13),
-            ]),
-
-            # Location button + status row
-            ft.Row(
-                [
-                    ft.Button(
-                        content=ft.Row(
-                            [
-                                ft.Icon(ft.Icons.MY_LOCATION, color="white", size=16),
-                                ft.Text("Use My Location", color="white", size=13),
-                            ],
-                            tight=True,
-                            spacing=6,
-                        ),
-                        style=ft.ButtonStyle(
-                            bgcolor=PRIMARY,
-                            shape=ft.RoundedRectangleBorder(radius=8),
-                            padding=ft.Padding(12, 8, 12, 8),
-                        ),
-                        on_click=get_location,  # ← async handler directly, no lambda
-                        visible=not page.web,   # hide on web, only works on mobile
-                    ),
-                    location_status,
-                ],
-                alignment=ft.MainAxisAlignment.START,
-                vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=10,
-            ),
-
+            ft.Text("Nearby Vehicles", size=22, weight="bold"),
             map_container,
+            action_bar,
         ],
     )
 
     fetch_data()
+    init_location()
 
     return ft.View(
         route="/nearby",
         bgcolor=BG,
         navigation_bar=nav("nearby", go_to),
         appbar=ft.AppBar(
+            title=ft.Text("Vehicle Map"),
             bgcolor=PRIMARY,
-            title=ft.Text("Vehicle Finder", color="white"),
             leading=ft.IconButton(
                 icon=ft.Icons.ARROW_BACK,
-                icon_color="white",
                 on_click=lambda _: go_to("home"),
             ),
-            actions=[
-                ft.IconButton(
-                    icon=ft.Icons.REFRESH,
-                    icon_color="white",
-                    on_click=on_refresh,
-                )
-            ],
         ),
-        controls=[
-            ft.Container(content=ui, padding=16, expand=True),
-        ],
+        controls=[ft.Container(ui, padding=10, expand=True)],
     )

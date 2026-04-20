@@ -46,11 +46,14 @@ async def main(page: ft.Page):
             ),
         )
 
+    # Store geo in page.data so any screen can access it via page.data["geo"]
+    # This does NOT affect nearby.py or any other screen — they don't read page.data
+    page.data = {"geo": geo}
 
     def go_to(route):
         page.views.clear()
         if route in SCREENS:
-            if route == "nearby":
+            if route in ["nearby", "saved"]:
                 page.views.append(SCREENS[route](page, go_to, geo))
             else:
                 page.views.append(SCREENS[route](page, go_to))
