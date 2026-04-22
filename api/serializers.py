@@ -107,10 +107,6 @@ class RegisterSerializer(serializers.Serializer):
         return user
 
 
-# ------------------------------------
-# User Profile Serializer
-# Returns info about the logged-in user
-# ------------------------------------
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     email = serializers.CharField(source='user.email')
@@ -124,11 +120,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'user_type', 'address', 'contact_number', 'driver_license'
         ]
 
-
-# ------------------------------------
-# Saved Vehicle Serializer
-# Returns the vehicles a user has saved
-# ------------------------------------
 class SavedVehicleSerializer(serializers.ModelSerializer):
     vehicle = VehicleSerializer(read_only=True)
     vehicle_id = serializers.IntegerField(write_only=True)
