@@ -7,10 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report</title>
     <link rel="stylesheet" href="{% static 'css/report.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    {% include "nav.html" %} 
-    
+    {% include "nav.html" %}
+
     <main>
         <header>
             Report
@@ -18,7 +19,7 @@
 
         <section class="hero">
             <div class="form-box">
-                <form id="reportForm" method="POST" action="{% url 'reviews:submit_report' %}">
+                <form id="reportForm" method="POST" action="{% url 'reviews:submit_report_html' %}">
                     {% csrf_token %}
                     <input type="text" name="reporter_name" placeholder="Your Name" required>
                     <input type="email" name="email" placeholder="Your Email" required>
@@ -29,11 +30,10 @@
             </div>
         </section>
     </main>
-   
+
     {% include "footer.html" %}
 
-    <!-- Link your JavaScript file -->
-   <script src="{% static 'js/report.js' %}"></script>
+    <script src="{% static 'js/report_jquery_ajax.js' %}"></script>
 
 </body>
 </html>

@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 from Vehicles.models import Vehicle, VehicleImage
 from Profile.models import SavedVehicle
+import json
+from django.http import JsonResponse
 
 #login view
 def login_view(request):
@@ -69,13 +71,10 @@ def registerdetails_view(request):
         contact_number = request.POST.get('contact_number')
 
         if password != confirm_password:
-            messages.error(request, "Passwords do not match.")
-            return render(request, 'users/registerdetails.html')
+            return JsonResponse({'error': 'Passwords do not match.'}, status=400)
 
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered.")
-            return render(request, 'users/registerdetails.html')
-
+            return JsonResponse({'error': 'Email already registered.'}, status=400)
         user = User.objects.create_user(
             username=email,
             email=email,
@@ -90,8 +89,10 @@ def registerdetails_view(request):
             contact_number=contact_number
         )
 
-        messages.success(request, "Buyer account created successfully!")
-        return redirect('users:login')
+        return JsonResponse({
+            'message': 'Buyer account created successfully!',
+            'redirect_url': '/users/login/'
+        }, status=200)
 
     return render(request, 'users/registerdetails.html')
 
@@ -119,16 +120,13 @@ def sellerRenterdetails_view(request, role=None):
         print(f"DEBUG: Final role to save: {final_role}")
 
         if not final_role:
-            messages.error(request, "User type not found in form.")
-            return render(request, 'users/sellerRenterdetails.html')
+            return JsonResponse({'error': 'User type not found in form.'}, status=400)
 
         if password != confirm_password:
-            messages.error(request, "Passwords do not match.")
-            return render(request, 'users/sellerRenterdetails.html')
+            return JsonResponse({'error': 'Passwords do not match.'}, status=400)
 
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered.")
-            return render(request, 'users/sellerRenterdetails.html')
+            return JsonResponse({'error': 'Email already registered.'}, status=400)
 
         user = User.objects.create_user(
             username=email,
@@ -145,8 +143,11 @@ def sellerRenterdetails_view(request, role=None):
             driver_license=driver_license
         )
 
-        messages.success(request, f"{final_role.capitalize()} account created successfully!")
-        return redirect('users:login')
+        return JsonResponse({
+            'message': f'{final_role.capitalize()} account created successfully!',
+            'redirect_url': '/users/login/'
+        }, status=200)
+
     return render(request, 'users/sellerRenterdetails.html', {'selected_role': role})
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
