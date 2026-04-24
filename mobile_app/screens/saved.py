@@ -1,7 +1,7 @@
 import flet as ft
 import threading
 import requests
-import math
+import math, httpx
 from shared import api, APP_STATE, nav, section
 from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, TEXT_DARK, SUCCESS, ERROR
 
@@ -75,26 +75,27 @@ def _get_city(lat, lng):
     except Exception:
         return "this area"
 
-def _get_weather(lat, lng):
+async def _get_weather(lat, lng):
     try:
-        r = requests.get(
-            "https://api.open-meteo.com/v1/forecast",
-            params={
-                "latitude":      lat,
-                "longitude":     lng,
-                "current":       "temperature_2m,weather_code",
-                "forecast_days": 1,
-            },
-            timeout=8,
-        )
-        r.raise_for_status()
-        data = r.json()
-        return (
-            data["current"]["temperature_2m"],
-            data["current_units"]["temperature_2m"],
-            data["current"]["weather_code"],
-        )
-    except Exception:
+        async with httpx.AsyncClient(timeout=8) as client:
+            r = await client.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": lat,
+                    "longitude": lng,
+                    "current": "temperature_2m,weather_code",
+                    "forecast_days": 1,
+                },
+            )
+            r.raise_for_status()
+            data = r.json()
+
+            return (
+                data["current"]["temperature_2m"],
+                data["current_units"]["temperature_2m"],
+                data["current"]["weather_code"],
+            )
+    except:
         return None, None, None
 
 def saved_screen(page: ft.Page, go_to, geo=None):
@@ -239,12 +240,22 @@ def saved_screen(page: ft.Page, go_to, geo=None):
             ),
         )
 
-        def _load_weather(gps):
+        async def _load_weather(gps, vehicle_id):
+            cache = APP_STATE.setdefault("weather_cache", {})
+
+            if vehicle_id in cache:
+                weather_text.value = cache[vehicle_id]["text"]
+                weather_container.bgcolor = cache[vehicle_id]["bg"]
+                weather_text.italic = False
+                page.update()
+                return
+
             if not gps:
-                weather_text.value        = "Location not set for this listing."
+                weather_text.value = "Location not set for this listing."
                 weather_container.bgcolor = "#f5f5f5"
                 page.update()
                 return
+
             try:
                 parts = gps.split(",")
                 lat   = float(parts[0].strip())
@@ -254,29 +265,37 @@ def saved_screen(page: ft.Page, go_to, geo=None):
                 page.update()
                 return
 
-            city             = _get_city(lat, lng)
+            city = _get_city(lat, lng)
             temp, unit, code = _get_weather(lat, lng)
 
             if temp is not None:
-                vtype    = v.get("type_of_vehicle", "vehicle").lower()
+                vtype = v.get("type_of_vehicle", "vehicle").lower()
+
                 sentence = (
                     f"This {vtype} is listed in {city}, "
                     f"currently {temp}{unit} and {_weather_desc(code)} "
                     f"— {_maybe_visit(code)}"
                 )
-                weather_text.value        = sentence
-                weather_text.italic       = False
-                weather_text.color        = TEXT_DARK
-                weather_container.bgcolor = "#fff3e0" if code >= 61 else "#f0f4ff"
+
+                bg = "#fff3e0" if code >= 61 else "#f0f4ff"
+
+                weather_text.value = sentence
+                weather_text.italic = False
+                weather_text.color = TEXT_DARK
+                weather_container.bgcolor = bg
+
+                cache[vehicle_id] = {
+                    "text": sentence,
+                    "bg": bg
+                }
+
             else:
-                weather_text.value        = f"Weather unavailable for {city}."
+                weather_text.value = f"Weather unavailable for {city}."
                 weather_container.bgcolor = "#f5f5f5"
 
             page.update()
 
-        threading.Thread(
-            target=_load_weather, args=(v.get("gps_coor", ""),)
-        ).start()
+        page.run_task(_load_weather(v.get("gps_coor", ""), v["id"]))
 
         return card
 

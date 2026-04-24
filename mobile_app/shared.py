@@ -97,7 +97,7 @@ class API:
 
 # Global API instance — import this in every screen
 api = API()
-
+APP_STATE["weather_cache"] = {}
 
 # ── REUSABLE UI COMPONENTS ────
 
