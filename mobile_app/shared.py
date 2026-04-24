@@ -98,7 +98,6 @@ class API:
 # Global API instance — import this in every screen
 api = API()
 
-
 # ── REUSABLE UI COMPONENTS ────
 
 def big_btn(label, on_click, bg=None, fg="white", width=300):
