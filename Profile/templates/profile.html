@@ -71,92 +71,103 @@
 
         <!-- Seller/Renter Section -->
         {% if request.user.userprofile.user_type in 'seller renter' %}
-            <h4 class="section-title text-center">My Uploaded Vehicles</h4>
 
-            {% if uploaded_vehicles %}
-                <div class="row justify-content-center">
-                    {% for vehicle in uploaded_vehicles %}
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card vehicle-card h-100 position-relative
-                                {% if vehicle.is_sold %}sold-card
-                                {% elif vehicle.is_rented %}rented-card
-                                {% endif %}">
+        <h4 class="section-title text-center">My Uploaded Vehicles</h4>
 
-                                <a href="{% url 'profile:remove_uploaded_vehicle' vehicle.id %}"
-                                   class="ajax-delete-vehicle btn btn-danger btn-sm"
-                                   onclick="return confirm('Are you sure you want to delete this vehicle?')">
-                                    🗑️ Delete
-                                </a>
+        {% if uploaded_vehicles %}
 
-                                {% if vehicle.is_sold or vehicle.is_rented %}
-                                    <button class="btn btn-secondary btn-sm position-absolute top-0 end-0 m-2" disabled>
-                                        📃 Details
-                                    </button>
-                                {% else %}
-                                    <a href="{% url 'vehicles:detail' vehicle.id %}"
-                                       class="btn btn-primary btn-sm position-absolute top-0 end-0 m-2">
-                                        📃 Details
-                                    </a>
-                                {% endif %}
+        <div class="row justify-content-center">
 
-                                {% if vehicle.uploader.userprofile.user_type == 'renter' %}
-                                    {% if vehicle.is_rented %}
-                                        <a href="{% url 'profile:unmark_as_rented' vehicle.id %}"
-                                           class="btn btn-success btn-sm position-absolute bottom-0 end-0 m-2"
-                                           onclick="return confirm('Unmark this vehicle as rented?')">
-                                            ✔️ Mark as Available
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'profile:mark_as_rented' vehicle.id %}"
-                                           class="ajax-toggle-rented btn btn-warning btn-sm"
-                                           onclick="return confirm('Mark this vehicle as rented?')">
-                                            🔒 Mark as Rented
-                                        </a>
-                                    {% endif %}
-                                {% else %}
-                                    {% if vehicle.is_sold %}
-                                        <a href="{% url 'profile:unmark_as_sold' vehicle.id %}"
-                                           class="btn btn-success btn-sm position-absolute bottom-0 end-0 m-2"
-                                           onclick="return confirm('Unmark this vehicle as sold?')">
-                                            ✔️ Mark as Available
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'profile:mark_as_sold' vehicle.id %}"
-                                           class="ajax-toggle-sold btn btn-warning btn-sm"
-                                           onclick="return confirm('Mark this vehicle as sold?')">
-                                            🔒 Mark as Sold
-                                        </a>
-                                    {% endif %}
-                                {% endif %}
+            {% for vehicle in uploaded_vehicles %}
 
-                                {% if vehicle.images.first %}
-                                    <img src="{{ vehicle.images.first.image.url }}" class="card-img-top vehicle-image" alt="">
-                                {% else %}
-                                    <div class="card-img-top vehicle-image bg-light d-flex align-items-center justify-content-center">
-                                        <span>No Image Available</span>
-                                    </div>
-                                {% endif %}
+            <div class="col-md-6 col-lg-4 mb-4">
 
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }} - {{ vehicle.year }}</h5>
-                                    <p class="card-text">
-                                        <strong>Price:</strong> Rs {{ vehicle.price }}<br>
-                                        <strong>Mileage:</strong> {{ vehicle.mileage }} km<br>
-                                        <strong>Transmission:</strong> {{ vehicle.transmission }}
-                                    </p>
-                                </div>
+                <!-- CARD -->
+                <div class="card vehicle-card h-100 position-relative
+                    {% if vehicle.is_sold %}sold-card
+                    {% elif vehicle.is_rented %}rented-card
+                    {% endif %}">
 
-                            </div>
+                    <a href="{% url 'profile:remove_uploaded_vehicle' vehicle.id %}"
+                    class="btn btn-danger btn-sm position-absolute top-0 start-0 m-2 ajax-delete-vehicle"
+                    style="z-index:10;">
+                        🗑️ Delete
+                    </a>
+
+                    {% if vehicle.uploader.userprofile.user_type == 'renter' %}
+
+                        <a href="{% url 'profile:toggle_rented' vehicle.id %}"
+                        class="btn {% if vehicle.is_rented %}btn-success{% else %}btn-warning{% endif %}
+                        btn-sm position-absolute bottom-0 end-0 m-2 ajax-toggle-rented"
+                        style="z-index:10;">
+
+                            {% if vehicle.is_rented %}
+                                ✔️ Mark as Available
+                            {% else %}
+                                🔒 Mark as Rented
+                            {% endif %}
+
+                        </a>
+
+                    {% else %}
+
+                        <a href="{% url 'profile:toggle_sold' vehicle.id %}"
+                        class="btn {% if vehicle.is_sold %}btn-success{% else %}btn-warning{% endif %}
+                        btn-sm position-absolute bottom-0 end-0 m-2 ajax-toggle-sold"
+                        style="z-index:10;">
+
+                            {% if vehicle.is_sold %}
+                                ✔️ Mark as Available
+                            {% else %}
+                                🔒 Mark as Sold
+                            {% endif %}
+
+                        </a>
+
+                    {% endif %}
+
+                    <!-- IMAGE -->
+                    {% if vehicle.images.first %}
+                        <img src="{{ vehicle.images.first.image.url }}"
+                            class="card-img-top vehicle-image"
+                            alt="">
+                    {% else %}
+                        <div class="card-img-top vehicle-image bg-light d-flex align-items-center justify-content-center">
+                            <span>No Image Available</span>
                         </div>
-                    {% endfor %}
+                    {% endif %}
+
+                    <!-- BODY -->
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            {{ vehicle.make }} {{ vehicle.model }} - {{ vehicle.year }}
+                        </h5>
+
+                        <p class="card-text">
+                            <strong>Price:</strong> Rs {{ vehicle.price }}<br>
+                            <strong>Mileage:</strong> {{ vehicle.mileage }} km<br>
+                            <strong>Transmission:</strong> {{ vehicle.transmission }}
+                        </p>
+                    </div>
+
                 </div>
-            {% else %}
-                <div class="text-center mt-4">
-                    <p>No uploaded vehicles yet.</p>
-                    <div class="empty-exclamation mb-2"><span>!</span></div>
-                    <a href="{% url 'users:uploadvehicles' %}" class="btn btn-primary">Upload Vehicles</a>
-                </div>
-            {% endif %}
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="text-center mt-4">
+            <p>No uploaded vehicles yet.</p>
+            <div class="empty-exclamation mb-2"><span>!</span></div>
+            <a href="{% url 'users:uploadvehicles' %}" class="btn btn-primary">
+                Upload Vehicles
+            </a>
+        </div>
+
+        {% endif %}
         {% endif %}
 
         <!-- ── Buyer Section -->
@@ -233,7 +244,9 @@
 
     </div>
 
-    <footer>{% include "footer.html" %}</footer>
+    <footer>
+        {% include "footer.html" %}
+    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

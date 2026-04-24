@@ -231,41 +231,52 @@ def upload_vehicle_screen(page, go_to):
         contact_f = field("Contact Number", keyboard=ft.KeyboardType.PHONE,
                           icon=ft.Icons.PHONE_OUTLINED)
         gps_f     = field("GPS Coordinates")
-        def get_location_from_ip(e):
-            # Visual feedback that it's working
-            gps_f.hint_text = "Fetching..."
+        geo = page.data.get("geo")
+
+        async def get_real_location(e):
+            if not geo:
+                msg.value = "Geolocator not available on this platform."
+                msg.color = ERROR
+                page.update()
+                return
+
+            # Visual feedback
+            gps_f.hint_text = "Accessing GPS..."
             gps_f.update()
 
-            def fetch():
-                try:
-               
-                    r = requests.get("https://ipapi.co/json/", timeout=5)
-                    data = r.json()
-                    lat = data.get("latitude")
-                    lon = data.get("longitude")
-                    city = data.get("city", "Unknown")
-
-                    if lat and lon:
-                        gps_f.value = f"{lat}, {lon}"
-                        msg.value = f"Location set to: {city}"
+            try:
+                # Check permissions first
+                p = await geo.get_permission_status()
+                if p != "granted":
+                    p = await geo.request_permission()
+                
+                if p == "granted":
+                    # Get the current position from hardware sensor
+                    pos = await geo.get_current_position()
+                    if pos:
+                        gps_f.value = f"{pos.latitude}, {pos.longitude}"
+                        msg.value = "GPS Location set successfully!"
                         msg.color = SUCCESS
                     else:
-                        msg.value = "Could not detect location via IP."
+                        msg.value = "Could not retrieve GPS coordinates."
                         msg.color = ERROR
-                except Exception as ex:
-                    msg.value = "Network error while fetching location."
+                else:
+                    msg.value = "Location permission denied."
                     msg.color = ERROR
-                
-                gps_f.hint_text = None
-                page.update()
-            threading.Thread(target=fetch).start()
+
+            except Exception as ex:
+                msg.value = f"GPS Error: {ex}"
+                msg.color = ERROR
+            
+            gps_f.hint_text = None
+            page.update()
         gps_row = ft.Row([
             ft.Container(content=gps_f, expand=True), # Let the field take most space
             ft.IconButton(
                 icon=ft.Icons.MY_LOCATION,
                 icon_color=PRIMARY,
-                tooltip="Get location from IP",
-                on_click=get_location_from_ip,
+                tooltip="Get location ",
+                on_click=get_real_location,
                 style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=8),
                     bgcolor="#f0f2f5"

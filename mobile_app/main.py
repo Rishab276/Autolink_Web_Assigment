@@ -53,7 +53,7 @@ async def main(page: ft.Page):
     def go_to(route):
         page.views.clear()
         if route in SCREENS:
-            if route == "nearby":
+            if route in ["nearby", "saved"]:
                 page.views.append(SCREENS[route](page, go_to, geo))
             else:
                 page.views.append(SCREENS[route](page, go_to))
