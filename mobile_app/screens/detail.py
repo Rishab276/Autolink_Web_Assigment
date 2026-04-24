@@ -1,15 +1,18 @@
 # screens/detail.py
 # ─────────────────────────────────────────────────────────────
-# VEHICLE DETAIL SCREEN WITH IMAGE CAROUSEL
+# VEHICLE DETAIL SCREEN WITH IMAGE CAROUSEL + MINI MAP
 # ─────────────────────────────────────────────────────────────
 
 import flet as ft
 import threading
+import flet_map as fm
+
 from shared import api, APP_STATE, section
-from shared import PRIMARY, ACCENT, BG, TEXT_DARK, TEXT_LIGHT, SUCCESS, ERROR, CENTER
+from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, SUCCESS, CENTER
 
 
 def detail_screen(page, go_to):
+
     vehicle = APP_STATE.get("sv")
     if not vehicle:
         go_to("home")
@@ -26,6 +29,7 @@ def detail_screen(page, go_to):
             pass
 
     is_saved = vehicle["id"] in saved_ids
+
     save_txt = ft.Text("Unsave" if is_saved else "Save", color="white", size=14)
     save_icon = ft.Icon(ft.Icons.BOOKMARK, color="white", size=16)
 
@@ -56,7 +60,7 @@ def detail_screen(page, go_to):
     save_box.on_click = toggle
 
     # -----------------------------
-    # INFO ROW HELPER
+    # INFO ROW
     # -----------------------------
     def irow(icon, lbl, val):
         return ft.Row([
@@ -67,20 +71,13 @@ def detail_screen(page, go_to):
 
     # -----------------------------
     # IMAGE CAROUSEL
-    # Uses a simple index + swapping images manually
-    # PageView.page_count does not exist in Flet 0.84
     # -----------------------------
     images = vehicle.get("images", [])
     img_count = max(len(images), 1)
     current_index = {"i": 0}
 
-    index_text = ft.Text(
-        f"1/{img_count}",
-        size=12,
-        color="white",
-    )
+    index_text = ft.Text(f"1/{img_count}", size=12, color="white")
 
-    # The image/placeholder displayed
     def get_image_control(idx):
         if images:
             return ft.Image(
@@ -113,21 +110,11 @@ def detail_screen(page, go_to):
         if i < img_count - 1:
             go_to_image(i + 1)
 
-    # Show/hide arrows based on image count
-    show_arrows = img_count > 1
-
     carousel = ft.Stack(
         height=260,
         controls=[
-            # Image display
-            ft.Container(
-                content=image_display,
-                expand=True,
-                height=260,
-                bgcolor="#000000",
-            ),
+            ft.Container(content=image_display, expand=True, bgcolor="#000000"),
 
-            # LEFT arrow
             ft.IconButton(
                 icon=ft.Icons.CHEVRON_LEFT,
                 icon_color="white",
@@ -135,10 +122,9 @@ def detail_screen(page, go_to):
                 on_click=prev_image,
                 left=10,
                 top=110,
-                visible=show_arrows,
+                visible=img_count > 1,
             ),
 
-            # RIGHT arrow
             ft.IconButton(
                 icon=ft.Icons.CHEVRON_RIGHT,
                 icon_color="white",
@@ -146,10 +132,9 @@ def detail_screen(page, go_to):
                 on_click=next_image,
                 right=10,
                 top=110,
-                visible=show_arrows,
+                visible=img_count > 1,
             ),
 
-            # Image counter badge
             ft.Container(
                 content=index_text,
                 bgcolor="#00000088",
@@ -157,9 +142,48 @@ def detail_screen(page, go_to):
                 border_radius=6,
                 bottom=10,
                 right=10,
-                visible=show_arrows,
+                visible=img_count > 1,
             ),
         ]
+    )
+
+    # -----------------------------
+    # MINI MAP (NEW FEATURE)
+    # -----------------------------
+    gps = vehicle.get("gps_coor", "-20.1609,57.5012")
+
+    try:
+        lat, lng = map(float, gps.split(","))
+    except:
+        lat, lng = -20.1609, 57.5012
+
+    mini_map = ft.Container(
+        height=180,
+        border_radius=12,
+        clip_behavior=ft.ClipBehavior.HARD_EDGE,
+        margin=ft.margin.only(top=10),
+        content=fm.Map(
+            expand=True,
+            initial_center=fm.MapLatitudeLongitude(lat, lng),
+            initial_zoom=15,
+            layers=[
+                fm.TileLayer(
+                    url_template="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}"
+                ),
+                fm.MarkerLayer(
+                    markers=[
+                        fm.Marker(
+                            coordinates=fm.MapLatitudeLongitude(lat, lng),
+                            content=ft.Icon(
+                                ft.Icons.LOCATION_ON,
+                                color=ft.Colors.RED,
+                                size=30,
+                            ),
+                        )
+                    ]
+                ),
+            ],
+        ),
     )
 
     # -----------------------------
@@ -182,7 +206,7 @@ def detail_screen(page, go_to):
     ) if vehicle.get("contact") else ft.Container()
 
     # -----------------------------
-    # MAIN VIEW
+    # VIEW
     # -----------------------------
     return ft.View(
         route="/detail",
@@ -202,7 +226,7 @@ def detail_screen(page, go_to):
                 spacing=0,
                 controls=[
 
-                    # Carousel
+                    # IMAGE CAROUSEL
                     carousel,
 
                     ft.Container(
@@ -211,7 +235,7 @@ def detail_screen(page, go_to):
                             spacing=12,
                             controls=[
 
-                                # Title + price
+                                # TITLE
                                 ft.Row([
                                     ft.Column(expand=True, controls=[
                                         ft.Text(
@@ -221,7 +245,7 @@ def detail_screen(page, go_to):
                                         ),
                                         ft.Text(
                                             f"Rs {int(vehicle['price']):,}"
-                                            f"{'  /month' if vehicle['is_rental'] else ''}",
+                                            f"{' /month' if vehicle['is_rental'] else ''}",
                                             size=18,
                                             color=ACCENT,
                                             weight=ft.FontWeight.BOLD,
@@ -242,6 +266,7 @@ def detail_screen(page, go_to):
                                 ft.Divider(),
 
                                 section("Specifications"),
+
                                 irow(ft.Icons.SPEED, "Mileage", f"{vehicle['mileage']:,} km"),
                                 irow(ft.Icons.SETTINGS, "Transmission", vehicle['transmission']),
                                 irow(ft.Icons.LOCAL_GAS_STATION, "Fuel Type", vehicle['fuel_type']),
@@ -249,8 +274,8 @@ def detail_screen(page, go_to):
                                 irow(ft.Icons.PERSON, "Listed by", vehicle.get('uploader_name', 'N/A')),
 
                                 ft.Divider(),
-
                                 section("Description"),
+
                                 ft.Text(
                                     vehicle.get('desc') or "No description provided.",
                                     size=14,
@@ -261,11 +286,19 @@ def detail_screen(page, go_to):
 
                                 ft.Row([save_box, wa], spacing=10),
 
+
+                                section("Location"),
+
                                 ft.Text(
                                     f"📍 GPS: {vehicle.get('gps_coor', 'N/A')}",
                                     size=12,
                                     color=TEXT_LIGHT,
                                 ),
+
+                                # MINI MAP HERE
+                                mini_map,
+
+                                ft.Divider(),
 
                                 ft.Container(height=20),
                             ]
