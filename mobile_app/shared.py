@@ -1,4 +1,3 @@
-# shared.py
 # ─────────────────────────────────────────────────────────────
 # SHARED MODULE — Do NOT modify without telling the whole team
 # Contains: API class, theme colors, helper components,
