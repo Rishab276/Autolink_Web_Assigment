@@ -1,7 +1,7 @@
 import flet as ft
 import threading
 import requests
-import math, httpx
+import math
 from shared import api, APP_STATE, nav, section
 from shared import PRIMARY, ACCENT, BG, TEXT_LIGHT, TEXT_DARK, SUCCESS, ERROR
 

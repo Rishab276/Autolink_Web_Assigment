@@ -10,6 +10,8 @@ urlpatterns = [
     path('filter/', views.filter, name='filter'),
     path('detail/<int:pk>/', views.detail, name='detail'),
     path('category/<str:category>/', views.category_list, name='category'),
+    path('api/vehicles/<int:pk>/', views.vehicle_detail_api, name='vehicle_detail_api'),
+
 ]
 
 # ✅ Serve media files (vehicle images) during development
